@@ -1,0 +1,20 @@
+{
+  "name": "backend_circulo_lectura",
+  "version": "1.0.0",
+  "description": "Backend para el proyecto del Círculo de Lectura, utilizando Express.js y MySQL para gestionar usuarios, libros y comentarios.",
+  "license": "GNU V3",
+  "author": "Gonzalo Lavado",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon main.js"
+  },
+  "type": "module",
+  "dependencies": {
+    "express": "^5"
+  },
+  "devDependencies": {
+    "nodemon": "^3",
+    "@types/express": "^5"
+  }
+}

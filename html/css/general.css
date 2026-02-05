@@ -1,0 +1,233 @@
+/* Nota:
+Este CSS realmente es de otra asignatura, lo llevo construyendo poco a poco en lo que va de curso.
+Lo incluyo aquí para no tener que crear uno nuevo desde cero. Aunque solo use una pequeña parte de él.
+*/
+
+/* =====================
+Variables de color
+===================== */
+:root {
+	--color-fondo: #242833;
+	--color-elemento: #4a4f57;
+	--color-texto: wheat;
+	--color-italica: lightgray;
+	--color-boton: #40a0f0;
+	--color-texto-boton: black;
+	--color-boton-hover: #1d6fd0;
+	--color-texto-hover: white;
+
+	--color-acento: lightseagreen;
+	--color-acento-2: #ff9800;
+	--color-bordes: #8a9096;
+	--color-error: lightcoral;
+	--color-verificado: lightseagreen;
+
+	--color-th: #45494e;
+	--color-td: #707478;
+	--color-td-par: #4f5860;
+
+	--border-radius: 1.25rem;
+}
+
+* {
+	box-sizing: border-box;
+}
+/* =====================
+Estilos generales y Layout
+===================== */
+body {
+	background-color: var(--color-fondo);
+	color: var(--color-texto);
+	font-family: "Times New Roman", serif;
+	font-size: 1em;
+}
+
+main {
+	margin: 0 auto;
+	max-width: 95%;
+	width: fit-content;
+}
+
+header,
+footer,
+.elemento {
+	background-color: var(--color-elemento);
+	border: 3px solid var(--color-bordes);
+	border-radius: var(--border-radius);
+	padding: 0.25rem 1rem;
+}
+
+header,
+footer {
+	align-items: center;
+	display: flex;
+	flex-direction: column;
+	gap: 0.25rem;
+	justify-content: center;
+	margin: 0.25rem auto;
+	text-align: center;
+}
+
+header > h1,
+header > h4 {
+	align-items: center;
+	display: flex;
+	margin: 0.15rem auto;
+}
+
+h1,
+h2,
+h3 {
+	text-decoration: underline;
+}
+
+hr {
+	background-color: var(--color-bordes);
+	border: none;
+	height: 3px;
+	margin: 1rem auto;
+	width: 100%;
+}
+/* ---------------------------
+    Grid / contenedores
+--------------------------- */
+.contenedorFlex {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 1.5rem;
+	justify-content: center;
+	margin: 0 auto;
+	padding: 1.5rem;
+	width: 100%;
+}
+
+.FlexCol {
+	align-items: center;
+	display: flex;
+	flex-direction: column;
+	margin: 0 auto;
+	padding: 1rem;
+	width: fit-content;
+	max-width: 100%;
+}
+
+/* ---------------------------
+    Elementos específicos 
+--------------------------- */
+
+/* =====================
+Mensajes de resultado y errores
+===================== */
+.mensajeResultado {
+	font-family: "Courier New", Courier, monospace;
+	font-size: 1.2em;
+	font-weight: bold;
+	text-align: center;
+	white-space: pre-wrap;
+	word-wrap: normal;
+}
+
+.verificado {
+	color: var(--color-verificado);
+}
+
+.error {
+	color: var(--color-error);
+}
+
+pre {
+	color: var(--color-italica);
+	display: inline-block;
+	font-family: "Courier New", Courier, monospace;
+	font-style: italic;
+	margin: 1rem auto;
+	word-break: break-word;
+	white-space: pre-wrap;
+	width: fit-content; /* Para centrar auto, debe tener tamaño => Tamaño mínimo */
+}
+
+span {
+	align-self: center;
+	font-family: "Courier New", Courier, monospace;
+	color: var(--color-italica);
+	font-size: 0.8em;
+	font-style: italic;
+	margin-left: 3rem;
+}
+
+/* =====================
+Enlaces y botones
+===================== */
+.boton,
+.boton:hover,
+.boton:visited,
+.boton:active,
+.boton:focus {
+	border: 1px solid var(--color-bordes);
+	border-radius: var(--border-radius);
+	cursor: pointer;
+	display: block;
+	font-size: 0.9em;
+	margin: 1rem auto;
+	padding: 1rem;
+	text-decoration: none;
+	width: fit-content;
+}
+
+.boton:hover {
+	background-color: var(--color-boton-hover);
+	color: var(--color-texto-hover);
+}
+
+.boton:focus {
+	outline: 3px solid var(--color-boton-hover);
+}
+
+.normal {
+	background-color: var(--color-boton);
+	color: var(--color-texto-boton);
+}
+
+.bEsp {
+	background-color: var(--color-acento);
+	color: var(--color-texto-boton);
+}
+
+.bAtencion {
+	background-color: var(--color-acento-2);
+	color: var(--color-texto-hover);
+}
+
+/* =====================
+Tablas
+===================== */
+table {
+	border: 3px solid var(--color-bordes);
+	border-collapse: collapse;
+	margin: 1rem auto;
+	width: fit-content;
+}
+th {
+	background-color: var(--color-th);
+	border: 2px solid var(--color-bordes);
+	padding: 0.4rem;
+	text-align: center;
+}
+td {
+	background-color: var(--color-td);
+	border: 1px solid var(--color-bordes);
+	padding: 0.4rem;
+}
+
+table tr:nth-child(even) td {
+	background-color: var(--color-td-par);
+}
+
+/* =====================
+Imagenes
+===================== */
+img {
+	height: auto;
+	max-width: 100%;
+	margin: 1rem auto;
+}

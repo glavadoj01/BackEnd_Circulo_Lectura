@@ -1,0 +1,13 @@
+{
+    "compilerOptions": {
+        "allowJs": true,
+        "checkJs": true,
+        "noEmit": true,
+        // Permite importación moderna de módulos CommonJS (para espress)
+        "esModuleInterop": true,
+        // Permite importaciones por defecto (para mongoose, que no tiene type: "module")
+        "allowSyntheticDefaultImports": true
+    },
+    // Excluir carpetas que no necesitan ser compiladas ni analizadas por TypeScript
+    "exclude": ["node_modules", "dist"]
+}
