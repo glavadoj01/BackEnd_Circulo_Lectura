@@ -1,13 +1,13 @@
 {
-    "compilerOptions": {
-        "allowJs": true,
-        "checkJs": true,
-        "noEmit": true,
-        // Permite importación moderna de módulos CommonJS (para espress)
-        "esModuleInterop": true,
-        // Permite importaciones por defecto (para mongoose, que no tiene type: "module")
-        "allowSyntheticDefaultImports": true
-    },
-    // Excluir carpetas que no necesitan ser compiladas ni analizadas por TypeScript
-    "exclude": ["node_modules", "dist"]
+	"compilerOptions": {
+		"target": "ES2020",
+		"module": "Node16",
+		"moduleResolution": "node16",
+		"esModuleInterop": true,
+		"forceConsistentCasingInFileNames": true,
+		"strict": true,
+		"skipLibCheck": true,
+		"outDir": "dist"
+	},
+	"include": ["src/**/*.ts"]
 }

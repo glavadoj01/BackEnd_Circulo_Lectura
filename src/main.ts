@@ -1,22 +1,26 @@
 // Para el servidor Express
 import express from "express";
-import usuariosRouter from "./Routes/usuarios.routes.js";
-
+import conexionRouter from "./Routes/conexionBD.routes.js";
+import * as dotenv from "dotenv"; // Para gestion y carga de credenciales desde archivos .env
+import cors from "cors"; // Para habilitar CORS y permitir peticiones desde el frontend
 // Para la páginas defaults
-import path from "path"; // Para redireción de rutas a archivos estáticos
 
 // Asociacion de metodos de express a la variable app
 const app = express();
-const usuariosRoutes = usuariosRouter;
+dotenv.config({ path: "src/env/.env" });
+const rutas = conexionRouter;
 
-// Middleware para servir archivos estáticos (HTML, CSS, JS, imágenes) (Explicado por IA)
-app.use(express.static(path.resolve("html")));
-app.use(express.static(path.resolve("img")));
+// Habilita CORS solo para el frontend en localhost:4200
+app.use(
+	cors({
+		origin: "http://localhost:4200",
+	}),
+);
 
 // Middleware para parsear JSON
 // En postman, seleccionar Body -> raw -> JSON => Enviar formato JSON
 app.use(express.json());
-app.use(usuariosRoutes);
+app.use(rutas);
 
 // Para la conexión con MongoDB
 

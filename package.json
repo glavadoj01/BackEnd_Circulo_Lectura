@@ -1,20 +1,36 @@
 {
   "name": "backend_circulo_lectura",
   "version": "1.0.0",
-  "description": "Backend para el proyecto del Círculo de Lectura, utilizando Express.js y MySQL para gestionar usuarios, libros y comentarios.",
-  "license": "GNU V3",
-  "author": "Gonzalo Lavado",
-  "main": "main.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "nodemon main.js"
+  "description": "Backend para proyecto educativo - TFC",
+  "homepage": "https://github.com/glavadoj01/BackEnd_Circulo_Lectura#readme",
+  "bugs": {
+    "url": "https://github.com/glavadoj01/BackEnd_Circulo_Lectura/issues"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/glavadoj01/BackEnd_Circulo_Lectura.git"
+  },
+  "license": "ISC",
+  "author": "Gonzalo Lavado",
   "type": "module",
+  "main": "src/main.ts",
+  "scripts": {
+    "dev": "nodemon --watch src --exec \"npm run build && node dist/main.js\"",
+    "build": "tsc",
+    "start": "node dist/main.js",
+    "run": "npm run build && npm run start"
+  },
   "dependencies": {
-    "express": "^5"
+    "cors": "^2.8.6",
+    "dotenv": "^17.2.4",
+    "express": "^5.2.1",
+    "mysql2": "^3.16.3"
   },
   "devDependencies": {
-    "nodemon": "^3",
-    "@types/express": "^5"
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/node": "^25.2.1",
+    "nodemon": "^3.1.11",
+    "typescript": "^5.9.3"
   }
 }
