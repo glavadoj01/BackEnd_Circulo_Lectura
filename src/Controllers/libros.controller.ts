@@ -2,6 +2,7 @@
 import { Request, Response } from "express";
 import { LibroBD } from "../Interfaces/modelosBD/modelosBD.js";
 import { ConexionBD, getConexionConfigFromEnv } from "../Services/conexionBD.service.js";
+import { LibroApp } from "../Interfaces/modelosApp/modelosApp.js";
 
 /**
  * Crear un nuevo libro
@@ -118,7 +119,13 @@ async function obtenerLibroId(req: Request, res: Response) {
 		if (!libroRaw) {
 			return res.status(404).json({ error: "Libro no encontrado" });
 		}
-		res.json(libroRaw);
+		const libro = libroRaw.map((libro: any) => ({
+			...libro,
+			autores: libro.autores ? libro.autores.split(",").map((nombre: string) => ({ nombre_autor: nombre })) : [],
+			generos: libro.generos ? libro.generos.split(",").map((nombre: string) => ({ nombre: nombre })) : [],
+		}));
+
+		res.json(libro[0]);
 	} catch (error) {
 		res.status(500).json({ error: "Error al obtener libro", detalle: (error as Error).message });
 	} finally {

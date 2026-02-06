@@ -1,4 +1,5 @@
 import mysql, { Pool, PoolConnection, RowDataPacket, FieldPacket } from "mysql2/promise";
+import { LibroApp } from "../Interfaces/modelosApp/modelosApp.js";
 
 interface ConexionConfig {
 	host: string;
@@ -190,7 +191,7 @@ export class ConexionBD {
 		orden = "",
 		limite = 0,
 		columnas = "*",
-	): Promise<any[]> {
+	): Promise<LibroApp[]> {
 		// Selección de columnas de libro
 		let selectCols =
 			columnas === "*"
