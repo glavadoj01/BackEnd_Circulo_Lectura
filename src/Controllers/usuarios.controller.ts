@@ -34,9 +34,28 @@ async function obtenerUsuarios(req: Request, res: Response) {
 
 	try {
 		conexionAbierta = new ConexionBD(getConexionConfigFromEnv());
-		// Puedes usar filtros por query params si lo deseas
-		const filtros = req.query || {};
-		const usuarios: UsuarioBD[] = await conexionAbierta.listarRegistros("usuarios", filtros);
+		// Manejo flexible de filtros por query params
+		const filtrosRaw = req.query.filtros;
+		let filtros: Record<string, any> = {};
+		if (typeof filtrosRaw === "string") {
+			try {
+				filtros = JSON.parse(filtrosRaw);
+			} catch {
+				return res.status(400).json({ error: "Filtros mal formateados" });
+			}
+		} else if (typeof filtrosRaw === "object" && filtrosRaw !== null) {
+			filtros = filtrosRaw as Record<string, any>;
+		}
+		const orden = (req.query.orden as string) || "";
+		const limite = parseInt(req.query.limite as string) || 0;
+		const columnas = (req.query.columnas as string) || "*";
+		const usuarios: UsuarioBD[] = await conexionAbierta.listarRegistros(
+			"usuario",
+			filtros,
+			orden,
+			limite,
+			columnas,
+		);
 		res.json(usuarios);
 	} catch (error) {
 		res.status(500).json({ error: "Error al obtener usuarios", detalle: (error as Error).message });

@@ -190,27 +190,24 @@ export class ConexionBD {
 		condiciones: Record<string, any> = {},
 		orden = "",
 		limite = 0,
-		columnas = "*",
 	): Promise<LibroApp[]> {
 		// Selección de columnas de libro
-		let selectCols =
-			columnas === "*"
-				? "l.*"
-				: columnas
-						.split(",")
-						.map(c => `l.${c.trim()}`)
-						.join(", ");
-		// Agrega los campos agregados
-		selectCols += `,
+		let selectCols = `l.id_libro, l.titulo_libro, l.codigo_isbn, l.idioma_original, 
+        l.paginas, l.year_publicacion, l.sinopsis,
+        i.nombre_idioma AS idioma_original,
 		GROUP_CONCAT(DISTINCT a.nombre_autor ORDER BY a.nombre_autor SEPARATOR ',') AS autores,
-		GROUP_CONCAT(DISTINCT g.nombre_genero ORDER BY g.nombre_genero SEPARATOR ',') AS generos`;
+		GROUP_CONCAT(DISTINCT g.nombre_genero ORDER BY g.nombre_genero SEPARATOR ',') AS generos,
+        COUNT(DISTINCT r.id_usuario) AS totalResenas,
+        AVG(r.calificacion_libro) AS calificacionPromedio`;
 
 		let sql = `SELECT ${selectCols} FROM libro AS l
-		       LEFT JOIN libro_autor AS la ON l.id_libro = la.id_libro
-		       LEFT JOIN autor AS a ON la.id_escritor = a.id_autor
-		       LEFT JOIN libro_genero AS lg ON l.id_libro = lg.id_libro
-		       LEFT JOIN genero AS g ON lg.id_genero = g.id_genero
-		       `;
+        LEFT JOIN idiomas AS i ON l.idioma_original = i.id_idioma
+        LEFT JOIN libro_autor AS la ON l.id_libro = la.id_libro
+        LEFT JOIN autor AS a ON la.id_escritor = a.id_autor
+        LEFT JOIN libro_genero AS lg ON l.id_libro = lg.id_libro
+        LEFT JOIN genero AS g ON lg.id_genero = g.id_genero
+        LEFT JOIN libro_critica AS r ON l.id_libro = r.id_libro
+        `;
 		const valores: any[] = [];
 		if (Object.keys(condiciones).length > 0) {
 			const clausulas = Object.keys(condiciones)

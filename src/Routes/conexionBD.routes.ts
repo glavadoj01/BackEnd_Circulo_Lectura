@@ -7,6 +7,12 @@ import {
 	obtenerLibros,
 	obtenerLibroId,
 } from "../Controllers/libros.controller.js";
+import {
+	actualizarCritica,
+	borrarCritica,
+	crearCritica,
+	obtenerCriticasLibro,
+} from "../Controllers/criticas.controller.js";
 
 // Creación del router de usuarios
 const conexionRouter = Router();
@@ -23,6 +29,12 @@ conexionRouter.get("/libro/:id", obtenerLibroId);
 conexionRouter.get("/libros", obtenerLibros);
 conexionRouter.put("/libro/:id", actualizarLibro);
 conexionRouter.delete("/libro/:id", borrarLibro);
+
+// Definición de rutas para criticas/reseñas de libros
+conexionRouter.post("/libro/:id/critica", crearCritica);
+conexionRouter.get("/libro/:id/criticas", obtenerCriticasLibro);
+conexionRouter.put("/libro/:id/critica/:criticaId", actualizarCritica);
+conexionRouter.delete("/libro/:id/critica/:criticaId", borrarCritica);
 
 // Redirección de rutas no definidas a la página de inicio
 conexionRouter.use((_req, res) => {

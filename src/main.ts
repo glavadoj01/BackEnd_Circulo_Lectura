@@ -11,9 +11,16 @@ dotenv.config({ path: "src/env/.env" });
 const rutas = conexionRouter;
 
 // Habilita CORS solo para el frontend en localhost:4200
+const allowedOrigins = ["http://localhost:4200", "http://192.168.0.19:4200", "localhost:4200"];
 app.use(
 	cors({
-		origin: "http://localhost:4200",
+		origin: (origin, callback) => {
+			if (!origin || allowedOrigins.includes(origin)) {
+				callback(null, true);
+			} else {
+				callback(new Error("No permitido por CORS"));
+			}
+		},
 	}),
 );
 
@@ -25,7 +32,7 @@ app.use(rutas);
 // Para la conexión con MongoDB
 
 // Iniciar el servidor en el puerto 3000
-app.listen(3000, () => {
+app.listen(3000, "0.0.0.0", () => {
 	console.log("Actualización del Srv 😀");
 	console.log("Servidor escuchando en el puerto 3000");
 });

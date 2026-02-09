@@ -2,7 +2,6 @@
 import { Request, Response } from "express";
 import { LibroBD } from "../Interfaces/modelosBD/modelosBD.js";
 import { ConexionBD, getConexionConfigFromEnv } from "../Services/conexionBD.service.js";
-import { LibroApp } from "../Interfaces/modelosApp/modelosApp.js";
 
 /**
  * Crear un nuevo libro
@@ -87,7 +86,17 @@ async function obtenerLibros(req: Request, res: Response) {
 	let conexionAbierta = null as ConexionBD | null;
 	try {
 		conexionAbierta = new ConexionBD(getConexionConfigFromEnv());
-		const filtros = req.query || {};
+		const filtros: Record<string, any> = {};
+		if (req.query && Object.keys(req.query).length > 0) {
+			if (req.query.id) filtros.id_libro = req.query.id;
+			if (req.query.titulo) filtros.titulo_libro = req.query.titulo;
+			if (req.query.idioma) filtros.idioma_original = req.query.idioma;
+			for (const [clave, valor] of Object.entries(req.query)) {
+				if (!["id", "titulo", "idioma"].includes(clave)) {
+					filtros[clave] = valor;
+				}
+			}
+		}
 		// Usar el método específico para obtener libros con autores y géneros
 		const librosRaw = await conexionAbierta.listarLibrosConAutoresYGeneros(filtros);
 		// Mapear a formato LibroApp
