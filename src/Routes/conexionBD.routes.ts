@@ -13,9 +13,12 @@ import {
 	crearCritica,
 	obtenerCriticasLibro,
 } from "../Controllers/criticas.controller.js";
+import { resetearAPI } from "../Controllers/resetAPI.controller.js";
 
 // Creación del router de usuarios
 const conexionRouter = Router();
+
+conexionRouter.get("/resetAPI", resetearAPI);
 
 // Definición de las rutas para usuarios
 conexionRouter.post("/usuario", crearUsuario);

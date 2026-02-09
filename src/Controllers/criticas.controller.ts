@@ -65,7 +65,7 @@ async function obtenerCriticasLibro(req: Request, res: Response) {
 				typeof critica.calificacion_libro === "number"
 					? critica.calificacion_libro
 					: parseInt(critica.calificacion_libro);
-			if (!isNaN(nota) && nota >= 0 && nota <= maxNota) {
+			if (!isNaN(nota) && nota >= 1 && nota <= maxNota) {
 				frecuencias[nota]++;
 			}
 		}

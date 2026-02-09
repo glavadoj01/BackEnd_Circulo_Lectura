@@ -231,6 +231,11 @@ export class ConexionBD {
 	async close(): Promise<void> {
 		await this.pool.end();
 	}
+
+	async query(sql: string): Promise<any> {
+		const [rows]: [any[], FieldPacket[]] = await this.pool.query(sql);
+		return rows;
+	}
 }
 
 /** Obtencion de credenciales de conexión a la base de datos desde variables de entorno.
