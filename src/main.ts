@@ -10,7 +10,7 @@ const app = express();
 dotenv.config({ path: "src/env/.env" });
 const rutas = conexionRouter;
 
-// Habilita CORS solo para el frontend en localhost:4200
+// Habilita CORS solo para el frontend en localhost:4200 e IP Local
 const allowedOrigins = ["http://localhost:4200", "http://192.168.0.19:4200", "localhost:4200"];
 app.use(
 	cors({
