@@ -1,7 +1,7 @@
 // Importar modelos y servicio de conexión
 import { Request, Response } from "express";
 import { LibroCritica } from "../Interfaces/modelosBD/modelosBD.js";
-import { ConexionBD, getConexionConfigFromEnv } from "../Services/conexionBD.service.js";
+import { ConexionBD } from "../Services/conexionBD.service.js";
 
 /**
  * Crear nueva crítica para un libro
@@ -9,7 +9,6 @@ import { ConexionBD, getConexionConfigFromEnv } from "../Services/conexionBD.ser
 async function crearCritica(req: Request, res: Response) {
 	let conexionAbierta = null as ConexionBD | null;
 	try {
-		conexionAbierta = new ConexionBD(getConexionConfigFromEnv());
 		const idLibroParam = req.params.id;
 		const idLibro = parseInt(Array.isArray(idLibroParam) ? idLibroParam[0] : idLibroParam);
 		const idUsuario = req.body.id_usuario;
@@ -27,6 +26,7 @@ async function crearCritica(req: Request, res: Response) {
 			calificacion_libro: calificacionLibro,
 		};
 
+		conexionAbierta = new ConexionBD();
 		const insertId = await conexionAbierta.insertarRegistro("libro_critica", datos);
 		if (insertId > 0) {
 			res.status(201).json({ message: "Crítica creada exitosamente", id_critica: insertId });
@@ -47,7 +47,6 @@ async function crearCritica(req: Request, res: Response) {
 async function obtenerCriticasLibro(req: Request, res: Response) {
 	let conexionAbierta = null as ConexionBD | null;
 	try {
-		conexionAbierta = new ConexionBD(getConexionConfigFromEnv());
 		const idLibroParam = req.params.id;
 		const idLibro = parseInt(Array.isArray(idLibroParam) ? idLibroParam[0] : idLibroParam);
 		if (isNaN(idLibro)) {
@@ -55,6 +54,7 @@ async function obtenerCriticasLibro(req: Request, res: Response) {
 		}
 
 		// Obtener críticas del libro
+		conexionAbierta = new ConexionBD();
 		const criticas: LibroCritica[] = await conexionAbierta.listarRegistros("libro_critica", { id_libro: idLibro });
 
 		// Calcular frecuencias de notas (calificacion_libro)
@@ -88,7 +88,6 @@ async function obtenerCriticasLibro(req: Request, res: Response) {
 async function actualizarCritica(req: Request, res: Response) {
 	let conexionAbierta = null as ConexionBD | null;
 	try {
-		conexionAbierta = new ConexionBD(getConexionConfigFromEnv());
 		const idLibroParam = req.params.id;
 		const idCriticaParam = req.params.criticaId;
 		const idLibro = parseInt(Array.isArray(idLibroParam) ? idLibroParam[0] : idLibroParam);
@@ -104,6 +103,7 @@ async function actualizarCritica(req: Request, res: Response) {
 		if (textoCritica !== undefined) datos.texto_critica = textoCritica;
 		if (calificacionLibro !== undefined) datos.calificacion_libro = calificacionLibro;
 
+		conexionAbierta = new ConexionBD();
 		const afectados = await conexionAbierta.actualizarRegistro("libro_critica", datos, {
 			id_libro: idLibro,
 			id_usuario: idCritica,
@@ -126,7 +126,6 @@ async function actualizarCritica(req: Request, res: Response) {
 async function borrarCritica(req: Request, res: Response) {
 	let conexionAbierta = null as ConexionBD | null;
 	try {
-		conexionAbierta = new ConexionBD(getConexionConfigFromEnv());
 		const idLibroParam = req.params.id;
 		const idCriticaParam = req.params.criticaId;
 		const idLibro = parseInt(Array.isArray(idLibroParam) ? idLibroParam[0] : idLibroParam);
@@ -134,10 +133,13 @@ async function borrarCritica(req: Request, res: Response) {
 		if (isNaN(idLibro) || isNaN(idCritica)) {
 			return res.status(400).json({ error: "Faltan campos obligatorios" });
 		}
+
+		conexionAbierta = new ConexionBD();
 		const afectados = await conexionAbierta.borrarRegistro("libro_critica", {
 			id_libro: idLibro,
 			id_usuario: idCritica,
 		});
+
 		if (afectados === 0) {
 			return res.status(404).json({ error: "Crítica no encontrada" });
 		}

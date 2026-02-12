@@ -7,8 +7,29 @@ export interface UsuarioBD {
 	id_usuario: number;
 	nombre_usuario: string;
 	nombre_real: string;
-	apellido?: string;
+	apellido_usuario?: string;
 	esAdministrador: boolean; // 0: No, 1: Mod, 2: Admin
+}
+
+export interface GeneroBD {
+	id_genero: number;
+	nombre_genero: GeneroNombre;
+	descripcion_genero?: string;
+}
+
+// Para typado externo (sin ID)
+export interface GeneroNombre {
+	nombre_genero: string;
+}
+
+export interface IdiomaBD {
+	id_idioma: number;
+	nombre_idioma: IdiomaNombre;
+}
+
+// Para typado externo (sin ID)
+export interface IdiomaNombre {
+	nombre_idioma: string;
 }
 
 export interface LibroBD {
@@ -41,34 +62,13 @@ export interface AutorApellido {
 export interface ListaBD {
 	id_lista: number;
 	id_usuarioCrd: number; // FK a Usuario (creador)
-	nombre: string;
-	descripcion?: string;
-}
-
-export interface GeneroBD {
-	id_genero: number;
-	nombre: GeneroNombre;
-	descripcion?: string;
-}
-
-// Para typado externo (sin ID)
-export interface GeneroNombre {
-	nombre: string;
-}
-
-export interface IdiomaBD {
-	id_idioma: number;
-	nombre_idioma: IdiomaNombre;
-}
-
-// Para typado externo (sin ID)
-export interface IdiomaNombre {
-	nombre_idioma: string;
+	nombre_lista: string;
+	descripcion_lista?: string;
 }
 
 export interface EventoBD {
 	id_evento: number;
-	id_usuario: number; // FK a Usuario (creador)
+	id_usuarioCrd: number; // FK a Usuario (creador)
 	nombre_evento: string;
 	fecha_evento: Date; // o string dependiendo cómo lo manejes
 	hora_evento?: string; // "HH:MM:SS"
@@ -111,6 +111,7 @@ export interface ListaComentarios {
 	id_usuario: number; // FK
 	texto_comentario: string;
 	id_com_respuesta?: number | null; // FK recursiva (puede ser null)
+	fecha_comentario: Date | string;
 }
 
 // Relación G: Lista-Usuario (Calificación de la lista)
@@ -133,8 +134,9 @@ export interface EventoComentario {
 	id_eventoComentario: number; // PK
 	id_evento: number; // FK
 	id_usuario: number; // FK
-	Texto_comentario: string;
+	texto_comentario: string;
 	id_com_respuesta?: number | null; // FK recursiva (puede ser null)
+	fecha_comentario: Date | string;
 }
 
 // Relación J: Evento-Libro (Libros relacionados al evento)

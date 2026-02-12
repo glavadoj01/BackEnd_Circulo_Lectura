@@ -22,7 +22,7 @@ export class ConexionBD {
 	 * Se recomienda usar getConexionConfigFromEnv() para cargar desde variables de entorno.
 	 */
 
-	constructor(config: ConexionConfig) {
+	constructor(config: ConexionConfig = getConexionConfigFromEnv()) {
 		this.charset = config.charset || "utf8mb4";
 		this.collation = config.collation || "utf8mb4_spanish_ci";
 		this.pool = mysql.createPool({
@@ -242,7 +242,7 @@ export class ConexionBD {
  *
  * @returns ConexionConfig con los parámetros de conexión obtenidos de las variables de entorno o valores por defecto si no se encuentran.
  */
-export function getConexionConfigFromEnv(): ConexionConfig {
+function getConexionConfigFromEnv(): ConexionConfig {
 	return {
 		host: process.env.DB_HOST || "localhost",
 		port: Number(process.env.DB_PORT) || 3306,

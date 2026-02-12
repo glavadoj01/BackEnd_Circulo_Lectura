@@ -1,10 +1,10 @@
-import { ConexionBD, getConexionConfigFromEnv } from "../Services/conexionBD.service.js";
+import { ConexionBD } from "../Services/conexionBD.service.js";
 import { readFile } from "fs/promises";
 
 export async function resetearAPI(_req: any, res: any) {
 	let conexionAbierta = null as ConexionBD | null;
 	try {
-		conexionAbierta = new ConexionBD(getConexionConfigFromEnv());
+		conexionAbierta = new ConexionBD();
 		await ejecutarSQL("./scriptsBD/creacion.sql", conexionAbierta);
 		await ejecutarSQL("./scriptsBD/poblacionInicial.sql", conexionAbierta);
 		res.status(200).json({ message: "API reseteada exitosamente" });

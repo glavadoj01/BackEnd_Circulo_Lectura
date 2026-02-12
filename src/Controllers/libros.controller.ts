@@ -1,7 +1,7 @@
 // Importar modelos y servicio de conexión
 import { Request, Response } from "express";
 import { LibroBD } from "../Interfaces/modelosBD/modelosBD.js";
-import { ConexionBD, getConexionConfigFromEnv } from "../Services/conexionBD.service.js";
+import { ConexionBD } from "../Services/conexionBD.service.js";
 
 /**
  * Crear un nuevo libro
@@ -9,7 +9,7 @@ import { ConexionBD, getConexionConfigFromEnv } from "../Services/conexionBD.ser
 async function crearLibro(req: Request, res: Response) {
 	let conexionAbierta = null as ConexionBD | null;
 	try {
-		conexionAbierta = new ConexionBD(getConexionConfigFromEnv());
+		conexionAbierta = new ConexionBD();
 		const datos: Partial<LibroBD> = req.body.libro;
 		// Validación mínima
 		if (!datos.titulo_libro || !datos.idioma_original) {
@@ -85,7 +85,7 @@ async function crearLibro(req: Request, res: Response) {
 async function obtenerLibros(req: Request, res: Response) {
 	let conexionAbierta = null as ConexionBD | null;
 	try {
-		conexionAbierta = new ConexionBD(getConexionConfigFromEnv());
+		conexionAbierta = new ConexionBD();
 		const filtros: Record<string, any> = {};
 		if (req.query && Object.keys(req.query).length > 0) {
 			if (req.query.id) filtros.id_libro = req.query.id;
@@ -119,7 +119,7 @@ async function obtenerLibros(req: Request, res: Response) {
 async function obtenerLibroId(req: Request, res: Response) {
 	let conexionAbierta = null as ConexionBD | null;
 	try {
-		conexionAbierta = new ConexionBD(getConexionConfigFromEnv());
+		conexionAbierta = new ConexionBD();
 		const id = req.query.id || req.params.id;
 		if (!id) {
 			return res.status(400).json({ error: "Falta el id del libro" });
@@ -148,7 +148,7 @@ async function obtenerLibroId(req: Request, res: Response) {
 async function actualizarLibro(req: Request, res: Response) {
 	let conexionAbierta = null as ConexionBD | null;
 	try {
-		conexionAbierta = new ConexionBD(getConexionConfigFromEnv());
+		conexionAbierta = new ConexionBD();
 		const id = req.params.id || req.body.id_libro;
 		const datos: Partial<LibroBD> = req.body.libro || req.body;
 		if (!id) {
@@ -248,7 +248,7 @@ async function actualizarLibro(req: Request, res: Response) {
 async function borrarLibro(req: Request, res: Response) {
 	let conexionAbierta = null as ConexionBD | null;
 	try {
-		conexionAbierta = new ConexionBD(getConexionConfigFromEnv());
+		conexionAbierta = new ConexionBD();
 		const id = req.params.id || req.body.id_libro;
 		if (!id) {
 			return res.status(400).json({ error: "Falta el id del libro" });
