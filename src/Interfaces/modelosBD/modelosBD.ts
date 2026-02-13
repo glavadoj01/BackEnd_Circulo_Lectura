@@ -83,7 +83,7 @@ export interface EventoBD {
 // Relación B: Libro-Autor
 export interface LibroAutor {
 	id_libro: number; // FK
-	id_escritor: number; // FK
+	id_autor: number; // FK
 	autorPr: boolean; // true = autor principal, false = secundario
 }
 

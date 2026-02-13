@@ -57,7 +57,7 @@ CREATE TABLE autor (
 
 CREATE TABLE lista (
 	id_lista 			INT PRIMARY KEY AUTO_INCREMENT,
-    id_usuarioCrd 			INT NOT NULL DEFAULT 0,
+    id_usuarioCrd 		INT,
     nombre_lista 		VARCHAR(100) UNIQUE NOT NULL,
     descripcion_lista 	TEXT,
     
@@ -65,7 +65,7 @@ CREATE TABLE lista (
 		FOREIGN KEY (id_usuarioCrd)
         REFERENCES usuario(id_usuario)
         ON UPDATE CASCADE
-        ON DELETE SET DEFAULT
+        ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_spanish_ci;
 
 CREATE TABLE evento (
@@ -117,10 +117,10 @@ CREATE TABLE libro_genero (
 -- Relación B: Libro-Autor
 CREATE TABLE libro_autor (
 	id_libro INT NOT NULL,
-    id_escritor INT NOT NULL,
+    id_autor INT NOT NULL,
     autorPr BOOL NOT NULL DEFAULT FALSE,
     
-    PRIMARY KEY (id_libro, id_escritor),
+    PRIMARY KEY (id_libro, id_autor),
     
     CONSTRAINT fk_libroAutor_idLibro
 		FOREIGN KEY (id_libro)
@@ -129,7 +129,7 @@ CREATE TABLE libro_autor (
         ON DELETE CASCADE,
 	
     CONSTRAINT fk_libroAutor_idAutor
-		FOREIGN KEY (id_escritor)
+		FOREIGN KEY (id_autor)
         REFERENCES autor(id_autor)
         ON UPDATE CASCADE
         ON DELETE RESTRICT

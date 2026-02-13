@@ -9,6 +9,10 @@ import cors from "cors"; // Para habilitar CORS y permitir peticiones desde el f
 const app = express();
 dotenv.config({ path: "src/env/.env" });
 const rutas = conexionRouter;
+// Middleware para parsear JSON
+// En postman, seleccionar Body -> raw -> JSON => Enviar formato JSON
+app.use(express.json());
+app.use(rutas);
 
 // Habilita CORS solo para el frontend en localhost:4200 e IP Local
 const allowedOrigins = ["http://localhost:4200", "http://192.168.0.19:4200", "localhost:4200"];
@@ -23,13 +27,6 @@ app.use(
 		},
 	}),
 );
-
-// Middleware para parsear JSON
-// En postman, seleccionar Body -> raw -> JSON => Enviar formato JSON
-app.use(express.json());
-app.use(rutas);
-
-// Para la conexión con MongoDB
 
 // Iniciar el servidor en el puerto 3000
 app.listen(3000, "0.0.0.0", () => {

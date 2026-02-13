@@ -249,7 +249,7 @@ INSERT INTO libro_autor VALUES
 /* ============================
    LISTAS
    ============================ */
-INSERT INTO lista (id_usuario, nombre_lista, descripcion_lista) VALUES
+INSERT INTO lista (id_usuarioCrd, nombre_lista, descripcion_lista) VALUES
 (1, 'Favoritos de Usuario1', 'Mis libros preferidos'),
 (2, 'Lecturas 2024', 'Libros que quiero leer este año'),
 (3, 'Terror y Misterio', 'Selección de libros oscuros'),
@@ -486,7 +486,7 @@ INSERT INTO lista_usuario VALUES
 /* ============================
    EVENTOS
    ============================ */
-INSERT INTO evento (id_usuario, nombre_evento, fecha_evento, hora_evento, direccion_evento, descripcion_evento) VALUES
+INSERT INTO evento (id_usuarioCrd, nombre_evento, fecha_evento, hora_evento, direccion_evento, descripcion_evento) VALUES
 (1, 'Club de lectura Enero', '2025-01-15', '18:00:00', 'Calle Mayor 10', 'Debate sobre libros clásicos'),
 (2, 'Reunión Sci-Fi', '2025-02-20', '19:30:00', 'Av. Futuro 22', 'Charla sobre ciencia ficción'),
 (3, 'Noche de Terror', '2025-10-31', '21:00:00', 'Casa del Miedo', 'Lectura de relatos de terror');

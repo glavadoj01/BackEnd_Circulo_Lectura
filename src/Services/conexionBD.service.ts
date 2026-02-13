@@ -1,14 +1,9 @@
 import mysql, { Pool, PoolConnection, RowDataPacket, FieldPacket } from "mysql2/promise";
 import { LibroApp } from "../Interfaces/modelosApp/modelosApp.js";
 
-interface ConexionConfig {
-	host: string;
-	port: number;
-	user: string;
-	password: string;
-	database: string;
-	charset?: string;
-	collation?: string;
+export interface whereCondition {
+	operador: string;
+	value: string | number | Date | (string | number | Date)[];
 }
 
 export class ConexionBD {
@@ -16,13 +11,16 @@ export class ConexionBD {
 	private charset: string;
 	private collation: string;
 
+	/* ===========================================================================================================
+    Constructor/Destructor y configuración de conexión
+    =========================================================================================================== */
+
 	/** Constructor para crear una nueva conexión a la base de datos. No se conecta automáticamente, sino que prepara el pool de conexiones.
 	 *
-	 * @param config Configuración de conexión a la base de datos (host, puerto, usuario, contraseña, nombre de BD, charset y collation opcionales).
+	 * @param config Configuración de conexión a la base de datos (host, puerto, usuario, contraseña y nombre de BD - charset y collation opcionales).
 	 * Se recomienda usar getConexionConfigFromEnv() para cargar desde variables de entorno.
 	 */
-
-	constructor(config: ConexionConfig = getConexionConfigFromEnv()) {
+	constructor(config = getConexionConfigFromEnv()) {
 		this.charset = config.charset || "utf8mb4";
 		this.collation = config.collation || "utf8mb4_spanish_ci";
 		this.pool = mysql.createPool({
@@ -38,51 +36,30 @@ export class ConexionBD {
 		});
 	}
 
-	/** Static - Crear Base de Datos (si no existe) con la configuración dada.
-	 *
-	 * @param config
-	 * @returns boolean indicando si la base de datos fue creada o ya existía. No se conecta a la BD, solo la crea.
-	 * @throws Error si ocurre algún problema durante la creación de la base de datos.
+	// ! REQUIERE LLAMADA EXPLICITA PARA CERRAR LA CONEXIÓN
+	/** Cerrar el pool de conexiones a la base de datos. Este método debe ser llamado explícitamente cuando ya no se necesite la conexión para liberar los recursos.
+	 *  @returns void
 	 */
-	static async crearBD(config: Omit<ConexionConfig, "database"> & { database: string }): Promise<boolean> {
-		const { host, port, user, password, database, charset = "utf8mb4", collation = "utf8mb4_spanish_ci" } = config;
-		const connection = await mysql.createConnection({ host, port, user, password, charset });
-		try {
-			await connection.query(
-				`CREATE DATABASE IF NOT EXISTS \`${database}\` CHARACTER SET ${charset} COLLATE ${collation}`,
-			);
-			return true;
-		} finally {
-			await connection.end();
-		}
+	async close(): Promise<void> {
+		await this.pool.end();
 	}
-
-	/** Crear una tabla en la base de datos con el nombre, columnas y opciones dadas. Las columnas se definen como un objeto donde la clave es el nombre de la columna y el valor es su definición SQL (tipo, restricciones, etc.).
-	 *
-	 * @param tabla String con el nombre de la tabla a crear.
-	 * @param columnas Objeto con las columnas a crear, donde la clave es el nombre de la columna y el valor es su definición SQL (tipo, restricciones, etc.). Ejemplo: { id_usuario: "INT PRIMARY KEY AUTO_INCREMENT", nombre_usuario: "VARCHAR(255) NOT NULL" }
-	 * @param opciones Objeto Opcional con opciones adicionales para la tabla (como ENGINE, CHARSET, COLLATE, etc.). Si no se proporcionan, se usarán los valores por defecto del constructor.
-	 * @returns Boolean indicando si la tabla fue creada o ya existía.
-	 * @throws Error si ocurre algún problema durante la creación de la tabla o si los parámetros son inválidos.
-	 */
-	async crearTabla(tabla: string, columnas: Record<string, string>, opciones = ""): Promise<boolean> {
-		if (!tabla || !columnas || Object.keys(columnas).length === 0)
-			throw new Error("Nombre de tabla o columnas vacías.");
-		const partes = Object.entries(columnas).map(([col, def]) => `\`${col}\` ${def}`);
-		let sql = `CREATE TABLE IF NOT EXISTS \`${tabla}\` (${partes.join(", ")})`;
-		sql += opciones ? ` ${opciones}` : ` ENGINE=InnoDB DEFAULT CHARSET=${this.charset} COLLATE=${this.collation}`;
-		await this.pool.query(sql);
-		return true;
-	}
+	/* ===========================================================================================================
+    Métodos básicos de acceso a datos (CRUD)
+    =========================================================================================================== */
 
 	/** Insertar un nuevo registro en la tabla especificada con los datos proporcionados. Los datos se pasan como un objeto donde la clave es el nombre de la columna y el valor es el valor a insertar. El método devuelve el ID del nuevo registro insertado (si la tabla tiene una columna AUTO_INCREMENT) o 0 si no se pudo obtener el ID.
 	 *
 	 * @param tabla String con el nombre de la tabla donde se insertará el registro.
 	 * @param datos Objeto con los datos a insertar, donde la clave es el nombre de la columna y el valor es el valor a insertar. Ejemplo: { nombre_usuario: "Juan", nombre_real: "Juan Pérez" }
-	 * @returns ID del nuevo registro insertado (si la tabla tiene una columna AUTO_INCREMENT) o 0 si no se pudo obtener el ID.
+	 * @param devolverId Opcional - Booleano que indica si se debe devolver el ID del nuevo registro insertado (true por defecto). Si se establece en false, el método devolverá 0 en lugar del ID. Esto puede ser útil para tablas que no tienen una columna AUTO_INCREMENT o cuando el ID no es relevante.
+	 * @returns ID del nuevo registro insertado (si la tabla tiene una columna AUTO_INCREMENT) o Nº de filas afectadas.
 	 * @throws Error si ocurre algún problema durante la inserción o si los parámetros son inválidos.
 	 */
-	async insertarRegistro(tabla: string, datos: Record<string, any>): Promise<number> {
+	async insertarRegistro(
+		tabla: string,
+		datos: Record<string, string | number | boolean | Date>,
+		devolverId: boolean = true,
+	): Promise<number> {
 		if (!tabla || !datos || Object.keys(datos).length === 0) throw new Error("Tabla o datos vacíos.");
 		const columnas = Object.keys(datos)
 			.map(col => `\`${col}\``)
@@ -93,7 +70,8 @@ export class ConexionBD {
 		const valores = Object.values(datos);
 		const sql = `INSERT INTO \`${tabla}\` (${columnas}) VALUES (${placeholders})`;
 		const [result]: any = await this.pool.query(sql, valores);
-		return result.insertId || 0;
+		if (devolverId) return result.insertId;
+		return result.affectedRows || 0;
 	}
 
 	/** Borrar registros de la tabla especificada que cumplan con las condiciones dadas. Las condiciones se pasan como un objeto donde la clave es el nombre de la columna y el valor es el valor que debe coincidir para eliminar el registro. El método devuelve el número de registros afectados (eliminados).
@@ -103,14 +81,12 @@ export class ConexionBD {
 	 * @returns Número de registros afectados (eliminados).
 	 * @throws Error si ocurre algún problema durante la eliminación o si los parámetros son inválidos.
 	 */
-	async borrarRegistro(tabla: string, condiciones: Record<string, any>): Promise<number> {
+	async borrarRegistro(tabla: string, condiciones: Record<string, string | number>): Promise<number> {
 		if (!tabla || !condiciones || Object.keys(condiciones).length === 0)
 			throw new Error("Tabla o condiciones vacías.");
-		const clausulas = Object.keys(condiciones)
-			.map(col => `\`${col}\` = ?`)
-			.join(" AND ");
+		const clausulas = Object.keys(condiciones).map(col => `\`${col}\` = ?`);
 		const valores = Object.values(condiciones);
-		const sql = `DELETE FROM \`${tabla}\` WHERE ${clausulas}`;
+		const sql = `DELETE FROM \`${tabla}\` WHERE ${clausulas.join(" AND ")}`;
 		const [result]: any = await this.pool.query(sql, valores);
 		return result.affectedRows;
 	}
@@ -125,8 +101,8 @@ export class ConexionBD {
 	 */
 	async actualizarRegistro(
 		tabla: string,
-		datos: Record<string, any>,
-		condiciones: Record<string, any>,
+		datos: Record<string, string | number | boolean | Date>,
+		condiciones: Record<string, string | number>,
 	): Promise<number> {
 		if (
 			!tabla ||
@@ -169,12 +145,10 @@ export class ConexionBD {
 		if (!tabla) throw new Error("Nombre de tabla vacío.");
 		let sql = `SELECT ${columnas} FROM \`${tabla}\``;
 		const valores: any[] = [];
-		if (Object.keys(condiciones).length > 0) {
-			const clausulas = Object.keys(condiciones)
-				.map(col => `\`${col}\` = ?`)
-				.join(" AND ");
-			sql += ` WHERE ${clausulas}`;
-			valores.push(...Object.values(condiciones));
+		if (condiciones && Object.keys(condiciones).length > 0) {
+			const { clausulas, valores: vals } = this.construirClausulasWhere(condiciones);
+			sql += ` WHERE ${clausulas.join(" AND ")}`;
+			valores.push(...vals);
 		}
 		if (orden) sql += ` ORDER BY ${orden}`;
 		if (limite > 0) sql += ` LIMIT ${limite}`;
@@ -183,11 +157,13 @@ export class ConexionBD {
 	}
 
 	/* ===========================================================================================================
-* Métodos adicionales con sentencias complejas (innerjoins, subconsultas, etc.)
-=========================================================================================================== */
+    Métodos específicos para casos de uso comunes
+    =========================================================================================================== */
 
 	async listarLibrosConAutoresYGeneros(
-		condiciones: Record<string, any> = {},
+		condicionesLibro: Record<string, any> = {},
+		condicionesAutor: Record<string, any> = {},
+		condicionesGenero: Record<string, any> = {},
 		orden = "",
 		limite = 0,
 	): Promise<LibroApp[]> {
@@ -203,18 +179,18 @@ export class ConexionBD {
 		let sql = `SELECT ${selectCols} FROM libro AS l
         LEFT JOIN idiomas AS i ON l.idioma_original = i.id_idioma
         LEFT JOIN libro_autor AS la ON l.id_libro = la.id_libro
-        LEFT JOIN autor AS a ON la.id_escritor = a.id_autor
+        LEFT JOIN autor AS a ON la.id_autor = a.id_autor
         LEFT JOIN libro_genero AS lg ON l.id_libro = lg.id_libro
         LEFT JOIN genero AS g ON lg.id_genero = g.id_genero
         LEFT JOIN libro_critica AS r ON l.id_libro = r.id_libro
         `;
 		const valores: any[] = [];
-		if (Object.keys(condiciones).length > 0) {
-			const clausulas = Object.keys(condiciones)
+		if (Object.keys(condicionesLibro).length > 0) {
+			const clausulas = Object.keys(condicionesLibro)
 				.map(col => `l.\`${col}\` = ?`)
 				.join(" AND ");
 			sql += ` WHERE ${clausulas}`;
-			valores.push(...Object.values(condiciones));
+			valores.push(...Object.values(condicionesLibro));
 		}
 		sql += ` GROUP BY l.id_libro`;
 		if (orden) sql += ` ORDER BY ${orden}`;
@@ -224,25 +200,68 @@ export class ConexionBD {
 		return rows;
 	}
 
-	// ! REQUIERE LLAMADA EXPLICITA PARA CERRAR LA CONEXIÓN
-	/** Cerrar el pool de conexiones a la base de datos. Este método debe ser llamado explícitamente cuando ya no se necesite la conexión para liberar los recursos.
-	 *  @returns void
+	/** Método genérico para ejecutar consultas SQL personalizadas. Ej: resetApi mediante lectura de ficheroLocal.sql
+	 *
+	 * @param sql String con la consulta SQL a ejecutar.
+	 * @returns
 	 */
-	async close(): Promise<void> {
-		await this.pool.end();
-	}
-
 	async query(sql: string): Promise<any> {
 		const [rows]: [any[], FieldPacket[]] = await this.pool.query(sql);
 		return rows;
 	}
+
+	/** Método privado para construir cláusulas WHERE flexibles con operadores especiales (IS NULL, IN, BETWEEN, LIKE, etc.)
+	 *
+	 * @param condiciones Objeto con condiciones, similar a la versión PHP
+	 * @returns { clausulas: string[], valores: any[] }
+	 */
+	private construirClausulasWhere(condiciones: Record<string, any>): {
+		clausulas: string[];
+		valores: whereCondition[];
+	} {
+		const clausulas: string[] = [];
+		const valores: any[] = [];
+		for (const campo in condiciones) {
+			const valor = condiciones[campo];
+			if (valor && typeof valor === "object" && "operador" in valor) {
+				const operador = valor.operador.toString().toUpperCase();
+				if (operador === "IS NULL" || operador === "IS NOT NULL") {
+					clausulas.push(`\`${campo}\` ${operador}`);
+				} else if ((operador === "IN" || operador === "NOT IN") && Array.isArray(valor.valor)) {
+					if (valor.valor.length === 0) throw new Error(`El array para IN/NOT IN en '${campo}' está vacío.`);
+					const placeholders = valor.valor.map(() => "?").join(", ");
+					clausulas.push(`\`${campo}\` ${operador} (${placeholders})`);
+					valores.push(...valor.valor);
+				} else if (
+					(operador === "BETWEEN" || operador === "NOT BETWEEN") &&
+					Array.isArray(valor.valor) &&
+					valor.valor.length === 2
+				) {
+					clausulas.push(`\`${campo}\` ${operador} ? AND ?`);
+					valores.push(valor.valor[0], valor.valor[1]);
+				} else if ((operador === "LIKE" || operador === "NOT LIKE") && typeof valor.valor === "string") {
+					clausulas.push(`\`${campo}\` ${operador} ?`);
+					valores.push(valor.valor);
+				} else if (["!=", "<>", "<", ">", "<=", ">="].includes(operador)) {
+					clausulas.push(`\`${campo}\` ${operador} ?`);
+					valores.push(valor.valor);
+				} else {
+					throw new Error(`Operador no soportado en condiciones: ${operador}`);
+				}
+			} else {
+				clausulas.push(`\`${campo}\` = ?`);
+				valores.push(valor);
+			}
+		}
+		return { clausulas, valores };
+	}
 }
 
-/** Obtencion de credenciales de conexión a la base de datos desde variables de entorno.
+/** Obtención de credenciales de conexión a la base de datos desde variables de entorno.
  *
  * @returns ConexionConfig con los parámetros de conexión obtenidos de las variables de entorno o valores por defecto si no se encuentran.
  */
-function getConexionConfigFromEnv(): ConexionConfig {
+function getConexionConfigFromEnv() {
 	return {
 		host: process.env.DB_HOST || "localhost",
 		port: Number(process.env.DB_PORT) || 3306,
