@@ -7,7 +7,7 @@ import cors from 'cors'; // Para habilitar CORS y permitir peticiones desde el f
 
 // Asociacion de metodos de express a la variable app
 const app = express();
-dotenv.config({ path: 'src/env/.env' });
+dotenv.config();
 const rutas = conexionRouter;
 // Middleware para parsear JSON
 // En postman, seleccionar Body -> raw -> JSON => Enviar formato JSON
