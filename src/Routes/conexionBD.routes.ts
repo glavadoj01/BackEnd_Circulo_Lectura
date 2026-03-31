@@ -43,8 +43,8 @@ conexionRouter.delete('/libro/:id', borrarLibro);
 // Definición de rutas para criticas/reseñas de libros
 conexionRouter.post('/libro/:id/critica', crearCritica);
 conexionRouter.get('/libro/:id/criticas', obtenerCriticasLibro);
-conexionRouter.put('/libro/:id/critica/:criticaId', actualizarCritica);
-conexionRouter.delete('/libro/:id/critica/:criticaId', borrarCritica);
+conexionRouter.put('/libro/:id/critica/usuario/:usuarioId', actualizarCritica);
+conexionRouter.delete('/libro/:id/critica/usuario/:usuarioId', borrarCritica);
 
 // Redirección/Respuesta de rutas no definidas
 conexionRouter.use((_req, res) => {

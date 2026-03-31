@@ -173,9 +173,10 @@ export class ConexionBD {
     offset = 0,
   ): Promise<LibroApp[]> {
     // Selección de columnas de libro
-    let selectCols = `l.id_libro, l.titulo_libro, l.codigo_isbn, l.idioma_original, 
-        l.paginas, l.year_publicacion, l.sinopsis,
-        i.nombre_idioma AS idioma_original,
+    let selectCols = `l.id_libro, l.titulo_libro, l.codigo_isbn,
+      l.idioma_original AS id_idioma_original,
+      l.paginas, l.year_publicacion, l.sinopsis,
+      i.nombre_idioma AS nombre_idioma_original,
 		GROUP_CONCAT(DISTINCT a.nombre_autor ORDER BY a.nombre_autor SEPARATOR ',') AS autores,
 		GROUP_CONCAT(DISTINCT g.nombre_genero ORDER BY g.nombre_genero SEPARATOR ',') AS generos,
         COUNT(DISTINCT r.id_usuario) AS totalResenas,
