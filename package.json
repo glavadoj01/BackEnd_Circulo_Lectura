@@ -23,10 +23,10 @@
   },
 
   "scripts": {
-    "dev": "nodemon --watch src --exec \"npm run build && node dist/main.js\"",
+    "reinstall": "rm -rf node_modules && rm -f package-lock.json && npm install",
     "build": "tsc",
-    "start": "node dist/main.js",
-    "run": "npm run build && npm run start"
+    "start": "nodemon --watch src --exec \"npm run build && node dist/main.js\"",
+    "run": "npm run reinstall && npm run start"
   },
 
   "prettier": {

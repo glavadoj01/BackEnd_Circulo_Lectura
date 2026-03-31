@@ -1,35 +1,41 @@
 // Para el servidor Express
-import express from "express";
-import conexionRouter from "./Routes/conexionBD.routes.js";
-import * as dotenv from "dotenv"; // Para gestion y carga de credenciales desde archivos .env
-import cors from "cors"; // Para habilitar CORS y permitir peticiones desde el frontend
+import express from 'express';
+import conexionRouter from './Routes/conexionBD.routes.js';
+import * as dotenv from 'dotenv'; // Para gestion y carga de credenciales desde archivos .env
+import cors from 'cors'; // Para habilitar CORS y permitir peticiones desde el frontend
 // Para la páginas defaults
 
 // Asociacion de metodos de express a la variable app
 const app = express();
-dotenv.config({ path: "src/env/.env" });
+dotenv.config({ path: 'src/env/.env' });
 const rutas = conexionRouter;
 // Middleware para parsear JSON
 // En postman, seleccionar Body -> raw -> JSON => Enviar formato JSON
 app.use(express.json());
-app.use(rutas);
 
 // Habilita CORS solo para el frontend en localhost:4200 e IP Local
-const allowedOrigins = ["http://localhost:4200", "http://192.168.0.19:4200", "localhost:4200"];
+const allowedOrigins = [
+  'http://localhost:4200',
+  'https://localhost:4200',
+  'http://192.168.0.19:4200',
+  'https://192.168.0.19:4200',
+];
 app.use(
-	cors({
-		origin: (origin, callback) => {
-			if (!origin || allowedOrigins.includes(origin)) {
-				callback(null, true);
-			} else {
-				callback(new Error("No permitido por CORS"));
-			}
-		},
-	}),
+  cors({
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error('No permitido por CORS'));
+      }
+    },
+  }),
 );
 
+app.use(rutas);
+
 // Iniciar el servidor en el puerto 3000
-app.listen(3000, "0.0.0.0", () => {
-	console.log("Actualización del Srv 😀");
-	console.log("Servidor escuchando en el puerto 3000");
+app.listen(3000, '0.0.0.0', () => {
+  console.log('Actualización del Srv 😀');
+  console.log('Servidor escuchando en el puerto 3000');
 });
