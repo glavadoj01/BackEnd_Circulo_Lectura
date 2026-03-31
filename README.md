@@ -42,9 +42,9 @@ cd BackEnd_Circulo_Lectura
 
 ### 3. Configurar variables de entorno
 
-1. Copia el archivo `src/env/_.env` y renómbralo a `.env` en la misma carpeta:
+1. Copia el archivo `_.env` y renómbralo a `.env` en la raíz del proyecto:
 
-   - `src/env/_.env` → `src/env/.env`
+    - `_.env` → `.env`
 
 2. Edita los valores según tu entorno MySQL:
 
@@ -53,9 +53,9 @@ DB_HOST=localhost
 DB_PORT=3306
 DB_USER=root
 DB_PASSWORD=tu_password   # Editar esta línea con las credenciales propias
-DB_DATABASE=circulolectura
 DB_CHARSET=utf8mb4
 DB_COLLATION=utf8mb4_spanish_ci
+DB_NAME=circuloLectura
 ```
 
 ### 4. Ejecutar el servidor
@@ -65,7 +65,7 @@ El backend está preparado para escuchar en el puerto **3000** y aceptar peticio
 - En modo desarrollo (con recarga automática):
 
     ```bash
-    npm run dev
+    npm run start
     ```
 
 Si necesitas cambiar la IP local permitida, edita el array `allowedOrigins` en el archivo `src/main.ts`:
@@ -73,8 +73,9 @@ Si necesitas cambiar la IP local permitida, edita el array `allowedOrigins` en e
     ```js
     const allowedOrigins = [
     "http://localhost:4200",
+    "https://localhost:4200",
     "http://192.168.0.19:4200",
-    "localhost:4200"
+    "https://192.168.0.19:4200",
     ];
     ```
 
@@ -92,7 +93,7 @@ Esto ejecutará los scripts `scriptsBD/creacion.sql` y `scriptsBD/poblacionInici
 
 - **Usuarios:** `/usuarios`, `/usuario/:id`
 - **Libros:** `/libros`, `/libro/:id`
-- **Críticas:** `/libro/:id/criticas`, `/libro/:id/critica/:criticaId`
+- **Críticas:** `/libro/:id/criticas`, `/libro/:id/critica/usuario/:usuarioId `
 - **Reset API:** `/resetAPI`
 
 ## Estructura del proyecto
@@ -101,13 +102,15 @@ El código fuente está organizado en las siguientes carpetas y archivos:
 
 ```bash
 BackEnd_Circulo_Lectura/
+├── .env                    # Variables de entorno (local, no versionar)
+├── _.env                   # Plantilla de ejemplo de entorno
 ├── src/
 │   ├── main.ts                # Punto de entrada
 │   ├── Controllers/           # Lógica de negocio
 │   ├── Routes/                # Definición de rutas
 │   ├── Services/              # Servicios y conexión BD
 │   ├── Interfaces/            # Modelos de datos
-│   └── env/                   # Variables de entorno
+│   └── Utils/                 # Utilidades y validaciones
 ├── scriptsBD/                 # Scripts SQL
 ├── package.json               # Dependencias y scripts npm
 ├── tsconfig.json              # Configuración TypeScript

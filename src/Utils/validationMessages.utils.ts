@@ -12,6 +12,7 @@ const VALIDATION_MESSAGES = {
   CALIFICACION_RANGO: 'La calificacion debe estar entre 1 y 5',
   NO_HAY_CAMPOS_ACTUALIZAR: 'No hay campos para actualizar',
   FILTRO_NO_PERMITIDO: 'Filtro no permitido',
+  RUTA_NO_ENCONTRADA: 'Ruta no encontrada',
 } as const;
 
 const BUSINESS_MESSAGES = {

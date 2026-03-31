@@ -20,6 +20,7 @@ import {
   obtenerCriticasLibro,
 } from '../Controllers/criticas.controller.js';
 import { resetearAPI } from '../Controllers/resetAPI.controller.js';
+import { respuestaError } from '../Utils/validationMessages.utils.js';
 
 // Creación del router Express para manejar las rutas de la API
 const conexionRouter = Router();
@@ -48,7 +49,7 @@ conexionRouter.delete('/libro/:id/critica/usuario/:usuarioId', borrarCritica);
 
 // Redirección/Respuesta de rutas no definidas
 conexionRouter.use((_req, res) => {
-  res.status(404).json({ error: 'Ruta no encontrada' });
+  respuestaError(res, 404, 'RUTA_NO_ENCONTRADA');
 });
 
 export default conexionRouter;

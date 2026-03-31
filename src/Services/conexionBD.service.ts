@@ -280,12 +280,16 @@ export class ConexionBD {
  * @returns ConexionConfig con los parámetros de conexión obtenidos de las variables de entorno o valores por defecto si no se encuentran.
  */
 function getConexionConfigFromEnv() {
+  const port = Number(process.env.DB_PORT);
+  const dbPort = Number.isInteger(port) && port > 0 ? port : 3306;
+  const database = process.env.DB_NAME || 'circuloLectura';
+
   return {
     host: process.env.DB_HOST || 'localhost',
-    port: Number(process.env.DB_PORT) || 3306,
+    port: dbPort,
     user: process.env.DB_USER || 'root',
     password: process.env.DB_PASSWORD || '',
-    database: process.env.DB_NAME || 'circuloLectura',
+    database,
     charset: process.env.DB_CHARSET || 'utf8mb4',
     collation: process.env.DB_COLLATION || 'utf8mb4_spanish_ci',
   };
