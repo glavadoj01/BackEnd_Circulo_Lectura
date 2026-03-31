@@ -170,6 +170,7 @@ export class ConexionBD {
     condicionesGenero: Record<string, any> = {},
     orden = '',
     limite = 0,
+    offset = 0,
   ): Promise<LibroApp[]> {
     // Selección de columnas de libro
     let selectCols = `l.id_libro, l.titulo_libro, l.codigo_isbn, l.idioma_original, 
@@ -198,7 +199,15 @@ export class ConexionBD {
     }
     sql += ` GROUP BY l.id_libro`;
     if (orden) sql += ` ORDER BY ${orden}`;
-    if (limite > 0) sql += ` LIMIT ${limite}`;
+    if (limite > 0) {
+      if (offset > 0) {
+        sql += ` LIMIT ?, ?`;
+        valores.push(offset, limite);
+      } else {
+        sql += ` LIMIT ?`;
+        valores.push(limite);
+      }
+    }
 
     const [rows]: [any[], any[]] = await this.pool.query(sql, valores);
     return rows;

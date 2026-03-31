@@ -11,6 +11,7 @@ import {
   crearLibro,
   obtenerLibros,
   obtenerLibroId,
+  obtenerLibrosTotal,
 } from '../Controllers/libros.controller.js';
 import {
   actualizarCritica,
@@ -35,6 +36,7 @@ conexionRouter.delete('/usuario/:id', borrarUsuario);
 conexionRouter.post('/libro', crearLibro);
 conexionRouter.get('/libro/:id', obtenerLibroId);
 conexionRouter.get('/libros', obtenerLibros);
+conexionRouter.get('/libros/total', obtenerLibrosTotal);
 conexionRouter.put('/libro/:id', actualizarLibro);
 conexionRouter.delete('/libro/:id', borrarLibro);
 

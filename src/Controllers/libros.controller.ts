@@ -112,19 +112,33 @@ async function obtenerLibros(req: Request, res: Response) {
   let conexionAbierta = null as ConexionBD | null;
   try {
     const filtros: Record<string, any> = {};
+    const pageRaw = req.query.page;
+    const limitRaw = req.query.limit;
+    const page = Number(pageRaw);
+    const limit = Number(limitRaw);
+    const usarPaginacion = Number.isInteger(page) && page > 0 && Number.isInteger(limit) && limit > 0;
+    const offset = usarPaginacion ? (page - 1) * limit : 0;
+
     if (req.query && Object.keys(req.query).length > 0) {
       if (req.query.id) filtros.id_libro = req.query.id;
       if (req.query.titulo) filtros.titulo_libro = req.query.titulo;
       if (req.query.idioma) filtros.idioma_original = req.query.idioma;
       for (const [clave, valor] of Object.entries(req.query)) {
-        if (!['id', 'titulo', 'idioma'].includes(clave)) {
+        if (!['id', 'titulo', 'idioma', 'page', 'limit'].includes(clave)) {
           filtros[clave] = valor;
         }
       }
     }
     // Usar el método específico para obtener libros con autores y géneros
     conexionAbierta = new ConexionBD();
-    const librosRaw = await conexionAbierta.listarLibrosConAutoresYGeneros(filtros);
+    const librosRaw = await conexionAbierta.listarLibrosConAutoresYGeneros(
+      filtros,
+      {},
+      {},
+      'l.id_libro ASC',
+      usarPaginacion ? limit : 0,
+      offset,
+    );
     // Mapear a formato LibroApp
     const libros = librosRaw.map((libro: any) => ({
       ...libro,
@@ -338,4 +352,27 @@ async function borrarLibro(req: Request, res: Response) {
   }
 }
 
-export { crearLibro, obtenerLibros, actualizarLibro, borrarLibro, obtenerLibroId };
+async function obtenerLibrosTotal(_req: Request, res: Response) {
+  let conexionAbierta = null as ConexionBD | null;
+  try {
+    conexionAbierta = new ConexionBD();
+    const total = await conexionAbierta.listarRegistros('libro', {}, '', 0, 'COUNT(*) AS total');
+    const totalLibros = total[0]?.total ?? 0;
+    res.status(200).json({ total: totalLibros });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ error: 'Error al obtener total de libros', detalle: (error as Error).message });
+  } finally {
+    if (conexionAbierta) await conexionAbierta.close();
+  }
+}
+
+export {
+  crearLibro,
+  obtenerLibros,
+  actualizarLibro,
+  borrarLibro,
+  obtenerLibroId,
+  obtenerLibrosTotal,
+};
