@@ -20,9 +20,25 @@ cd BackEnd_Circulo_Lectura
 
 ### 2. Instalar dependencias
 
-```bash
-npm install
-```
+1. Instalar [Volta](https://volta.sh/)
+
+    ```bash
+    winget install Volta.Volta  # Instalar Volta
+    volta install node@22       # Instalar Node@22
+    volta pin node@22           # Fuerza el uso de Node@22 en este directorio
+    ```
+
+2. Instala NestJS CLI globalmente:
+
+    ```bash
+    volta install @nestjs/cli # Instalación Global
+    ```
+
+3. Instala las dependencias del proyecto:
+
+    ```bash
+    npm install
+    ```
 
 ### 3. Configurar variables de entorno
 
@@ -36,7 +52,7 @@ npm install
 DB_HOST=localhost
 DB_PORT=3306
 DB_USER=root
-DB_PASSWORD=tu_password
+DB_PASSWORD=tu_password   # Editar esta línea con las credenciales propias
 DB_DATABASE=circulolectura
 DB_CHARSET=utf8mb4
 DB_COLLATION=utf8mb4_spanish_ci
@@ -48,27 +64,27 @@ El backend está preparado para escuchar en el puerto **3000** y aceptar peticio
 
 - En modo desarrollo (con recarga automática):
 
-  ```bash
-  npm run dev
-  ```
+    ```bash
+    npm run dev
+    ```
 
 Si necesitas cambiar la IP local permitida, edita el array `allowedOrigins` en el archivo `src/main.ts`:
 
-```js
-const allowedOrigins = [
-  "http://localhost:4200",
-  "http://192.168.0.19:4200",
-  "localhost:4200"
-];
-```
+    ```js
+    const allowedOrigins = [
+    "http://localhost:4200",
+    "http://192.168.0.19:4200",
+    "localhost:4200"
+    ];
+    ```
 
 ### 5. Inicializar la base de datos desde la API
 
 Utiliza el endpoint GET `/resetAPI` para crear y poblar la base de datos automáticamente (ejecuta los scripts SQL necesarios). Puedes acceder a este endpoint desde tu navegador o con una herramienta como Postman:
 
-```bash
-GET http://localhost:3000/resetAPI
-```
+    ```bash
+    GET http://localhost:3000/resetAPI
+    ```
 
 Esto ejecutará los scripts `scriptsBD/creacion.sql` y `scriptsBD/poblacionInicial.sql` en tu servidor MySQL.
 
@@ -80,6 +96,8 @@ Esto ejecutará los scripts `scriptsBD/creacion.sql` y `scriptsBD/poblacionInici
 - **Reset API:** `/resetAPI`
 
 ## Estructura del proyecto
+
+El código fuente está organizado en las siguientes carpetas y archivos:
 
 ```bash
 BackEnd_Circulo_Lectura/

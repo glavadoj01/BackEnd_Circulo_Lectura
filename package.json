@@ -1,31 +1,47 @@
 {
   "name": "backend_circulo_lectura",
-  "version": "1.0.0",
+  "version": "0.3.1",
   "description": "Backend para proyecto educativo - TFC",
+
   "homepage": "https://github.com/glavadoj01/BackEnd_Circulo_Lectura#readme",
-  "bugs": {
-    "url": "https://github.com/glavadoj01/BackEnd_Circulo_Lectura/issues"
-  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/glavadoj01/BackEnd_Circulo_Lectura.git"
   },
-  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/glavadoj01/BackEnd_Circulo_Lectura/issues"
+  },
+  
+  "license": "GNU General Public License v3.0",
   "author": "Gonzalo Lavado",
   "type": "module",
   "main": "src/main.ts",
+
+  "volta": {
+    "node": "22.22.2",
+    "npm": "11.6.4"
+  },
+
   "scripts": {
     "dev": "nodemon --watch src --exec \"npm run build && node dist/main.js\"",
     "build": "tsc",
     "start": "node dist/main.js",
     "run": "npm run build && npm run start"
   },
+
+  "prettier": {
+    "printWidth": 100,
+    "singleQuote": true
+  },
+  "private": true,
+
   "dependencies": {
     "cors": "^2.8.6",
     "dotenv": "^17.2.4",
     "express": "^5.2.1",
     "mysql2": "^3.16.3"
   },
+
   "devDependencies": {
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
