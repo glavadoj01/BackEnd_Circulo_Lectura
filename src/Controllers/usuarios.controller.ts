@@ -85,7 +85,7 @@ async function actualizarUsuario(req: Request, res: Response) {
     if (afectados === 0) {
       return res.status(404).json({ error: 'Usuario no encontrado' });
     }
-    res.json({ actualizado: true, afectados });
+    res.status(201).json({ actualizado: true, afectados });
   } catch (error) {
     res
       .status(500)
@@ -112,7 +112,7 @@ async function borrarUsuario(req: Request, res: Response) {
     if (afectados === 0) {
       return res.status(404).json({ error: 'Usuario no encontrado' });
     }
-    res.json({ borrado: true, afectados });
+    res.status(201).json({ borrado: true, afectados });
   } catch (error) {
     res.status(500).json({ error: 'Error al borrar usuario', detalle: (error as Error).message });
   } finally {

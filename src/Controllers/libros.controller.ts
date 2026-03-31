@@ -135,7 +135,7 @@ async function obtenerLibros(req: Request, res: Response) {
         ? libro.generos.split(',').map((nombre: string) => ({ nombre_genero: nombre }))
         : [],
     }));
-    res.json(libros);
+    res.status(200).json(libros);
   } catch (error) {
     res.status(500).json({ error: 'Error al obtener libros', detalle: (error as Error).message });
   } finally {
@@ -172,7 +172,11 @@ async function obtenerLibroId(req: Request, res: Response) {
         : [],
     }));
 
-    res.json(libro[0]);
+    if (libro.length === 0) {
+      return res.status(404).json({ error: 'Libro no encontrado 🔥' });
+    }
+
+    res.status(200).json(libro[0]);
   } catch (error) {
     res.status(500).json({ error: 'Error al obtener libro', detalle: (error as Error).message });
   } finally {
@@ -298,7 +302,7 @@ async function actualizarLibro(req: Request, res: Response) {
       }
     }
 
-    res.json({ actualizado: true, afectados });
+    res.status(200).json({ actualizado: true, afectados });
   } catch (error) {
     res.status(500).json({ error: 'Error al actualizar libro', detalle: (error as Error).message });
   } finally {
@@ -326,7 +330,7 @@ async function borrarLibro(req: Request, res: Response) {
     if (afectados === 0) {
       return res.status(404).json({ error: 'Libro no encontrado' });
     }
-    res.json({ borrado: true, afectados });
+    res.status(200).json({ borrado: true, afectados });
   } catch (error) {
     res.status(500).json({ error: 'Error al borrar libro', detalle: (error as Error).message });
   } finally {
