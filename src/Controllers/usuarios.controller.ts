@@ -2,6 +2,8 @@
 import { Request, Response } from 'express';
 import { UsuarioBD } from '../Interfaces/modelosBD/modelosBD.js';
 import { ConexionBD } from '../Services/conexionBD.service.js';
+import { parsePositiveInt } from '../Utils/validation.utils.js';
+import { respuestaError, respuestaOk } from '../Utils/validationMessages.utils.js';
 
 /**
  * Crear un nuevo usuario
@@ -13,14 +15,20 @@ async function crearUsuario(req: Request, res: Response) {
     const datos: Partial<UsuarioBD> = req.body;
     // Validación mínima
     if (!datos.nombre_usuario || !datos.nombre_real) {
-      return res.status(400).json({ error: 'Faltan campos obligatorios' });
+      return respuestaError(res, 400, 'CAMPOS_OBLIGATORIOS');
     }
     // Insertar en la BD
     conexionAbierta = new ConexionBD();
     const insertId = await conexionAbierta.insertarRegistro('usuario', datos);
-    res.status(201).json({ id_usuario: insertId, ...datos });
+    return respuestaOk(
+      res,
+      201,
+      'USUARIO_CREADO_OK',
+      { id_usuario: insertId, ...datos },
+      { incluirMensaje: false },
+    );
   } catch (error) {
-    res.status(500).json({ error: 'Error al crear usuario', detalle: (error as Error).message });
+    return respuestaError(res, 500, 'ERROR_CREAR_USUARIO', (error as Error).message);
   } finally {
     if (conexionAbierta) await conexionAbierta.close();
   }
@@ -40,7 +48,7 @@ async function obtenerUsuarios(req: Request, res: Response) {
       try {
         filtros = JSON.parse(filtrosRaw);
       } catch {
-        return res.status(400).json({ error: 'Filtros mal formateados' });
+        return respuestaError(res, 400, 'FILTROS_MAL_FORMATEADOS');
       }
     } else if (typeof filtrosRaw === 'object' && filtrosRaw !== null) {
       filtros = filtrosRaw as Record<string, any>;
@@ -57,9 +65,9 @@ async function obtenerUsuarios(req: Request, res: Response) {
       limite,
       columnas,
     );
-    res.status(201).json(usuarios);
+    return respuestaOk(res, 200, 'USUARIOS_OBTENIDOS_OK', usuarios, { incluirMensaje: false });
   } catch (error) {
-    res.status(500).json({ error: 'Error al obtener usuarios', detalle: (error as Error).message });
+    return respuestaError(res, 500, 'ERROR_OBTENER_USUARIOS', (error as Error).message);
   } finally {
     if (conexionAbierta) await conexionAbierta.close();
   }
@@ -72,10 +80,11 @@ async function actualizarUsuario(req: Request, res: Response) {
   let conexionAbierta = null as ConexionBD | null;
 
   try {
-    const id = req.params.id || req.body.id_usuario;
+    const idRaw = req.params.id ?? req.body.id_usuario;
+    const id = parsePositiveInt(idRaw);
     const datos: Partial<UsuarioBD> = req.body;
-    if (!id) {
-      return res.status(400).json({ error: 'Falta el id del usuario' });
+    if (isNaN(id)) {
+      return respuestaError(res, 400, 'FALTA_ID_USUARIO');
     }
 
     conexionAbierta = new ConexionBD();
@@ -83,13 +92,17 @@ async function actualizarUsuario(req: Request, res: Response) {
       id_usuario: id,
     });
     if (afectados === 0) {
-      return res.status(404).json({ error: 'Usuario no encontrado' });
+      return respuestaError(res, 404, 'USUARIO_NO_ENCONTRADO');
     }
-    res.status(201).json({ actualizado: true, afectados });
+    return respuestaOk(
+      res,
+      200,
+      'USUARIO_ACTUALIZADO_OK',
+      { actualizado: true, afectados },
+      { incluirMensaje: false },
+    );
   } catch (error) {
-    res
-      .status(500)
-      .json({ error: 'Error al actualizar usuario', detalle: (error as Error).message });
+    return respuestaError(res, 500, 'ERROR_ACTUALIZAR_USUARIO', (error as Error).message);
   } finally {
     if (conexionAbierta) await conexionAbierta.close();
   }
@@ -102,19 +115,26 @@ async function borrarUsuario(req: Request, res: Response) {
   let conexionAbierta = null as ConexionBD | null;
 
   try {
-    const id = req.params.id || req.body.id_usuario;
-    if (!id) {
-      return res.status(400).json({ error: 'Falta el id del usuario' });
+    const idRaw = req.params.id ?? req.body.id_usuario;
+    const id = parsePositiveInt(idRaw);
+    if (isNaN(id)) {
+      return respuestaError(res, 400, 'FALTA_ID_USUARIO');
     }
 
     conexionAbierta = new ConexionBD();
     const afectados = await conexionAbierta.borrarRegistro('usuario', { id_usuario: id });
     if (afectados === 0) {
-      return res.status(404).json({ error: 'Usuario no encontrado' });
+      return respuestaError(res, 404, 'USUARIO_NO_ENCONTRADO');
     }
-    res.status(201).json({ borrado: true, afectados });
+    return respuestaOk(
+      res,
+      200,
+      'USUARIO_BORRADO_OK',
+      { borrado: true, afectados },
+      { incluirMensaje: false },
+    );
   } catch (error) {
-    res.status(500).json({ error: 'Error al borrar usuario', detalle: (error as Error).message });
+    return respuestaError(res, 500, 'ERROR_BORRAR_USUARIO', (error as Error).message);
   } finally {
     if (conexionAbierta) await conexionAbierta.close();
   }

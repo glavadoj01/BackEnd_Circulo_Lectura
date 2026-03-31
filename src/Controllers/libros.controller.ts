@@ -2,11 +2,13 @@
 import { Request, Response } from 'express';
 import { LibroBD } from '../Interfaces/modelosBD/modelosBD.js';
 import { ConexionBD } from '../Services/conexionBD.service.js';
+import { parsePositiveInt } from '../Utils/validation.utils.js';
+import { respuestaError, respuestaOk } from '../Utils/validationMessages.utils.js';
 
 /** Crear un nuevo libro
  *
  * @param req - Objeto de solicitud de Express, con los datos del libro a crear en req.body.libro, y opcionalmente arrays de autores en req.body.autores y géneros en req.body.generos
- * @param res - Objeto de respuesta de Express, se enviará un JSON con el resultado de la operación
+ * @param res - Objeto de respuestaError de Express, se enviará un JSON con el resultado de la operación
  * @returns JSON con el ID del libro creado y los datos ingresados, o un error si ocurrió algún problema
  */
 async function crearLibro(req: Request, res: Response) {
@@ -15,7 +17,7 @@ async function crearLibro(req: Request, res: Response) {
     const datos: Partial<LibroBD> = req.body.libro ? req.body.libro : req.body;
     // Validación mínima
     if (!datos.titulo_libro || !datos.idioma_original) {
-      return res.status(400).json({ error: 'Faltan campos obligatorios' });
+      return respuestaError(res, 400, 'CAMPOS_OBLIGATORIOS');
     }
 
     // Extraer nombres de autores y géneros (strings)
@@ -92,11 +94,15 @@ async function crearLibro(req: Request, res: Response) {
       });
     }
 
-    res
-      .status(201)
-      .json({ id_libro: insertId, ...datos, autores: autoresIds, generos: generosIds });
-  } catch (error) {
-    res.status(500).json({ error: 'Error al crear libro', detalle: (error as Error).message });
+    return respuestaOk(
+      res,
+      201,
+      'LIBRO_CREADO_OK',
+      { id_libro: insertId, ...datos, autores: autoresIds, generos: generosIds },
+      { incluirMensaje: false },
+    );
+  } catch (error: unknown) {
+    return respuestaError(res, 500, 'ERROR_CREAR_LIBRO', (error as Error).message);
   } finally {
     if (conexionAbierta) await conexionAbierta.close();
   }
@@ -105,7 +111,7 @@ async function crearLibro(req: Request, res: Response) {
 /** Obtener libros con/sin filtros de búsqueda
  *
  * @param req - Objeto de solicitud de Express, con posibles filtros en req.query (id, titulo, idioma, etc.)
- * @param res - Objeto de respuesta de Express, se enviará un JSON con el resultado de la operación
+ * @param res - Objeto de respuestaError de Express, se enviará un JSON con el resultado de la operación
  * @returns JSON con un array de libros que coinciden con los filtros, o un error si ocurrió algún problema
  */
 async function obtenerLibros(req: Request, res: Response) {
@@ -114,21 +120,55 @@ async function obtenerLibros(req: Request, res: Response) {
     const filtros: Record<string, any> = {};
     const pageRaw = req.query.page;
     const limitRaw = req.query.limit;
-    const page = Number(pageRaw);
-    const limit = Number(limitRaw);
-    const usarPaginacion = Number.isInteger(page) && page > 0 && Number.isInteger(limit) && limit > 0;
+    const tienePage = typeof pageRaw !== 'undefined';
+    const tieneLimit = typeof limitRaw !== 'undefined';
+
+    if (tienePage !== tieneLimit) {
+      return respuestaError(res, 400, 'PAGINACION_REQUIERE_AMBOS');
+    }
+
+    const page = tienePage ? Number(pageRaw) : 1;
+    const limitSolicitado = tieneLimit ? Number(limitRaw) : 0;
+    const limitMaximo = 50;
+
+    if (tienePage && (!Number.isInteger(page) || page <= 0)) {
+      return respuestaError(res, 400, 'PARAMETRO_PAGE_INVALIDO');
+    }
+
+    if (tieneLimit && (!Number.isInteger(limitSolicitado) || limitSolicitado <= 0)) {
+      return respuestaError(res, 400, 'PARAMETRO_LIMIT_INVALIDO');
+    }
+
+    const limit = tieneLimit ? Math.min(limitSolicitado, limitMaximo) : 0;
+    const usarPaginacion = tienePage && tieneLimit;
     const offset = usarPaginacion ? (page - 1) * limit : 0;
 
-    if (req.query && Object.keys(req.query).length > 0) {
-      if (req.query.id) filtros.id_libro = req.query.id;
-      if (req.query.titulo) filtros.titulo_libro = req.query.titulo;
-      if (req.query.idioma) filtros.idioma_original = req.query.idioma;
-      for (const [clave, valor] of Object.entries(req.query)) {
-        if (!['id', 'titulo', 'idioma', 'page', 'limit'].includes(clave)) {
-          filtros[clave] = valor;
-        }
+    const filtrosPermitidos: Record<string, string> = {
+      id: 'id_libro',
+      titulo: 'titulo_libro',
+      idioma: 'idioma_original',
+      isbn: 'codigo_isbn',
+      paginas: 'paginas',
+      year: 'year_publicacion',
+    };
+    const queryInterna = new Set(['page', 'limit']);
+
+    for (const [clave, valor] of Object.entries(req.query ?? {})) {
+      if (queryInterna.has(clave)) {
+        continue;
       }
+
+      const campoBD = filtrosPermitidos[clave];
+      if (!campoBD) {
+        return respuestaError(res, 400, 'FILTRO_NO_PERMITIDO', {
+          detalle: `Filtro no permitido: ${clave}`,
+          filtrosPermitidos: Object.keys(filtrosPermitidos),
+        });
+      }
+
+      filtros[campoBD] = valor;
     }
+
     // Usar el método específico para obtener libros con autores y géneros
     conexionAbierta = new ConexionBD();
     const librosRaw = await conexionAbierta.listarLibrosConAutoresYGeneros(
@@ -149,9 +189,9 @@ async function obtenerLibros(req: Request, res: Response) {
         ? libro.generos.split(',').map((nombre: string) => ({ nombre_genero: nombre }))
         : [],
     }));
-    res.status(200).json(libros);
+    return respuestaOk(res, 200, 'LIBROS_OBTENIDOS_OK', libros, { incluirMensaje: false });
   } catch (error) {
-    res.status(500).json({ error: 'Error al obtener libros', detalle: (error as Error).message });
+    return respuestaError(res, 500, 'ERROR_OBTENER_LIBROS', (error as Error).message);
   } finally {
     if (conexionAbierta) await conexionAbierta.close();
   }
@@ -160,22 +200,20 @@ async function obtenerLibros(req: Request, res: Response) {
 /** Obtener un libro por ID
  *
  * @param req - Objeto de solicitud de Express, con el ID del libro a obtener en req.query.id o req.params.id
- * @param res - Objeto de respuesta de Express, se enviará un JSON con el resultado de la operación
+ * @param res - Objeto de respuestaError de Express, se enviará un JSON con el resultado de la operación
  * @returns JSON con los datos del libro encontrado, incluyendo autores y géneros, o un error si ocurrió algún problema o si el libro no fue encontrado
  */
 async function obtenerLibroId(req: Request, res: Response) {
   let conexionAbierta = null as ConexionBD | null;
   try {
-    const id = req.query.id || req.params.id;
-    if (!id) {
-      return res.status(400).json({ error: 'Falta el id del libro' });
+    const idRaw = req.query.id ?? req.params.id;
+    const id = parsePositiveInt(idRaw);
+    if (isNaN(id)) {
+      return respuestaError(res, 400, 'ID_LIBRO_INVALIDO');
     }
 
     conexionAbierta = new ConexionBD();
     const libroRaw = await conexionAbierta.listarLibrosConAutoresYGeneros({ id_libro: id });
-    if (!libroRaw) {
-      return res.status(404).json({ error: 'Libro no encontrado' });
-    }
     const libro = libroRaw.map((libro: any) => ({
       ...libro,
       autores: libro.autores
@@ -187,12 +225,12 @@ async function obtenerLibroId(req: Request, res: Response) {
     }));
 
     if (libro.length === 0) {
-      return res.status(404).json({ error: 'Libro no encontrado 🔥' });
+      return respuestaError(res, 404, 'LIBRO_NO_ENCONTRADO_EMOJI');
     }
 
-    res.status(200).json(libro[0]);
+    return respuestaOk(res, 200, 'LIBRO_OBTENIDO_OK', libro[0], { incluirMensaje: false });
   } catch (error) {
-    res.status(500).json({ error: 'Error al obtener libro', detalle: (error as Error).message });
+    return respuestaError(res, 500, 'ERROR_OBTENER_LIBRO', (error as Error).message);
   } finally {
     if (conexionAbierta) await conexionAbierta.close();
   }
@@ -201,25 +239,25 @@ async function obtenerLibroId(req: Request, res: Response) {
 /** Actualizar un libro existente
  *
  * @param req - Objeto de solicitud de Express, con el ID del libro a actualizar en req.params.id o req.body.id_libro, y los datos a actualizar en req.body.libro, además de posibles arrays de autores en req.body.autores y géneros en req.body.generos
- * @param res - Objeto de respuesta de Express, se enviará un JSON con el resultado de la operación
+ * @param res - Objeto de respuestaError de Express, se enviará un JSON con el resultado de la operación
  * @returns JSON indicando si el libro fue actualizado y cuántos registros fueron afectados, o un error si ocurrió algún problema o si el libro no fue encontrado
  */
 async function actualizarLibro(req: Request, res: Response) {
   let conexionAbierta = null as ConexionBD | null;
   try {
     const idRaw = req.params.id ?? req.body.id_libro;
-    const id = Array.isArray(idRaw) ? idRaw[0] : idRaw;
+    const id = parsePositiveInt(idRaw);
     const datos: Partial<LibroBD> =
       typeof req.body.libro === 'object' && req.body.libro !== null ? req.body.libro : req.body;
-    if (!id) {
-      return res.status(400).json({ error: 'Falta el id del libro' });
+    if (isNaN(id)) {
+      return respuestaError(res, 400, 'ID_LIBRO_INVALIDO');
     }
 
     // Actualizar datos principales del libro
     conexionAbierta = new ConexionBD();
     const afectados = await conexionAbierta.actualizarRegistro('libro', datos, { id_libro: id });
     if (afectados === 0) {
-      return res.status(404).json({ error: 'Libro no encontrado' });
+      return respuestaError(res, 404, 'LIBRO_NO_ENCONTRADO');
     }
 
     // Actualizar autores y géneros si se envían
@@ -316,9 +354,15 @@ async function actualizarLibro(req: Request, res: Response) {
       }
     }
 
-    res.status(200).json({ actualizado: true, afectados });
+    return respuestaOk(
+      res,
+      200,
+      'LIBRO_ACTUALIZADO_OK',
+      { actualizado: true, afectados },
+      { incluirMensaje: false },
+    );
   } catch (error) {
-    res.status(500).json({ error: 'Error al actualizar libro', detalle: (error as Error).message });
+    return respuestaError(res, 500, 'ERROR_ACTUALIZAR_LIBRO', (error as Error).message);
   } finally {
     if (conexionAbierta) await conexionAbierta.close();
   }
@@ -327,26 +371,32 @@ async function actualizarLibro(req: Request, res: Response) {
 /** Borrar un libro existente
  *
  * @param req - Objeto de solicitud de Express, con el ID del libro a borrar en req.params.id o req.body.id_libro
- * @param res - Objeto de respuesta de Express, se enviará un JSON con el resultado de la operación
+ * @param res - Objeto de respuestaError de Express, se enviará un JSON con el resultado de la operación
  * @returns JSON indicando si el libro fue borrado y cuántos registros fueron afectados, o un error si ocurrió algún problema
  */
 async function borrarLibro(req: Request, res: Response) {
   let conexionAbierta = null as ConexionBD | null;
   try {
     const idRaw = req.params.id ?? req.body.id_libro;
-    const id = Array.isArray(idRaw) ? idRaw[0] : idRaw;
-    if (!id) {
-      return res.status(400).json({ error: 'Falta el id del libro' });
+    const id = parsePositiveInt(idRaw);
+    if (isNaN(id)) {
+      return respuestaError(res, 400, 'ID_LIBRO_INVALIDO');
     }
 
     conexionAbierta = new ConexionBD();
     const afectados = await conexionAbierta.borrarRegistro('libro', { id_libro: id });
     if (afectados === 0) {
-      return res.status(404).json({ error: 'Libro no encontrado' });
+      return respuestaError(res, 404, 'LIBRO_NO_ENCONTRADO');
     }
-    res.status(200).json({ borrado: true, afectados });
+    return respuestaOk(
+      res,
+      200,
+      'LIBRO_BORRADO_OK',
+      { borrado: true, afectados },
+      { incluirMensaje: false },
+    );
   } catch (error) {
-    res.status(500).json({ error: 'Error al borrar libro', detalle: (error as Error).message });
+    return respuestaError(res, 500, 'ERROR_BORRAR_LIBRO', (error as Error).message);
   } finally {
     if (conexionAbierta) await conexionAbierta.close();
   }
@@ -358,11 +408,15 @@ async function obtenerLibrosTotal(_req: Request, res: Response) {
     conexionAbierta = new ConexionBD();
     const total = await conexionAbierta.listarRegistros('libro', {}, '', 0, 'COUNT(*) AS total');
     const totalLibros = total[0]?.total ?? 0;
-    res.status(200).json({ total: totalLibros });
+    return respuestaOk(
+      res,
+      200,
+      'TOTAL_LIBROS_OBTENIDO_OK',
+      { total: totalLibros },
+      { incluirMensaje: false },
+    );
   } catch (error) {
-    res
-      .status(500)
-      .json({ error: 'Error al obtener total de libros', detalle: (error as Error).message });
+    return respuestaError(res, 500, 'ERROR_TOTAL_LIBROS', (error as Error).message);
   } finally {
     if (conexionAbierta) await conexionAbierta.close();
   }

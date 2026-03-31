@@ -2,6 +2,8 @@
 import { Request, Response } from 'express';
 import { LibroCritica } from '../Interfaces/modelosBD/modelosBD.js';
 import { ConexionBD } from '../Services/conexionBD.service.js';
+import { parseCalificacion, parsePositiveInt } from '../Utils/validation.utils.js';
+import { respuestaError, respuestaOk } from '../Utils/validationMessages.utils.js';
 
 /**
  * Crear nueva crítica para un libro
@@ -9,14 +11,19 @@ import { ConexionBD } from '../Services/conexionBD.service.js';
 async function crearCritica(req: Request, res: Response) {
   let conexionAbierta = null as ConexionBD | null;
   try {
-    const idLibroParam = req.params.id;
-    const idLibro = parseInt(Array.isArray(idLibroParam) ? idLibroParam[0] : idLibroParam);
-    const idUsuario = req.body.id_usuario;
+    const idLibro = parsePositiveInt(req.params.id);
+    const idUsuario = parsePositiveInt(req.body.id_usuario);
     const tituloCritica = req.body.titulo_critica || '';
     const textoCritica = req.body.texto_critica || '';
-    const calificacionLibro = req.body.calificacion_libro;
-    if (isNaN(idLibro) || !idUsuario || calificacionLibro === undefined) {
-      return res.status(400).json({ error: 'Faltan campos obligatorios' });
+    const calificacionLibro = parseCalificacion(req.body.calificacion_libro);
+    if (isNaN(idLibro)) {
+      return respuestaError(res, 400, 'ID_LIBRO_INVALIDO');
+    }
+    if (isNaN(idUsuario)) {
+      return respuestaError(res, 400, 'ID_USUARIO_INVALIDO');
+    }
+    if (isNaN(calificacionLibro)) {
+      return respuestaError(res, 400, 'CALIFICACION_RANGO');
     }
     const datos: Partial<LibroCritica> = {
       id_libro: idLibro,
@@ -27,15 +34,20 @@ async function crearCritica(req: Request, res: Response) {
     };
 
     conexionAbierta = new ConexionBD();
-    const insertId = await conexionAbierta.insertarRegistro('libro_critica', datos);
-    if (insertId > 0) {
-      res.status(201).json({ message: 'Crítica creada exitosamente', id_critica: insertId });
+    const creadas = await conexionAbierta.insertarRegistro('libro_critica', datos, false);
+    if (creadas > 0) {
+      return respuestaOk(res, 201, 'CRITICA_CREADA_OK', {
+        critica: {
+          id_libro: idLibro,
+          id_usuario: idUsuario,
+        },
+      });
     } else {
-      res.status(500).json({ error: 'Error al crear crítica' });
+      return respuestaError(res, 500, 'ERROR_CREAR_CRITICA');
     }
   } catch (error) {
     console.error('Error al crear crítica:', error);
-    res.status(500).json({ error: 'Error al crear crítica' });
+    return respuestaError(res, 500, 'ERROR_CREAR_CRITICA');
   } finally {
     if (conexionAbierta) await conexionAbierta.close();
   }
@@ -47,38 +59,53 @@ async function crearCritica(req: Request, res: Response) {
 async function obtenerCriticasLibro(req: Request, res: Response) {
   let conexionAbierta = null as ConexionBD | null;
   try {
-    const idLibroParam = req.params.id;
-    const idLibro = parseInt(Array.isArray(idLibroParam) ? idLibroParam[0] : idLibroParam);
+    const idLibro = parsePositiveInt(req.params.id);
     if (isNaN(idLibro)) {
-      return res.status(400).json({ error: 'ID de libro inválido' });
+      return respuestaError(res, 400, 'ID_LIBRO_INVALIDO');
     }
 
     // Obtener críticas del libro
     conexionAbierta = new ConexionBD();
-    const criticas: LibroCritica[] = await conexionAbierta.listarRegistros('libro_critica', {
+    const criticasRaw: LibroCritica[] = await conexionAbierta.listarRegistros('libro_critica', {
       id_libro: idLibro,
     });
+    const criticas = criticasRaw
+      .map((critica) => ({
+        ...critica,
+        calificacion_libro:
+          typeof critica.calificacion_libro === 'number'
+            ? critica.calificacion_libro
+            : Number(critica.calificacion_libro),
+      }))
+      .sort((a, b) => {
+        const fechaA = new Date(a.fecha_critica).getTime();
+        const fechaB = new Date(b.fecha_critica).getTime();
+        return fechaA - fechaB;
+      });
 
     // Calcular frecuencias de notas (calificacion_libro)
     const maxNota = 5;
     const frecuencias: number[] = Array(maxNota + 1).fill(0);
     for (const critica of criticas) {
-      const nota =
-        typeof critica.calificacion_libro === 'number'
-          ? critica.calificacion_libro
-          : parseInt(critica.calificacion_libro);
+      const nota = Number(critica.calificacion_libro);
       if (!isNaN(nota) && nota >= 1 && nota <= maxNota) {
         frecuencias[nota]++;
       }
     }
 
-    return res.status(200).json({
-      criticas,
-      frecuencias,
-    });
+    return respuestaOk(
+      res,
+      200,
+      'CRITICAS_OBTENIDAS_OK',
+      {
+        criticas,
+        frecuencias,
+      },
+      { incluirMensaje: false },
+    );
   } catch (error) {
     console.error('Error al obtener críticas:', error);
-    res.status(500).json({ error: 'Error al obtener críticas' });
+    return respuestaError(res, 500, 'ERROR_OBTENER_CRITICAS');
   } finally {
     if (conexionAbierta) await conexionAbierta.close();
   }
@@ -90,33 +117,43 @@ async function obtenerCriticasLibro(req: Request, res: Response) {
 async function actualizarCritica(req: Request, res: Response) {
   let conexionAbierta = null as ConexionBD | null;
   try {
-    const idLibroParam = req.params.id;
-    const idCriticaParam = req.params.criticaId;
-    const idLibro = parseInt(Array.isArray(idLibroParam) ? idLibroParam[0] : idLibroParam);
-    const idCritica = parseInt(Array.isArray(idCriticaParam) ? idCriticaParam[0] : idCriticaParam);
+    const idLibro = parsePositiveInt(req.params.id);
+    const idUsuario = parsePositiveInt(req.params.usuarioId);
     const tituloCritica = req.body.titulo_critica;
     const textoCritica = req.body.texto_critica;
-    const calificacionLibro = req.body.calificacion_libro;
-    if (isNaN(idLibro) || isNaN(idCritica)) {
-      return res.status(400).json({ error: 'Faltan campos obligatorios' });
+    const calificacionLibro =
+      req.body.calificacion_libro !== undefined
+        ? parseCalificacion(req.body.calificacion_libro)
+        : undefined;
+    if (isNaN(idLibro)) {
+      return respuestaError(res, 400, 'ID_LIBRO_INVALIDO');
+    }
+    if (isNaN(idUsuario)) {
+      return respuestaError(res, 400, 'ID_USUARIO_INVALIDO');
+    }
+    if (calificacionLibro !== undefined && isNaN(calificacionLibro)) {
+      return respuestaError(res, 400, 'CALIFICACION_RANGO');
     }
     const datos: Partial<LibroCritica> = {};
     if (tituloCritica !== undefined) datos.titulo_critica = tituloCritica;
     if (textoCritica !== undefined) datos.texto_critica = textoCritica;
     if (calificacionLibro !== undefined) datos.calificacion_libro = calificacionLibro;
+    if (Object.keys(datos).length === 0) {
+      return respuestaError(res, 400, 'NO_HAY_CAMPOS_ACTUALIZAR');
+    }
 
     conexionAbierta = new ConexionBD();
     const afectados = await conexionAbierta.actualizarRegistro('libro_critica', datos, {
       id_libro: idLibro,
-      id_usuario: idCritica,
+      id_usuario: idUsuario,
     });
     if (afectados === 0) {
-      return res.status(404).json({ error: 'Crítica no encontrada' });
+      return respuestaError(res, 404, 'CRITICA_NO_ENCONTRADA');
     }
-    return res.status(200).json({ message: 'Crítica actualizada exitosamente' });
+    return respuestaOk(res, 200, 'CRITICA_ACTUALIZADA_OK');
   } catch (error) {
     console.error('Error al actualizar crítica:', error);
-    res.status(500).json({ error: 'Error al actualizar crítica' });
+    return respuestaError(res, 500, 'ERROR_ACTUALIZAR_CRITICA');
   } finally {
     if (conexionAbierta) await conexionAbierta.close();
   }
@@ -128,27 +165,28 @@ async function actualizarCritica(req: Request, res: Response) {
 async function borrarCritica(req: Request, res: Response) {
   let conexionAbierta = null as ConexionBD | null;
   try {
-    const idLibroParam = req.params.id;
-    const idCriticaParam = req.params.criticaId;
-    const idLibro = parseInt(Array.isArray(idLibroParam) ? idLibroParam[0] : idLibroParam);
-    const idCritica = parseInt(Array.isArray(idCriticaParam) ? idCriticaParam[0] : idCriticaParam);
-    if (isNaN(idLibro) || isNaN(idCritica)) {
-      return res.status(400).json({ error: 'Faltan campos obligatorios' });
+    const idLibro = parsePositiveInt(req.params.id);
+    const idUsuario = parsePositiveInt(req.params.usuarioId);
+    if (isNaN(idLibro)) {
+      return respuestaError(res, 400, 'ID_LIBRO_INVALIDO');
+    }
+    if (isNaN(idUsuario)) {
+      return respuestaError(res, 400, 'ID_USUARIO_INVALIDO');
     }
 
     conexionAbierta = new ConexionBD();
     const afectados = await conexionAbierta.borrarRegistro('libro_critica', {
       id_libro: idLibro,
-      id_usuario: idCritica,
+      id_usuario: idUsuario,
     });
 
     if (afectados === 0) {
-      return res.status(404).json({ error: 'Crítica no encontrada' });
+      return respuestaError(res, 404, 'CRITICA_NO_ENCONTRADA');
     }
-    return res.status(200).json({ message: 'Crítica borrada exitosamente' });
+    return respuestaOk(res, 200, 'CRITICA_BORRADA_OK');
   } catch (error) {
     console.error('Error al borrar crítica:', error);
-    res.status(500).json({ error: 'Error al borrar crítica' });
+    return respuestaError(res, 500, 'ERROR_BORRAR_CRITICA');
   } finally {
     if (conexionAbierta) await conexionAbierta.close();
   }
