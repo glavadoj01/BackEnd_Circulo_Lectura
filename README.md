@@ -5,8 +5,8 @@ Backend para el proyecto educativo de un TFC. Proporciona una API REST para la g
 ## Requisitos mínimos
 
 - **MySQL** >= 8.x (requiere instalación aparte de este proyecto)
-- **npm** >= 9.x
-- **Node.js** >= 18.x
+- **npm** >= 11.6.x
+- **Node.js** >= 22.21.x
 - **Git** (opcional, para clonar el repositorio)
 
 ## Instalación y configuración
