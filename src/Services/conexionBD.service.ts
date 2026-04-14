@@ -1,10 +1,20 @@
 import mysql, { Pool, FieldPacket } from 'mysql2/promise';
-import { DetalleLibroCompleto, LibroApp } from '../Interfaces/modelosApp/modelosApp.js';
+import { readFile } from 'fs/promises';
+import path, { dirname } from 'path';
+import { fileURLToPath } from 'url';
+
+import {
+  DetalleLibroCompleto,
+  LibroApp,
+  LibroResumen,
+  ListaApp,
+} from '../Interfaces/modelosApp/modelosApp.js';
 import {
   AutorApellido,
   AutorNombre,
   GeneroNombre,
   LibroCritica,
+  ListaBD,
 } from '../Interfaces/modelosBD/modelosBD.js';
 
 /* ===========================================================================================================
@@ -29,7 +39,6 @@ export class ConexionBD {
   private pool: Pool;
   private charset: string;
   private collation: string;
-
   /* ===========================================================================================================
     Constructor/Destructor y configuración de conexión
     =========================================================================================================== */
@@ -195,7 +204,7 @@ export class ConexionBD {
     filtros: { titulo?: string; autor?: string; genero?: string },
     page: number,
     limit: number,
-  ): Promise<LibroApp[]> {
+  ): Promise<LibroResumen[]> {
     const offset = (page - 1) * limit;
     const params: any[] = [];
 
@@ -218,22 +227,11 @@ export class ConexionBD {
     SELECT
       l.id_libro,
       l.titulo_libro,
-      l.codigo_isbn,
-      l.idioma_original,
-      l.paginas,
-      l.year_publicacion,
-      l.sinopsis,
-      i.nombre_idioma,
-      GROUP_CONCAT(DISTINCT CONCAT(a.id_autor, ':', a.nombre_autor, ':', a.apellido_autor) SEPARATOR '|') AS autores,
-      GROUP_CONCAT(DISTINCT g.nombre_genero SEPARATOR '|') AS generos,
-      COUNT(DISTINCT c.id_usuario) AS totalResenas,
+      GROUP_CONCAT(DISTINCT CONCAT(a.nombre_autor, ':', a.apellido_autor) SEPARATOR '|') AS autores,
       ROUND(AVG(c.calificacion_libro),2) AS calificacionPromedio
     FROM libro l
-    LEFT JOIN idiomas i ON l.idioma_original = i.id_idioma
     LEFT JOIN libro_autor la ON l.id_libro = la.id_libro
     LEFT JOIN autor a ON la.id_autor = a.id_autor
-    LEFT JOIN libro_genero lg ON l.id_libro = lg.id_libro
-    LEFT JOIN genero g ON lg.id_genero = g.id_genero
     LEFT JOIN libro_critica c ON l.id_libro = c.id_libro
     ${whereClause}
     GROUP BY l.id_libro
@@ -245,37 +243,19 @@ export class ConexionBD {
     const [rows] = await this.pool.query(sql, params);
 
     return (rows as Array<Record<string, any>>).map(
-      (row): LibroApp => ({
+      (row): LibroResumen => ({
         id_libro: row.id_libro,
         titulo_libro: row.titulo_libro,
-        codigo_isbn: row.codigo_isbn,
-        idioma_original: row.idioma_original,
-        paginas: row.paginas,
-        year_publicacion: row.year_publicacion,
-        sinopsis: row.sinopsis,
-        id_idioma_original: row.idioma_original,
-        nombre_idioma_original: row.nombre_idioma,
         autores:
           typeof row.autores === 'string' && row.autores.length > 0
             ? row.autores.split('|').map((a: string) => {
-                const [id_autor, nombre_autor, apellido_autor] = a.split(':');
+                const [nombre_autor, apellido_autor] = a.split(':');
                 return {
-                  id_autor: Number(id_autor),
-                  nombre_autor: { nombre_autor, trim: () => nombre_autor.trim() } as AutorNombre,
-                  apellido_autor: {
-                    apellido_autor,
-                    trim: () => apellido_autor.trim(),
-                  } as AutorApellido,
+                  nombre_autor,
+                  apellido_autor,
                 };
               })
             : [],
-        generos:
-          typeof row.generos === 'string' && row.generos.length > 0
-            ? row.generos.split('|').map((nombre_genero: string) => ({
-                nombre_genero: { nombre_genero, trim: () => nombre_genero.trim() } as GeneroNombre,
-              }))
-            : [],
-        totalResenas: Number(row.totalResenas) || 0,
         calificacionPromedio:
           row.calificacionPromedio !== null && row.calificacionPromedio !== undefined
             ? Number(row.calificacionPromedio)
@@ -284,6 +264,12 @@ export class ConexionBD {
     );
   }
 
+  /**
+   * Obtiene el detalle completo de un libro por su ID, incluyendo su información básica, críticas y distribución de notas.
+   * Devuelve null si el libro no existe.
+   * @param idLibro ID del libro a obtener
+   * @returns DetalleLibroCompleto con la información del libro, sus críticas y distribución de notas, o null si no se encuentra el libro
+   */
   async obtenerDetalleLibro(idLibro: number): Promise<DetalleLibroCompleto | null> {
     // Consulta principal del libro
     const sql = `
@@ -291,7 +277,7 @@ export class ConexionBD {
       l.id_libro,
       l.titulo_libro,
       l.codigo_isbn,
-      l.idioma_original,
+      l.id_idioma_original,
       l.paginas,
       l.year_publicacion,
       l.sinopsis,
@@ -301,7 +287,7 @@ export class ConexionBD {
       COUNT(DISTINCT c.id_usuario) AS totalResenas,
       ROUND(AVG(c.calificacion_libro),2) AS calificacionPromedio
     FROM libro l
-    LEFT JOIN idiomas i ON l.idioma_original = i.id_idioma
+    LEFT JOIN idiomas i ON l.id_idioma_original = i.id_idioma
     LEFT JOIN libro_autor la ON l.id_libro = la.id_libro
     LEFT JOIN autor a ON la.id_autor = a.id_autor
     LEFT JOIN libro_genero lg ON l.id_libro = lg.id_libro
@@ -317,7 +303,7 @@ export class ConexionBD {
     // Críticas y distribución de notas
     const [criticasRows] = await this.pool.query(
       `SELECT id_libro, id_usuario, titulo_critica, texto_critica, calificacion_libro, fecha_critica
-     FROM libro_critica WHERE id_libro = ? ORDER BY fecha_critica DESC`,
+        FROM libro_critica WHERE id_libro = ? ORDER BY fecha_critica DESC`,
       [idLibro],
     );
     const criticas: LibroCritica[] = (criticasRows as Array<Record<string, any>>).map((c) => ({
@@ -330,16 +316,16 @@ export class ConexionBD {
     }));
 
     // Distribución de notas
-    const frecuencias: number[] = [0, 0, 0, 0, 0, 0];
+    const frecuencias: number[] = [0, 0, 0, 0, 0];
     criticas.forEach((c) => {
       const nota = Number(c.calificacion_libro);
-      if (nota >= 0 && nota <= 5) frecuencias[nota]++;
+      if (nota > 0 && nota <= 5) frecuencias[nota - 1]++;
     });
     const total = criticas.length;
-    const notasDistribucion = Array.from({ length: 6 }, (_, nota) => ({
-      nota,
-      cantidad: frecuencias[nota],
-      frecuencia: total > 0 ? +(frecuencias[nota] / total).toFixed(2) : 0,
+    const notasDistribucion = Array.from({ length: 5 }, (_, indice) => ({
+      nota: indice + 1,
+      cantidad: frecuencias[indice],
+      frecuencia: total > 0 ? +(frecuencias[indice] / total).toFixed(2) : 0,
     }));
 
     // Mapeo a LibroApp
@@ -347,11 +333,10 @@ export class ConexionBD {
       id_libro: row.id_libro,
       titulo_libro: row.titulo_libro,
       codigo_isbn: row.codigo_isbn,
-      idioma_original: row.idioma_original,
+      id_idioma_original: row.id_idioma_original,
       paginas: row.paginas,
       year_publicacion: row.year_publicacion,
       sinopsis: row.sinopsis,
-      id_idioma_original: row.idioma_original,
       nombre_idioma_original: row.nombre_idioma,
       autores:
         typeof row.autores === 'string' && row.autores.length > 0
@@ -389,15 +374,160 @@ export class ConexionBD {
   }
 
   /**
-   * Método genérico para ejecutar consultas SQL personalizadas.
-   *
-   * @param sql String con la consulta SQL a ejecutar.
+   * Obtiene un catálogo paginado de listas.
+   * Devuelve las listas en orden de id_lista ASC.
+   * @param page Página (1-based)
+   * @param limit Cantidad por página
+   * @returns Array de listas
+   */
+  /**
+   * Obtiene un catálogo paginado de listas con el nombre del creador.
+   * Devuelve las listas en orden de id_lista ASC.
+   * @param page Página (1-based)
+   * @param limit Cantidad por página
+   * @returns Array de ListaApp
+   */
+  async obtenerCatalogoListas(page: number, limit: number): Promise<ListaApp[]> {
+    const offset = (page - 1) * limit;
+    const sql = `
+      SELECT l.*, u.nombre_usuario AS nombreCreador
+      FROM lista l
+      JOIN usuario u ON l.id_usuarioCrd = u.id_usuario
+      ORDER BY l.id_lista ASC
+      LIMIT ? OFFSET ?
+    `;
+    const [rows] = await this.pool.query(sql, [limit, offset]);
+    return (rows as Array<Record<string, unknown>>).map((row) => {
+      const lista: ListaBD = {
+        id_lista: row.id_lista as number,
+        id_usuarioCrd: row.id_usuarioCrd as number,
+        nombre_lista: row.nombre_lista as string,
+        descripcion_lista: row.descripcion_lista as string | undefined,
+      };
+      return {
+        lista,
+        nombreCreador: row.nombreCreador as string,
+      } as ListaApp;
+    });
+  }
+
+  /**
+   * Obtiene una lista por su ID, incluyendo el nombre del creador.
+   * Devuelve null si no existe.
+   * @param idLista ID de la lista
+   * @returns Objeto ListaApp o null
+   */
+  async obtenerListaConCreadorPorId(idLista: number): Promise<ListaApp | null> {
+    const sql = `
+      SELECT l.*, u.nombre_usuario AS nombreCreador
+      FROM lista l
+      JOIN usuario u ON l.id_usuarioCrd = u.id_usuario
+      WHERE l.id_lista = ?
+      LIMIT 1
+    `;
+    const [rows] = await this.pool.query(sql, [idLista]);
+    if (!rows || (rows as any[]).length === 0) return null;
+    const row = (rows as Array<any>)[0];
+    return {
+      id_lista: row.id_lista,
+      id_usuarioCrd: row.id_usuarioCrd,
+      nombre_lista: row.nombre_lista,
+      descripcion_lista: row.descripcion_lista,
+      nombreCreador: row.nombreCreador,
+    } as ListaApp;
+  }
+
+  /**
+   * Obtiene los libros asociados a una lista en formato resumen (para tarjetas).
+   * Devuelve un array de LibroResumen con id_libro, titulo_libro y calificacionPromedio.
+   * @param idLista ID de la lista
+   * @returns Array de LibroResumen
+   */
+  async obtenerLibrosDeListaResumen(idLista: number): Promise<LibroResumen[]> {
+    const sql = `
+      SELECT
+        l.id_libro,
+        l.titulo_libro,
+        GROUP_CONCAT(DISTINCT CONCAT(a.nombre_autor, ':', a.apellido_autor) SEPARATOR '|') AS autores,
+        ROUND(AVG(c.calificacion_libro),2) AS calificacionPromedio
+      FROM lista_contenido lc
+      INNER JOIN libro l ON lc.id_libro = l.id_libro
+      LEFT JOIN libro_autor la ON l.id_libro = la.id_libro
+      LEFT JOIN autor a ON la.id_autor = a.id_autor
+      LEFT JOIN libro_critica c ON l.id_libro = c.id_libro
+      WHERE lc.id_lista = ?
+      GROUP BY l.id_libro, l.titulo_libro
+      ORDER BY l.id_libro ASC
+    `;
+    const [rows] = await this.pool.query(sql, [idLista]);
+    return (rows as Array<Record<string, any>>).map(
+      (row): LibroResumen => ({
+        id_libro: row.id_libro,
+        titulo_libro: row.titulo_libro,
+        autores:
+          typeof row.autores === 'string' && row.autores.length > 0
+            ? row.autores.split('|').map((a: string) => {
+                const [nombre_autor, apellido_autor] = a.split(':');
+                return {
+                  nombre_autor,
+                  apellido_autor,
+                };
+              })
+            : [],
+        calificacionPromedio:
+          row.calificacionPromedio !== null && row.calificacionPromedio !== undefined
+            ? Number(row.calificacionPromedio)
+            : undefined,
+      }),
+    );
+  }
+
+  /**
+   * Obtiene los comentarios asociados a una lista.
+   * @param idLista ID de la lista
+   * @returns Array de comentarios (ListaComentarios[])
+   */
+  async obtenerComentariosDeLista(idLista: number) {
+    const sql = `
+      SELECT id_listaComentario, id_lista, id_usuario, texto_comentario, id_com_respuesta, fecha_comentario
+      FROM lista_comentario
+      WHERE id_lista = ?
+      ORDER BY fecha_comentario ASC
+    `;
+    const [rows] = await this.pool.query(sql, [idLista]);
+    return (rows as Array<Record<string, any>>).map((row) => ({
+      id_listaComentario: row.id_listaComentario,
+      id_lista: row.id_lista,
+      id_usuario: row.id_usuario,
+      texto_comentario: row.texto_comentario,
+      id_com_respuesta: row.id_com_respuesta ?? null,
+      fecha_comentario: row.fecha_comentario,
+    }));
+  }
+
+  /**
+   * Resetea la base de datos ejecutando los scripts de creación y población inicial.
+   * No requiere argumentos y ejecuta exclusivamente los ficheros creacion.sql y poblacionInicial.sql.
    * @returns Objeto con éxito, datos y mensaje.
    */
-  async query(sql: string): Promise<{ exito: boolean; datos: any; mensaje: string }> {
+  async resetearApi(): Promise<{ exito: boolean; datos: any; mensaje: string }> {
     try {
-      const [rows]: [any[], FieldPacket[]] = await this.pool.query(sql);
-      return { exito: true, datos: rows, mensaje: '' };
+      const __dirname = dirname(fileURLToPath(import.meta.url));
+      const rutas = [
+        path.resolve(__dirname, '../../scriptsBD/creacion.sql'),
+        path.resolve(__dirname, '../../scriptsBD/poblacionInicial.sql'),
+      ];
+      for (const ruta of rutas) {
+        const sql = await readFile(ruta, 'utf8');
+        const statements = sql
+          .split(';')
+          .map((stmt: string) => stmt.trim())
+          .filter((stmt: string) => stmt.length > 0);
+        for (const statement of statements) {
+          await this.pool.query(statement);
+        }
+      }
+      return { exito: true, datos: null, mensaje: '' };
     } catch (error: any) {
       return { exito: false, datos: null, mensaje: error.message };
     }

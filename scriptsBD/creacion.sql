@@ -27,13 +27,13 @@ CREATE TABLE libro (
 	id_libro 		 INT PRIMARY KEY AUTO_INCREMENT,
     titulo_libro 	 VARCHAR(100) NOT NULL,
     codigo_isbn 	 VARCHAR(20),
-    idioma_original  INT,
+    id_idioma_original  INT,
     paginas 		 INT,
     year_publicacion INT,
     sinopsis 		 TEXT,
 
     CONSTRAINT fk_libro_idiomaOriginal
-        FOREIGN KEY (idioma_original)
+        FOREIGN KEY (id_idioma_original)
         REFERENCES idiomas(id_idioma)
         ON UPDATE CASCADE
         ON DELETE SET NULL

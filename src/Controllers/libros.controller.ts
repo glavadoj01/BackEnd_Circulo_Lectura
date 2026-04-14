@@ -103,7 +103,7 @@ async function crearLibro(req: Request, res: Response) {
       !datos.titulo_libro ||
       typeof datos.titulo_libro !== 'string' ||
       datos.titulo_libro.trim().length < 2 ||
-      !datos.idioma_original
+      !datos.id_idioma_original
     ) {
       return respuestaError(res, 400, 'CAMPOS_OBLIGATORIOS');
     }

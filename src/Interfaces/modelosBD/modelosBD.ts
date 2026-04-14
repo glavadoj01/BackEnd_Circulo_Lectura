@@ -6,14 +6,18 @@
 export interface UsuarioBD {
   id_usuario: number;
   nombre_usuario: NombreUsuario;
-  nombre_real: string;
+  nombre_real: NombreReal;
   apellido_usuario?: string;
   esAdministrador: boolean; // 0: No, 1: Mod, 2: Admin
 }
 
 export interface NombreUsuario {
   nombre_usuario: string;
+  trim(): string;
+}
 
+export interface NombreReal {
+  nombre_real: string;
   trim(): string;
 }
 
@@ -26,7 +30,6 @@ export interface GeneroBD {
 // Para typado externo (sin ID)
 export interface GeneroNombre {
   nombre_genero: string;
-
   trim(): string;
 }
 
@@ -38,7 +41,6 @@ export interface IdiomaBD {
 // Para typado externo (sin ID)
 export interface IdiomaNombre {
   nombre_idioma: string;
-
   trim(): string;
 }
 
@@ -46,7 +48,7 @@ export interface LibroBD {
   id_libro: number;
   titulo_libro: string;
   codigo_isbn?: string;
-  idioma_original: number | string; // FK a Idioma
+  id_idioma_original: number | string; // FK a Idioma
   paginas?: number;
   year_publicacion?: number;
   sinopsis?: string;
@@ -57,7 +59,7 @@ export interface AutorBD {
   id_usuario?: number; // FK a Usuario (si el autor es también usuario)
   nombre_autor: AutorNombre;
   apellido_autor: AutorApellido;
-  pais_autor: string;
+  pais_autor: PaisNombre;
   esUsuario: boolean; // (0-1)
 }
 // Para typado externo (sin ID)
@@ -72,6 +74,11 @@ export interface AutorApellido {
   trim(): string;
 }
 
+export interface PaisNombre {
+  nombre_pais: string;
+  trim(): string;
+}
+
 // Entidades Débiles
 export interface ListaBD {
   id_lista: number;
@@ -83,11 +90,16 @@ export interface ListaBD {
 export interface EventoBD {
   id_evento: number;
   id_usuarioCrd: number; // FK a Usuario (creador)
-  nombre_evento: string;
+  nombre_evento: NombreEvento;
   fecha_evento: Date; // o string dependiendo cómo lo manejes
   hora_evento?: string; // "HH:MM:SS"
   direccion_evento?: string;
   descripcion_evento: string;
+}
+
+export interface NombreEvento {
+  nombre_evento: string;
+  trim(): string;
 }
 
 // ============================================

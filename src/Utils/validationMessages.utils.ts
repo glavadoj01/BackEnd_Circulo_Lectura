@@ -14,6 +14,12 @@ const VALIDACION_MENSAJES = {
   FILTRO_NO_PERMITIDO: 'Filtro no permitido',
   RUTA_NO_ENCONTRADA: 'Ruta no encontrada',
   PARAMETROS_PAGINACION_INVALIDOS: 'Parámetros de paginación inválidos',
+  ID_LISTA_INVALIDO: 'ID de lista inválido',
+  DATOS_INVALIDOS: 'Datos inválidos',
+  ID_INVALIDO: 'ID inválido',
+  ID_COMENTARIO_INVALIDO: 'ID de comentario inválido',
+  LIBRO_NO_ENCONTRADO_EN_LISTA: 'El libro no se encuentra en la lista',
+  COMENTARIO_NO_ENCONTRADO: 'Comentario no encontrado',
 } as const;
 
 const ERROR_MENSAJES = {
@@ -32,6 +38,26 @@ const ERROR_MENSAJES = {
   ERROR_ACTUALIZAR_CRITICA: 'Error al actualizar crítica',
   ERROR_BORRAR_CRITICA: 'Error al borrar crítica',
   ERROR_RESETEAR_API: 'Error al resetear la API',
+  ERROR_CREAR_LISTA: 'Error al crear lista',
+  ERROR_OBTENER_LISTAS: 'Error al obtener listas',
+  ERROR_OBTENER_LISTA: 'Error al obtener lista',
+  ERROR_ACTUALIZAR_LISTA: 'Error al actualizar lista',
+  ERROR_BORRAR_LISTA: 'Error al borrar lista',
+  ERROR_TOTAL_LISTAS: 'Error al obtener total de listas',
+  ERROR_OBTENER_LIBROS_LISTA: 'Error al obtener los libros de la lista',
+  ERROR_AGREGAR_LIBRO_LISTA: 'Error al agregar libro a la lista',
+  ERROR_ELIMINAR_LIBRO_LISTA: 'Error al eliminar libro de la lista',
+  ERROR_OBTENER_COMENTARIOS_LISTA: 'Error al obtener los comentarios de la lista',
+  ERROR_CREAR_COMENTARIO_LISTA: 'Error al crear comentario de la lista',
+  ERROR_ACTUALIZAR_COMENTARIO_LISTA: 'Error al actualizar comentario de la lista',
+  ERROR_BORRAR_COMENTARIO_LISTA: 'Error al borrar comentario de la lista',
+  LIBRO_AGREGADO_LISTA_OK: 'Libro agregado a la lista exitosamente',
+  LIBRO_ELIMINADO_LISTA_OK: 'Libro eliminado de la lista exitosamente',
+  LIBROS_LISTA_OK: 'Libros de la lista obtenidos exitosamente',
+  COMENTARIOS_LISTA_OK: 'Comentarios de la lista obtenidos exitosamente',
+  COMENTARIO_LISTA_CREADO_OK: 'Comentario de la lista creado exitosamente',
+  COMENTARIO_LISTA_ACTUALIZADO_OK: 'Comentario de la lista actualizado exitosamente',
+  COMENTARIO_LISTA_BORRADO_OK: 'Comentario de la lista borrado exitosamente',
 } as const;
 
 const CATALOGO_MENSAJES = {
@@ -42,6 +68,7 @@ const CATALOGO_MENSAJES = {
   LIBRO_ACTUALIZADO_OK: 'Libro actualizado exitosamente',
   LIBRO_BORRADO_OK: 'Libro borrado exitosamente',
   TOTAL_LIBROS_OBTENIDO_OK: 'Total de libros obtenido exitosamente',
+  TOTAL_LISTAS_OBTENIDO_OK: 'Total de listas obtenido exitosamente',
   USUARIO_NO_ENCONTRADO: 'Usuario no encontrado',
   USUARIO_CREADO_OK: 'Usuario creado exitosamente',
   USUARIOS_OBTENIDOS_OK: 'Usuarios obtenidos exitosamente',
@@ -53,6 +80,12 @@ const CATALOGO_MENSAJES = {
   CRITICA_ACTUALIZADA_OK: 'Crítica actualizada exitosamente',
   CRITICA_BORRADA_OK: 'Crítica borrada exitosamente',
   API_RESETEADA_OK: 'API reseteada exitosamente',
+  LISTA_NO_ENCONTRADA: 'Lista no encontrada',
+  LISTA_CREADA_OK: 'Lista creada exitosamente',
+  LISTAS_OBTENIDAS_OK: 'Listas obtenidas exitosamente',
+  LISTA_OBTENIDA_OK: 'Lista obtenida exitosamente',
+  LISTA_ACTUALIZADA_OK: 'Lista actualizada exitosamente',
+  LISTA_BORRADA_OK: 'Lista borrada exitosamente',
 } as const;
 
 const DETALLE_MENSAJES = {} as const;

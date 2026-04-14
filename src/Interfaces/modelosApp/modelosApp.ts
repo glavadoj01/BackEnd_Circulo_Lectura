@@ -4,14 +4,18 @@ import {
   GeneroNombre,
   LibroBD,
   LibroCritica,
+  ListaBD,
+  ListaComentarios,
 } from './../modelosBD/modelosBD.js';
+
+/****************** INTERFACES DE LA CAPA DE APLICACIÓN ******************/
 
 /**
  * Interfaz que representa un libro en la capa de aplicación, extendiendo la información básica del libro con detalles adicionales como autores, géneros, calificación promedio y total de reseñas.
  * - id_libro: número identificador único del libro.
  * - titulo_libro: título del libro.
  * - codigo_isbn: código ISBN del libro (opcional).
- * - idioma_original: número o cadena que representa el idioma original del libro.
+ * - id_idioma_original: número identificador del idioma original del libro (opcional).
  * - paginas: número de páginas del libro (opcional).
  * - year_publicacion: año de publicación del libro (opcional).
  * - sinopsis: breve descripción del libro (opcional).
@@ -19,7 +23,6 @@ import {
  * - generos: array de objetos que representan los géneros del libro, cada uno con su nombre.
  * - totalResenas: número total de reseñas que tiene el libro (opcional).
  * - calificacionPromedio: calificación promedio del libro basada en las reseñas (opcional).
- * - id_idioma_original: número identificador del idioma original del libro (opcional).
  * - nombre_idioma_original: nombre del idioma original del libro (opcional).
  */
 export interface LibroApp extends LibroBD {
@@ -27,7 +30,6 @@ export interface LibroApp extends LibroBD {
   generos?: Array<{ nombre_genero: GeneroNombre }>; // Lista de géneros del libro
   totalResenas?: number; // Total de reseñas del libro
   calificacionPromedio?: number; // Calificación promedio del libro
-  id_idioma_original?: number;
   nombre_idioma_original?: string;
 }
 
@@ -53,4 +55,42 @@ export interface DetalleLibroCompleto {
   criticas: LibroCritica[];
   notasDistribucion: { nota: number; cantidad: number; frecuencia: number }[];
   errorCriticas: boolean;
+}
+
+/**
+ * Interfaz para mostrar un libro en modo tarjeta/resumen (catálogo o dentro de una lista).
+ * Incluye solo los campos necesarios para la tarjeta.
+ */
+export interface LibroResumen {
+  id_libro: number;
+  titulo_libro: string;
+  autores: Array<{ nombre_autor: string; apellido_autor: string }>;
+  calificacionPromedio?: number;
+}
+
+/**
+ * Interfaz que representa una lista en la capa de aplicación, extendiendo la información básica de la lista con detalles adicionales si se requiere.
+ * - id_lista: número identificador único de la lista.
+ * - id_usuarioCrd: id del usuario creador.
+ * - nombre_lista: nombre de la lista.
+ * - descripcion_lista: descripción de la lista (opcional).
+ * - nombreCreador: nombre del usuario creador de la lista.
+ */
+export interface ListaApp extends ListaBD {
+  lista: ListaBD;
+  nombreCreador: string;
+}
+
+/**
+ * Interfaz que representa el detalle completo de una lista, incluyendo su información general y los comentarios asociados.
+ * - lista: objeto con la información básica de la lista (nombre, descripción, etc).
+ * - libros: array de objetos que representan los libros incluidos en la lista, cada uno con su título, autor y calificación promedio.
+ * - comentarios: array de comentarios asociados a la lista, cada uno con su texto, autor y fecha.
+ * - errorComentarios: booleano que indica si hubo un error al obtener los comentarios (true si hubo error, false si se obtuvieron correctamente).
+ */
+export interface DetalleListaCompleta {
+  lista: ListaApp;
+  libros: LibroResumen[];
+  comentarios: ListaComentarios[];
+  errorComentarios: boolean;
 }

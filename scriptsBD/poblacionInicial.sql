@@ -92,7 +92,7 @@ INSERT INTO idiomas (nombre_idioma) VALUES
 /* ============================
    LIBROS (reales + inventados)
    ============================ */
-INSERT INTO libro (titulo_libro, codigo_isbn, idioma_original, paginas, year_publicacion, sinopsis) VALUES
+INSERT INTO libro (titulo_libro, codigo_isbn, id_idioma_original, paginas, year_publicacion, sinopsis) VALUES
 -- Reales
 ('El Señor de los Anillos', '978-84-450-7294-1', 1, 1200, 1954, 'La Comunidad del Anillo y la lucha contra Sauron.'),     -- 1 Español
 ('Fundación', '978-84-450-7657-4', 6, 255, 1951, 'El declive del Imperio Galáctico.'),                                    -- 2 Ruso
