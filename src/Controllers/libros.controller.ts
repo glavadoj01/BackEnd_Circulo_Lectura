@@ -1,83 +1,123 @@
-// Importar modelos y servicio de conexión
 import { Request, Response } from 'express';
-import { LibroBD } from '../Interfaces/modelosBD/modelosBD.js';
 import { ConexionBD } from '../Services/conexionBD.service.js';
+import { LibroBD } from '../Interfaces/modelosBD/modelosBD.js';
 import { parsePositiveInt } from '../Utils/validation.utils.js';
-import { respuestaError, respuestaOk } from '../Utils/validationMessages.utils.js';
+import { respuestaOk, respuestaError } from '../Utils/validationMessages.utils.js';
 
-/** Crear un nuevo libro
- *
- * @param req - Objeto de solicitud de Express, con los datos del libro a crear en req.body.libro, y opcionalmente arrays de autores en req.body.autores y géneros en req.body.generos
- * @param res - Objeto de respuestaError de Express, se enviará un JSON con el resultado de la operación
- * @returns JSON con el ID del libro creado y los datos ingresados, o un error si ocurrió algún problema
+/**
+ * Valida los datos de un autor.
+ * @param autor Objeto autor a validar.
+ * @returns {boolean} true si es válido, false si no.
+ */
+function validarAutor(autor: any): boolean {
+  return (
+    autor &&
+    typeof autor.nombre_autor === 'string' &&
+    autor.nombre_autor.trim().length > 1 &&
+    typeof autor.apellido_autor === 'string' &&
+    autor.apellido_autor.trim().length > 1
+  );
+}
+
+/**
+ * Valida los datos de un género.
+ * @param genero Objeto género a validar.
+ * @returns {boolean} true si es válido, false si no.
+ */
+function validarGenero(genero: any): boolean {
+  return (
+    genero && typeof genero.nombre_genero === 'string' && genero.nombre_genero.trim().length > 1
+  );
+}
+
+/**
+ * Procesa autores: busca por nombre y apellido, crea si no existe, y devuelve los ids.
+ * @param conexion Instancia de ConexionBD.
+ * @param autores Array de autores.
+ * @returns Promise<number[]> Array de ids de autores.
+ */
+async function procesarAutores(conexion: ConexionBD, autores: any[]): Promise<number[]> {
+  const ids: number[] = [];
+  for (const autor of autores) {
+    if (!validarAutor(autor)) throw new Error('AUTOR_DATOS_INVALIDOS');
+    const { nombre_autor, apellido_autor, pais_autor } = autor;
+    let encontrado = (
+      await conexion.listarRegistros('autor', { nombre_autor, apellido_autor }, '', 1, 'id_autor')
+    ).datos[0];
+    if (!encontrado) {
+      const idAutor = (
+        await conexion.insertarRegistro('autor', {
+          nombre_autor,
+          apellido_autor,
+          pais_autor: pais_autor || '',
+          esUsuario: false,
+        })
+      ).datos.insertId;
+      ids.push(idAutor);
+    } else {
+      ids.push(encontrado.id_autor);
+    }
+  }
+  return ids;
+}
+
+/**
+ * Procesa géneros: busca por nombre, crea si no existe, y devuelve los ids.
+ * @param conexion Instancia de ConexionBD.
+ * @param generos Array de géneros.
+ * @returns Promise<number[]> Array de ids de géneros.
+ */
+async function procesarGeneros(conexion: ConexionBD, generos: any[]): Promise<number[]> {
+  const ids: number[] = [];
+  for (const genero of generos) {
+    if (!validarGenero(genero)) throw new Error('GENERO_DATOS_INVALIDOS');
+    const { nombre_genero } = genero;
+    let encontrado = (
+      await conexion.listarRegistros('genero', { nombre_genero }, '', 1, 'id_genero')
+    ).datos[0];
+    if (!encontrado) {
+      const idGenero = (
+        await conexion.insertarRegistro('genero', {
+          nombre_genero,
+        })
+      ).datos.insertId;
+      ids.push(idGenero);
+    } else {
+      ids.push(encontrado.id_genero);
+    }
+  }
+  return ids;
+}
+
+/**
+ * Crear un nuevo libro.
+ * @param req Objeto de solicitud de Express, con los datos del libro a crear en req.body.libro, y arrays de autores en req.body.autores y géneros en req.body.generos.
+ * @param res Objeto de respuesta de Express, se enviará un JSON con el resultado de la operación.
+ * @returns JSON con el ID del libro creado y los datos ingresados, o un error si ocurrió algún problema.
  */
 async function crearLibro(req: Request, res: Response) {
-  let conexionAbierta = null as ConexionBD | null;
+  let conexionAbierta: ConexionBD | null = null;
   try {
     const datos: Partial<LibroBD> = req.body.libro ? req.body.libro : req.body;
-    // Validación mínima
-    if (!datos.titulo_libro || !datos.idioma_original) {
+    if (
+      !datos.titulo_libro ||
+      typeof datos.titulo_libro !== 'string' ||
+      datos.titulo_libro.trim().length < 2 ||
+      !datos.idioma_original
+    ) {
       return respuestaError(res, 400, 'CAMPOS_OBLIGATORIOS');
     }
 
-    // Extraer nombres de autores y géneros (strings)
-    const autoresNombres: string[] = req.body.autores || [];
-    const generosNombres: string[] = req.body.generos || [];
-    const autoresIds: number[] = [];
-    const generosIds: number[] = [];
+    const autores = Array.isArray(req.body.autores) ? req.body.autores : [];
+    const generos = Array.isArray(req.body.generos) ? req.body.generos : [];
 
-    // Procesar autores: buscar o crear
     conexionAbierta = new ConexionBD();
-    for (const nombreAutor of autoresNombres) {
-      // Buscar autor por nombre
-      let autor = (
-        await conexionAbierta.listarRegistros(
-          'autor',
-          { nombre_autor: nombreAutor },
-          '',
-          1,
-          'nombre_autor',
-        )
-      )[0];
-      if (!autor) {
-        // Crear autor si no existe (rellenar campos mínimos)
-        const idAutor = await conexionAbierta.insertarRegistro('autor', {
-          nombre_autor: nombreAutor,
-          apellido_autor: '',
-          pais_autor: '',
-          esUsuario: false,
-        });
-        autoresIds.push(idAutor);
-      } else {
-        autoresIds.push(autor.id_autor);
-      }
-    }
 
-    // Procesar géneros: buscar o crear
-    for (const nombreGenero of generosNombres) {
-      let genero = (
-        await conexionAbierta.listarRegistros(
-          'genero',
-          { nombre_genero: nombreGenero },
-          '',
-          1,
-          'nombre_genero',
-        )
-      )[0];
-      if (!genero) {
-        const idGenero = await conexionAbierta.insertarRegistro('genero', {
-          nombre_genero: nombreGenero,
-        });
-        generosIds.push(idGenero);
-      } else {
-        generosIds.push(genero.id_genero);
-      }
-    }
+    const autoresIds = await procesarAutores(conexionAbierta, autores);
+    const generosIds = await procesarGeneros(conexionAbierta, generos);
 
-    // Insertar libro principal
-    const insertId = await conexionAbierta.insertarRegistro('libro', datos);
+    const insertId = (await conexionAbierta.insertarRegistro('libro', datos)).datos.insertId;
 
-    // Insertar autores asociados (si hay)
     for (const idAutor of autoresIds) {
       await conexionAbierta.insertarRegistro('libro_autor', {
         id_libro: insertId,
@@ -85,8 +125,6 @@ async function crearLibro(req: Request, res: Response) {
         autorPr: false,
       });
     }
-
-    // Insertar géneros asociados (si hay)
     for (const idGenero of generosIds) {
       await conexionAbierta.insertarRegistro('libro_genero', {
         id_libro: insertId,
@@ -101,110 +139,53 @@ async function crearLibro(req: Request, res: Response) {
       { id_libro: insertId, ...datos, autores: autoresIds, generos: generosIds },
       { incluirMensaje: false },
     );
-  } catch (error: unknown) {
-    return respuestaError(res, 500, 'ERROR_CREAR_LIBRO', (error as Error).message);
+  } catch (error: any) {
+    return respuestaError(res, 500, error.message || 'ERROR_CREAR_LIBRO');
   } finally {
     if (conexionAbierta) await conexionAbierta.close();
   }
 }
 
-/** Obtener libros con/sin filtros de búsqueda
- *
- * @param req - Objeto de solicitud de Express, con posibles filtros en req.query (id, titulo, idioma, etc.)
- * @param res - Objeto de respuestaError de Express, se enviará un JSON con el resultado de la operación
- * @returns JSON con un array de libros que coinciden con los filtros, o un error si ocurrió algún problema
+/**
+ * Obtener libros con/sin filtros de búsqueda y paginación.
+ * @param req Objeto de solicitud de Express, con posibles filtros en req.query (titulo, autor, genero, page, limit).
+ * @param res Objeto de respuesta de Express, se enviará un JSON con el resultado de la operación.
+ * @returns JSON con un array de libros que coinciden con los filtros, o un error si ocurrió algún problema.
  */
 async function obtenerLibros(req: Request, res: Response) {
-  let conexionAbierta = null as ConexionBD | null;
+  let conexionAbierta: ConexionBD | null = null;
   try {
-    const filtros: Record<string, any> = {};
-    const pageRaw = req.query.page;
-    const limitRaw = req.query.limit;
-    const tienePage = typeof pageRaw !== 'undefined';
-    const tieneLimit = typeof limitRaw !== 'undefined';
-
-    if (tienePage !== tieneLimit) {
-      return respuestaError(res, 400, 'PAGINACION_REQUIERE_AMBOS');
+    const page = req.query.page ? Number(req.query.page) : 1;
+    const limit = req.query.limit ? Math.min(Number(req.query.limit), 50) : 20;
+    if (isNaN(page) || page < 1 || isNaN(limit) || limit < 1) {
+      return respuestaError(res, 400, 'PARAMETROS_PAGINACION_INVALIDOS');
     }
 
-    const page = tienePage ? Number(pageRaw) : 1;
-    const limitSolicitado = tieneLimit ? Number(limitRaw) : 0;
-    const limitMaximo = 50;
+    // Filtros permitidos
+    const filtros: { titulo?: string; autor?: string; genero?: string } = {};
+    if (req.query.titulo) filtros.titulo = String(req.query.titulo);
+    if (req.query.autor) filtros.autor = String(req.query.autor);
+    if (req.query.genero) filtros.genero = String(req.query.genero);
 
-    if (tienePage && (!Number.isInteger(page) || page <= 0)) {
-      return respuestaError(res, 400, 'PARAMETRO_PAGE_INVALIDO');
-    }
-
-    if (tieneLimit && (!Number.isInteger(limitSolicitado) || limitSolicitado <= 0)) {
-      return respuestaError(res, 400, 'PARAMETRO_LIMIT_INVALIDO');
-    }
-
-    const limit = tieneLimit ? Math.min(limitSolicitado, limitMaximo) : 0;
-    const usarPaginacion = tienePage && tieneLimit;
-    const offset = usarPaginacion ? (page - 1) * limit : 0;
-
-    const filtrosPermitidos: Record<string, string> = {
-      id: 'id_libro',
-      titulo: 'titulo_libro',
-      idioma: 'idioma_original',
-      isbn: 'codigo_isbn',
-      paginas: 'paginas',
-      year: 'year_publicacion',
-    };
-    const queryInterna = new Set(['page', 'limit']);
-
-    for (const [clave, valor] of Object.entries(req.query ?? {})) {
-      if (queryInterna.has(clave)) {
-        continue;
-      }
-
-      const campoBD = filtrosPermitidos[clave];
-      if (!campoBD) {
-        return respuestaError(res, 400, 'FILTRO_NO_PERMITIDO', {
-          detalle: `Filtro no permitido: ${clave}`,
-          filtrosPermitidos: Object.keys(filtrosPermitidos),
-        });
-      }
-
-      filtros[campoBD] = valor;
-    }
-
-    // Usar el método específico para obtener libros con autores y géneros
     conexionAbierta = new ConexionBD();
-    const librosRaw = await conexionAbierta.listarLibrosConAutoresYGeneros(
-      filtros,
-      {},
-      {},
-      'l.id_libro ASC',
-      usarPaginacion ? limit : 0,
-      offset,
-    );
-    // Mapear a formato LibroApp
-    const libros = librosRaw.map((libro: any) => ({
-      ...libro,
-      autores: libro.autores
-        ? libro.autores.split(',').map((nombre: string) => ({ nombre_autor: nombre }))
-        : [],
-      generos: libro.generos
-        ? libro.generos.split(',').map((nombre: string) => ({ nombre_genero: nombre }))
-        : [],
-    }));
+    const libros = await conexionAbierta.obtenerCatalogoLibros(filtros, page, limit);
+
     return respuestaOk(res, 200, 'LIBROS_OBTENIDOS_OK', libros, { incluirMensaje: false });
-  } catch (error) {
-    return respuestaError(res, 500, 'ERROR_OBTENER_LIBROS', (error as Error).message);
+  } catch (error: any) {
+    return respuestaError(res, 500, 'ERROR_OBTENER_LIBROS', error.message);
   } finally {
     if (conexionAbierta) await conexionAbierta.close();
   }
 }
 
-/** Obtener un libro por ID
- *
- * @param req - Objeto de solicitud de Express, con el ID del libro a obtener en req.query.id o req.params.id
- * @param res - Objeto de respuestaError de Express, se enviará un JSON con el resultado de la operación
- * @returns JSON con los datos del libro encontrado, incluyendo autores y géneros, o un error si ocurrió algún problema o si el libro no fue encontrado
+/**
+ * Obtener un libro por ID.
+ * @param req Objeto de solicitud de Express, con el ID del libro a obtener en req.query.id o req.params.id.
+ * @param res Objeto de respuesta de Express, se enviará un JSON con el resultado de la operación.
+ * @returns JSON con los datos del libro encontrado, incluyendo autores y géneros como arrays, o un error si ocurrió algún problema o si el libro no fue encontrado.
  */
 async function obtenerLibroId(req: Request, res: Response) {
-  let conexionAbierta = null as ConexionBD | null;
+  let conexionAbierta: ConexionBD | null = null;
   try {
     const idRaw = req.query.id ?? req.params.id;
     const id = parsePositiveInt(idRaw);
@@ -213,22 +194,14 @@ async function obtenerLibroId(req: Request, res: Response) {
     }
 
     conexionAbierta = new ConexionBD();
-    const libroRaw = await conexionAbierta.listarLibrosConAutoresYGeneros({ id_libro: id });
-    const libro = libroRaw.map((libro: any) => ({
-      ...libro,
-      autores: libro.autores
-        ? libro.autores.split(',').map((nombre: string) => ({ nombre_autor: nombre }))
-        : [],
-      generos: libro.generos
-        ? libro.generos.split(',').map((nombre: string) => ({ nombre_genero: nombre }))
-        : [],
-    }));
+    const libro = await conexionAbierta.obtenerDetalleLibro(id);
 
-    if (libro.length === 0) {
-      return respuestaError(res, 404, 'LIBRO_NO_ENCONTRADO_EMOJI');
+    if (!libro) {
+      return respuestaError(res, 404, 'LIBRO_NO_ENCONTRADO');
     }
 
-    return respuestaOk(res, 200, 'LIBRO_OBTENIDO_OK', libro[0], { incluirMensaje: false });
+    // Devuelve autores y géneros como arrays, igual que en la paginación
+    return respuestaOk(res, 200, 'LIBRO_OBTENIDO_OK', libro, { incluirMensaje: false });
   } catch (error) {
     return respuestaError(res, 500, 'ERROR_OBTENER_LIBRO', (error as Error).message);
   } finally {
@@ -236,14 +209,14 @@ async function obtenerLibroId(req: Request, res: Response) {
   }
 }
 
-/** Actualizar un libro existente
- *
- * @param req - Objeto de solicitud de Express, con el ID del libro a actualizar en req.params.id o req.body.id_libro, y los datos a actualizar en req.body.libro, además de posibles arrays de autores en req.body.autores y géneros en req.body.generos
- * @param res - Objeto de respuestaError de Express, se enviará un JSON con el resultado de la operación
- * @returns JSON indicando si el libro fue actualizado y cuántos registros fueron afectados, o un error si ocurrió algún problema o si el libro no fue encontrado
+/**
+ * Actualizar un libro existente.
+ * @param req Objeto de solicitud de Express, con el ID del libro a actualizar en req.params.id o req.body.id_libro, y los datos a actualizar en req.body.libro, además de posibles arrays de autores en req.body.autores y géneros en req.body.generos.
+ * @param res Objeto de respuesta de Express, se enviará un JSON con el resultado de la operación.
+ * @returns JSON indicando si el libro fue actualizado y cuántos registros fueron afectados, o un error si ocurrió algún problema o si el libro no fue encontrado.
  */
 async function actualizarLibro(req: Request, res: Response) {
-  let conexionAbierta = null as ConexionBD | null;
+  let conexionAbierta: ConexionBD | null = null;
   try {
     const idRaw = req.params.id ?? req.body.id_libro;
     const id = parsePositiveInt(idRaw);
@@ -253,46 +226,24 @@ async function actualizarLibro(req: Request, res: Response) {
       return respuestaError(res, 400, 'ID_LIBRO_INVALIDO');
     }
 
-    // Actualizar datos principales del libro
     conexionAbierta = new ConexionBD();
-    const afectados = await conexionAbierta.actualizarRegistro('libro', datos, { id_libro: id });
+    const afectados = (await conexionAbierta.actualizarRegistro('libro', datos, { id_libro: id }))
+      .datos.affectedRows;
     if (afectados === 0) {
       return respuestaError(res, 404, 'LIBRO_NO_ENCONTRADO');
     }
 
-    // Actualizar autores y géneros si se envían
-    const autoresNombres: string[] = req.body.autores ?? [];
-    const generosNombres: string[] = req.body.generos ?? [];
-    const autoresIds: number[] = [];
-    const generosIds: number[] = [];
-    if (Array.isArray(autoresNombres) && autoresNombres.length > 0) {
-      // Procesar autores: buscar o crear
-      for (const nombreAutor of autoresNombres) {
-        let autor = (
-          await conexionAbierta.listarRegistros(
-            'autor',
-            { nombre_autor: nombreAutor },
-            '',
-            1,
-            'nombre_autor',
-          )
-        )[0];
-        if (!autor) {
-          const idAutor = await conexionAbierta.insertarRegistro('autor', {
-            nombre_autor: nombreAutor,
-            apellido_autor: '',
-            pais_autor: '',
-            esUsuario: false,
-          });
-          autoresIds.push(idAutor);
-        } else {
-          autoresIds.push(autor.id_autor);
-        }
-      }
-      // Obtener relaciones actuales
-      const actuales = await conexionAbierta.listarRegistros('libro_autor', { id_libro: id });
+    const autores = Array.isArray(req.body.autores) ? req.body.autores : [];
+    const generos = Array.isArray(req.body.generos) ? req.body.generos : [];
+
+    const autoresIds = await procesarAutores(conexionAbierta, autores);
+    const generosIds = await procesarGeneros(conexionAbierta, generos);
+
+    // Actualizar relaciones autores
+    if (autoresIds.length > 0) {
+      const actuales = (await conexionAbierta.listarRegistros('libro_autor', { id_libro: id }))
+        .datos;
       const actualesIds = actuales.map((rel: any) => rel.id_autor);
-      // Agregar nuevas relaciones
       for (const idAutor of autoresIds) {
         if (!actualesIds.includes(idAutor)) {
           await conexionAbierta.insertarRegistro('libro_autor', {
@@ -302,39 +253,21 @@ async function actualizarLibro(req: Request, res: Response) {
           });
         }
       }
-      // Eliminar relaciones que ya no están
       for (const idActual of actualesIds) {
         if (!autoresIds.includes(idActual)) {
-          await conexionAbierta.borrarRegistro('libro_autor', { id_libro: id, id_autor: idActual });
+          await conexionAbierta.borrarRegistro('libro_autor', {
+            id_libro: id,
+            id_autor: idActual,
+          });
         }
       }
     }
 
-    if (Array.isArray(generosNombres) && generosNombres.length > 0) {
-      // Procesar géneros: buscar o crear
-      for (const nombreGenero of generosNombres) {
-        let genero = (
-          await conexionAbierta.listarRegistros(
-            'genero',
-            { nombre_genero: nombreGenero },
-            '',
-            1,
-            'nombre_genero',
-          )
-        )[0];
-        if (!genero) {
-          const idGenero = await conexionAbierta.insertarRegistro('genero', {
-            nombre_genero: nombreGenero,
-          });
-          generosIds.push(idGenero);
-        } else {
-          generosIds.push(genero.id_genero);
-        }
-      }
-      // Obtener relaciones actuales
-      const actuales = await conexionAbierta.listarRegistros('libro_genero', { id_libro: id });
+    // Actualizar relaciones géneros
+    if (generosIds.length > 0) {
+      const actuales = (await conexionAbierta.listarRegistros('libro_genero', { id_libro: id }))
+        .datos;
       const actualesIds = actuales.map((rel: any) => rel.id_genero);
-      // Agregar nuevas relaciones
       for (const idGenero of generosIds) {
         if (!actualesIds.includes(idGenero)) {
           await conexionAbierta.insertarRegistro('libro_genero', {
@@ -343,7 +276,6 @@ async function actualizarLibro(req: Request, res: Response) {
           });
         }
       }
-      // Eliminar relaciones que ya no están
       for (const idActual of actualesIds) {
         if (!generosIds.includes(idActual)) {
           await conexionAbierta.borrarRegistro('libro_genero', {
@@ -361,21 +293,21 @@ async function actualizarLibro(req: Request, res: Response) {
       { actualizado: true, afectados },
       { incluirMensaje: false },
     );
-  } catch (error) {
-    return respuestaError(res, 500, 'ERROR_ACTUALIZAR_LIBRO', (error as Error).message);
+  } catch (error: any) {
+    return respuestaError(res, 500, error.message || 'ERROR_ACTUALIZAR_LIBRO');
   } finally {
     if (conexionAbierta) await conexionAbierta.close();
   }
 }
 
-/** Borrar un libro existente
- *
- * @param req - Objeto de solicitud de Express, con el ID del libro a borrar en req.params.id o req.body.id_libro
- * @param res - Objeto de respuestaError de Express, se enviará un JSON con el resultado de la operación
- * @returns JSON indicando si el libro fue borrado y cuántos registros fueron afectados, o un error si ocurrió algún problema
+/**
+ * Borrar un libro existente.
+ * @param req Objeto de solicitud de Express, con el ID del libro a borrar en req.params.id o req.body.id_libro.
+ * @param res Objeto de respuesta de Express, se enviará un JSON con el resultado de la operación.
+ * @returns JSON indicando si el libro fue borrado y cuántos registros fueron afectados, o un error si ocurrió algún problema.
  */
 async function borrarLibro(req: Request, res: Response) {
-  let conexionAbierta = null as ConexionBD | null;
+  let conexionAbierta: ConexionBD | null = null;
   try {
     const idRaw = req.params.id ?? req.body.id_libro;
     const id = parsePositiveInt(idRaw);
@@ -384,7 +316,8 @@ async function borrarLibro(req: Request, res: Response) {
     }
 
     conexionAbierta = new ConexionBD();
-    const afectados = await conexionAbierta.borrarRegistro('libro', { id_libro: id });
+    const afectados = (await conexionAbierta.borrarRegistro('libro', { id_libro: id })).datos
+      .affectedRows;
     if (afectados === 0) {
       return respuestaError(res, 404, 'LIBRO_NO_ENCONTRADO');
     }
@@ -402,11 +335,18 @@ async function borrarLibro(req: Request, res: Response) {
   }
 }
 
+/**
+ * Obtener el total de libros.
+ * @param _req Objeto de solicitud de Express (no se usa).
+ * @param res Objeto de respuesta de Express, se enviará un JSON con el resultado de la operación.
+ * @returns JSON con el total de libros en la base de datos.
+ */
 async function obtenerLibrosTotal(_req: Request, res: Response) {
-  let conexionAbierta = null as ConexionBD | null;
+  let conexionAbierta: ConexionBD | null = null;
   try {
     conexionAbierta = new ConexionBD();
-    const total = await conexionAbierta.listarRegistros('libro', {}, '', 0, 'COUNT(*) AS total');
+    const total = (await conexionAbierta.listarRegistros('libro', {}, '', 0, 'COUNT(*) AS total'))
+      .datos;
     const totalLibros = total[0]?.total ?? 0;
     return respuestaOk(
       res,
