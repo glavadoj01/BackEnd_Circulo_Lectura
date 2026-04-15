@@ -124,10 +124,10 @@ export interface LibroUsuario {
 export interface LibroCritica {
   id_libro: number; // FK
   id_usuario: number; // FK
-  titulo_critica?: string;
-  texto_critica?: string;
+  titulo_comentario?: string;
+  texto_comentario?: string;
   calificacion_libro: number; // 0-5
-  fecha_critica: Date | string;
+  fecha_comentario: Date | string;
 }
 
 // Relación F: Lista-Comentario

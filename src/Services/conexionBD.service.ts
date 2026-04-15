@@ -302,17 +302,17 @@ export class ConexionBD {
 
     // Críticas y distribución de notas
     const [criticasRows] = await this.pool.query(
-      `SELECT id_libro, id_usuario, titulo_critica, texto_critica, calificacion_libro, fecha_critica
-        FROM libro_critica WHERE id_libro = ? ORDER BY fecha_critica DESC`,
+      `SELECT id_libro, id_usuario, titulo_comentario, texto_comentario, calificacion_libro, fecha_comentario
+        FROM libro_critica WHERE id_libro = ? ORDER BY fecha_comentario DESC`,
       [idLibro],
     );
     const criticas: LibroCritica[] = (criticasRows as Array<Record<string, any>>).map((c) => ({
       id_libro: c.id_libro,
       id_usuario: c.id_usuario,
-      titulo_critica: c.titulo_critica,
-      texto_critica: c.texto_critica,
+      titulo_comentario: c.titulo_comentario,
+      texto_comentario: c.texto_comentario,
       calificacion_libro: Number(c.calificacion_libro),
-      fecha_critica: c.fecha_critica,
+      fecha_comentario: c.fecha_comentario,
     }));
 
     // Distribución de notas

@@ -180,10 +180,10 @@ CREATE TABLE libro_usuario (
 CREATE TABLE libro_critica (
     id_libro    		INT NOT NULL,
     id_usuario  		INT NOT NULL,
-    titulo_critica		VARCHAR(100),
-    texto_critica 		TEXT,
+    titulo_comentario		VARCHAR(100),
+    texto_comentario 		TEXT,
     calificacion_libro 	TINYINT UNSIGNED NOT NULL CHECK (calificacion_libro BETWEEN 0 AND 5),
-    fecha_critica 		DATETIME NOT NULL DEFAULT now(), -- YYYY-MM-DD:HH:MM:SS
+    fecha_comentario 		DATETIME NOT NULL DEFAULT now(), -- YYYY-MM-DD:HH:MM:SS
 
     PRIMARY KEY (id_libro, id_usuario),
 

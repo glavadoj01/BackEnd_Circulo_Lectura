@@ -21,9 +21,9 @@ function validarCritica(critica: any, esActualizacion = false): boolean {
       return false;
     }
   }
-  if (critica.titulo_critica !== undefined && typeof critica.titulo_critica !== 'string')
+  if (critica.titulo_comentario !== undefined && typeof critica.titulo_comentario !== 'string')
     return false;
-  if (critica.texto_critica !== undefined && typeof critica.texto_critica !== 'string')
+  if (critica.texto_comentario !== undefined && typeof critica.texto_comentario !== 'string')
     return false;
   if (
     critica.calificacion_libro !== undefined &&
@@ -49,11 +49,11 @@ function construirDatosCritica(body: any, esActualizacion = false): Partial<Libr
   if (!esActualizacion || body.id_usuario !== undefined) {
     datos.id_usuario = parsePositiveInt(body.id_usuario);
   }
-  if (body.titulo_critica !== undefined) {
-    datos.titulo_critica = String(body.titulo_critica);
+  if (body.titulo_comentario !== undefined) {
+    datos.titulo_comentario = String(body.titulo_comentario);
   }
-  if (body.texto_critica !== undefined) {
-    datos.texto_critica = String(body.texto_critica);
+  if (body.texto_comentario !== undefined) {
+    datos.texto_comentario = String(body.texto_comentario);
   }
   if (body.calificacion_libro !== undefined) {
     datos.calificacion_libro = parseCalificacion(body.calificacion_libro);
@@ -115,8 +115,8 @@ async function obtenerCriticasLibro(req: Request, res: Response) {
         calificacion_libro: Number(critica.calificacion_libro),
       }))
       .sort((a: any, b: any) => {
-        const fechaA = new Date(a.fecha_critica).getTime();
-        const fechaB = new Date(b.fecha_critica).getTime();
+        const fechaA = new Date(a.fecha_comentario).getTime();
+        const fechaB = new Date(b.fecha_comentario).getTime();
         return fechaA - fechaB;
       });
 
