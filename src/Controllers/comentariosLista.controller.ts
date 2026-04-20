@@ -24,17 +24,19 @@ export async function crearComentarioLista(req: Request, res: Response) {
   let conexion: ConexionBD | null = null;
   try {
     const id_lista = Number(req.params.id);
-    const { id_usuario, texto_comentario, id_com_respuesta } = req.body;
+    const { id_usuario, titulo_comentario, texto_comentario, id_com_respuesta } = req.body;
     if (
       isNaN(id_lista) ||
       isNaN(id_usuario) ||
       typeof texto_comentario !== 'string' ||
-      texto_comentario.trim().length < 1
+      texto_comentario.trim().length < 1 ||
+      (titulo_comentario !== undefined && typeof titulo_comentario !== 'string')
     ) {
       return respuestaError(res, 400, 'DATOS_INVALIDOS');
     }
     conexion = new ConexionBD();
     const datos: any = { id_lista, id_usuario, texto_comentario };
+    if (titulo_comentario !== undefined) datos.titulo_comentario = titulo_comentario;
     if (id_com_respuesta !== undefined) datos.id_com_respuesta = id_com_respuesta;
     const result = await conexion.insertarRegistro('lista_comentario', datos);
     if (!result.exito) {
@@ -44,7 +46,7 @@ export async function crearComentarioLista(req: Request, res: Response) {
       res,
       201,
       'COMENTARIO_LISTA_CREADO_OK',
-      { id_lista, id_usuario, texto_comentario },
+      { id_lista, id_usuario, titulo_comentario, texto_comentario },
       { incluirMensaje: false },
     );
   } catch (error) {
@@ -58,18 +60,21 @@ export async function actualizarComentarioLista(req: Request, res: Response) {
   let conexion: ConexionBD | null = null;
   try {
     const id_listaComentario = Number(req.params.comentarioId);
-    const { texto_comentario } = req.body;
+    const { titulo_comentario, texto_comentario } = req.body;
     if (
       isNaN(id_listaComentario) ||
       typeof texto_comentario !== 'string' ||
-      texto_comentario.trim().length < 1
+      texto_comentario.trim().length < 1 ||
+      (titulo_comentario !== undefined && typeof titulo_comentario !== 'string')
     ) {
       return respuestaError(res, 400, 'DATOS_INVALIDOS');
     }
     conexion = new ConexionBD();
+    const datos: any = { texto_comentario };
+    if (titulo_comentario !== undefined) datos.titulo_comentario = titulo_comentario;
     const result = await conexion.actualizarRegistro(
       'lista_comentario',
-      { texto_comentario },
+      datos,
       { id_listaComentario },
     );
     if (!result.exito || result.datos === 0) {
@@ -79,7 +84,7 @@ export async function actualizarComentarioLista(req: Request, res: Response) {
       res,
       200,
       'COMENTARIO_LISTA_ACTUALIZADO_OK',
-      { id_listaComentario, texto_comentario },
+      { id_listaComentario, titulo_comentario, texto_comentario },
       { incluirMensaje: false },
     );
   } catch (error) {

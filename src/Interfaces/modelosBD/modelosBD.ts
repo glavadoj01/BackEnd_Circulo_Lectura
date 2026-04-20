@@ -126,7 +126,7 @@ export interface LibroCritica {
   id_usuario: number; // FK
   titulo_comentario?: string;
   texto_comentario?: string;
-  calificacion_libro: number; // 0-5
+  calificacion_comentario: number; // 0-5
   fecha_comentario: Date | string;
 }
 
@@ -135,6 +135,7 @@ export interface ListaComentarios {
   id_listaComentario: number; // PK
   id_lista: number; // FK
   id_usuario: number; // FK
+  titulo_comentario?: string;
   texto_comentario: string;
   id_com_respuesta?: number | null; // FK recursiva (puede ser null)
   fecha_comentario: Date | string;

@@ -84,6 +84,30 @@ CREATE TABLE evento (
         ON DELETE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_spanish_ci;
 
+
+/* Tabla de categorías */
+CREATE TABLE categoria (
+    id_categoria INT PRIMARY KEY AUTO_INCREMENT,
+    nombre_categoria VARCHAR(100) UNIQUE NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_spanish_ci;
+
+/* Relación N:M Lista-Categoría */
+CREATE TABLE lista_categoria (
+    id_lista INT NOT NULL,
+    id_categoria INT NOT NULL,
+    PRIMARY KEY (id_lista, id_categoria),
+    CONSTRAINT fk_listaCategoria_idLista
+        FOREIGN KEY (id_lista)
+        REFERENCES lista(id_lista)
+        ON UPDATE CASCADE
+        ON DELETE CASCADE,
+    CONSTRAINT fk_listaCategoria_idCategoria
+        FOREIGN KEY (id_categoria)
+        REFERENCES categoria(id_categoria)
+        ON UPDATE CASCADE
+        ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_spanish_ci;
+
 /* Tablas derivadas de relaciones N:M */
 
 /* NOTA: Relacion-Thª	=> guión		=> Libro-Genero	=> Escritura Humana
@@ -182,7 +206,7 @@ CREATE TABLE libro_critica (
     id_usuario  		INT NOT NULL,
     titulo_comentario		VARCHAR(100),
     texto_comentario 		TEXT,
-    calificacion_libro 	TINYINT UNSIGNED NOT NULL CHECK (calificacion_libro BETWEEN 0 AND 5),
+    calificacion_comentario 	TINYINT UNSIGNED NOT NULL CHECK (calificacion_comentario BETWEEN 0 AND 5),
     fecha_comentario 		DATETIME NOT NULL DEFAULT now(), -- YYYY-MM-DD:HH:MM:SS
 
     PRIMARY KEY (id_libro, id_usuario),
@@ -205,9 +229,10 @@ CREATE TABLE lista_comentario (
     id_listaComentario  INT PRIMARY KEY AUTO_INCREMENT,
     id_lista            INT NOT NULL,
     id_usuario          INT NOT NULL,
+    titulo_comentario   VARCHAR(100),
     texto_comentario    TEXT NOT NULL,
     id_com_respuesta    INT DEFAULT NULL,
-    fecha_comentario	DATETIME NOT NULL DEFAULT now(), -- YYYY-MM-DD:HH:MM:SS
+    fecha_comentario	  DATETIME NOT NULL DEFAULT now(), -- YYYY-MM-DD:HH:MM:SS
 
 
     CONSTRAINT fk_listaComentario_idLista

@@ -22,6 +22,22 @@ INSERT INTO usuario (nombre_usuario, nombre_real, apellido_usuario) VALUES
 ('Autor', 'Autor', 'Sin nada');              -- Usuario que también es autor
 
 /* ============================
+   CATEGORÍAS DE LISTAS
+   ============================ */
+INSERT INTO categoria (nombre_categoria) VALUES
+('Ficción'),
+('Terror'),
+('Ciencia-Ficción'),
+('Fantasía'),
+('Horror'),
+('No-Ficción'),
+('Ensayo'),
+('Misterio'),
+('Histórica'),
+('Recientes'),
+('Populares');
+
+/* ============================
    GENEROS
    ============================ */
 INSERT INTO genero (nombre_genero, descripcion_genero) VALUES
@@ -259,6 +275,23 @@ INSERT INTO lista (id_usuarioCrd, nombre_lista, descripcion_lista) VALUES
 (6, 'Novedades y coautorías', 'Libros recientes y escritos a varias manos');
 
 /* ============================
+   RELACIÓN LISTA-CATEGORIA (N:M)
+   ============================ */
+-- 1: Favoritos de Usuario1 → Ficción, Recientes
+-- 2: Lecturas 2024 → Ciencia-Ficción, Recientes
+-- 3: Terror y Misterio → Terror, Horror, Misterio
+-- 4: Ciencia Ficción Top → Ciencia-Ficción, Populares
+-- 5: Clásicos imprescindibles del Usuario1 → Ficción, Histórica
+-- 6: Novedades y coautorías → Recientes, Ensayo
+INSERT INTO lista_categoria (id_lista, id_categoria) VALUES
+(1, 1), (1, 10),
+(2, 3), (2, 10),
+(3, 2), (3, 5), (3, 8),
+(4, 3), (4, 11),
+(5, 1), (5, 9),
+(6, 10), (6, 7);
+
+/* ============================
    RELACIÓN C: LISTA-CONTENIDO
    ============================ */
 INSERT INTO lista_contenido VALUES
@@ -419,43 +452,43 @@ INSERT INTO libro_critica VALUES
 /* ============================
    RELACIÓN F: LISTA-COMENTARIO
    ============================ */
-INSERT INTO lista_comentario (id_lista, id_usuario, texto_comentario, id_com_respuesta) VALUES
+INSERT INTO lista_comentario (id_lista, id_usuario, titulo_comentario, texto_comentario, id_com_respuesta) VALUES
 -- Lista 1: Favoritos de Usuario1
-(1, 2, 'Buena selección de libros', NULL),
-(1, 3, 'Me encanta LOTR', NULL),
-(1, 5, 'Siempre vuelvo a Frankenstein', NULL),
-(1, 6, 'Dune es de mis favoritos', NULL),
-(1, 1, 'Gracias!', 1),
+(1, 2, 'Selección destacada', 'Buena selección de libros', NULL),
+(1, 3, 'Fan de LOTR', 'Me encanta LOTR', NULL),
+(1, 5, 'Clásico favorito', 'Siempre vuelvo a Frankenstein Occaecat officia ad eu est enim adipisicing minim fugiat magna proident eiusmod nostrud eu consequat. Laborum ex ipsum duis minim laborum. Deserunt eu sint nostrud excepteur laboris nisi consectetur labore veniam. Adipisicing occaecat exercitation nisi ex consectetur labore proident dolore anim id. Est ipsum veniam mollit voluptate sint est tempor sit sint excepteur anim non. Culpa amet fugiat enim ut nisi proident fugiat nisi do dolore consequat ut. Lorem nisi proident commodo qui irure commodo ullamco officia voluptate consequat ex sunt do.\nDeserunt tempor amet Lorem occaecat excepteur eu dolor. Elit ipsum eu aliquip non sint nostrud commodo do consequat exercitation Lorem deserunt occaecat. Do nulla deserunt nisi amet. Pariatur adipisicing sint ad occaecat minim ut exercitation proident. In aliqua ipsum sunt excepteur nisi. Enim occaecat ullamco id tempor non ut consequat amet cillum ea ut excepteur.\nQuis et veniam ex cillum reprehenderit esse laboris eiusmod. Est laboris incididunt nostrud labore ipsum laboris cillum sint labore reprehenderit ipsum irure nulla. Excepteur aliquip veniam Lorem ex laboris duis veniam reprehenderit excepteur esse. Ad commodo occaecat enim consectetur officia. Ex eiusmod veniam sunt ipsum.', NULL),
+(1, 6, 'Dune top', 'Dune es de mis favoritos', NULL),
+(1, 1, 'Agradecimiento', 'Gracias!', 1),
 -- Lista 2: Lecturas 2024
-(2, 1, 'Fundación es un clásico', NULL),
-(2, 7, 'Quiero leer Solaris este año', NULL),
-(2, 8, 'Buenos presagios me llama la atención', NULL),
-(2, 9, 'Quiero leer Parentesco de Octavia Butler este año', NULL),
-(2, 10, 'Marte rojo de Kim Stanley Robinson es muy realista', NULL),
+(2, 1, 'Clásico de ciencia ficción', 'Fundación es un clásico', NULL),
+(2, 7, 'Solaris pendiente', 'Quiero leer Solaris este año', NULL),
+(2, 8, 'Interés en Buenos presagios', 'Buenos presagios me llama la atención', NULL),
+(2, 9, 'Parentesco en lista', 'Quiero leer Parentesco de Octavia Butler este año', NULL),
+(2, 10, 'Marte rojo recomendado', 'Marte rojo de Kim Stanley Robinson es muy realista', NULL),
 -- Lista 3: Terror y Misterio
-(3, 4, 'It da mucho miedo', NULL),
-(3, 9, 'El misterio de Salem''s Lot es brutal', NULL),
-(3, 10, 'El legado de la mansión es muy intrigante', NULL),
+(3, 4, 'Terror puro', 'It da mucho miedo', NULL),
+(3, 9, 'Salem''s Lot brutal', 'El misterio de Salem''s Lot es brutal', NULL),
+(3, 10, 'Intriga en la mansión', 'El legado de la mansión es muy intrigante', NULL),
 -- Lista 4: Ciencia Ficción Top
-(4, 1, 'Dune de Frank Herbert es imprescindible', NULL),
-(4, 2, 'Me fascina la visión de futuro de Asimov en Fundación', NULL),
-(4, 3, 'Solaris de Lem me dejó pensando días', NULL),
-(4, 4, 'El problema de los tres cuerpos de Cixin Liu es brutal', NULL),
-(4, 5, 'La mano izquierda de la oscuridad de Le Guin es muy original', NULL),
-(4, 6, 'Snow Crash de Stephenson es puro ciberpunk', NULL),
-(4, 7, 'El cuento de la criada de Atwood es inquietante', NULL),
-(4, 8, '2001 de Arthur C. Clarke es un clásico del género', NULL),
-(4, 6, 'Ciencia ficción para todos los gustos', NULL),
-(4, 8, 'El códice de las sombras es una joya', NULL),
+(4, 1, 'Dune imprescindible', 'Dune de Frank Herbert es imprescindible', NULL),
+(4, 2, 'Visión futurista', 'Me fascina la visión de futuro de Asimov en Fundación', NULL),
+(4, 3, 'Solaris reflexivo', 'Solaris de Lem me dejó pensando días', NULL),
+(4, 4, 'Tres cuerpos brutal', 'El problema de los tres cuerpos de Cixin Liu es brutal', NULL),
+(4, 5, 'Originalidad Le Guin', 'La mano izquierda de la oscuridad de Le Guin es muy original', NULL),
+(4, 6, 'Ciberpunk puro', 'Snow Crash de Stephenson es puro ciberpunk', NULL),
+(4, 7, 'Distopía inquietante', 'El cuento de la criada de Atwood es inquietante', NULL),
+(4, 8, 'Clásico espacial', '2001 de Arthur C. Clarke es un clásico del género', NULL),
+(4, 6, 'Variedad de ciencia ficción', 'Ciencia ficción para todos los gustos', NULL),
+(4, 8, 'Joya oculta', 'El códice de las sombras es una joya', NULL),
 -- Lista 5: Clásicos imprescindibles
-(5, 1, 'Clásicos que hay que leer sí o sí', NULL),
-(5, 2, 'Me encanta la variedad de géneros', NULL),
-(5, 3, 'Fahrenheit 451 y Un mundo feliz son imprescindibles', NULL),
+(5, 1, 'Lectura obligada', 'Clásicos que hay que leer sí o sí', NULL),
+(5, 2, 'Variedad de géneros', 'Me encanta la variedad de géneros', NULL),
+(5, 3, 'Imprescindibles distópicos', 'Fahrenheit 451 y Un mundo feliz son imprescindibles', NULL),
 -- Lista 6: Novedades y coautorías
-(6, 4, 'Interesante selección de novedades', NULL),
-(6, 5, 'Me gustan los libros escritos a varias manos', NULL),
-(6, 6, 'Placeholder B es curioso', NULL),
-(6, 7, 'Historia inventada sorprende para bien', NULL);
+(6, 4, 'Selección de novedades', 'Interesante selección de novedades', NULL),
+(6, 5, 'Coautoría valorada', 'Me gustan los libros escritos a varias manos', NULL),
+(6, 6, 'Curiosidad literaria', 'Placeholder B es curioso', NULL),
+(6, 7, 'Sorpresa positiva', 'Historia inventada sorprende para bien', NULL);
 
 /* ============================
    RELACIÓN G: LISTA-USUARIO

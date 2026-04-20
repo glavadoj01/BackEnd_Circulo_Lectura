@@ -79,6 +79,8 @@ export interface LibroResumen {
 export interface ListaApp extends ListaBD {
   lista: ListaBD;
   nombreCreador: string;
+  categorias: string[];
+  libros: number[];
 }
 
 /**

@@ -228,7 +228,7 @@ export class ConexionBD {
       l.id_libro,
       l.titulo_libro,
       GROUP_CONCAT(DISTINCT CONCAT(a.nombre_autor, ':', a.apellido_autor) SEPARATOR '|') AS autores,
-      ROUND(AVG(c.calificacion_libro),2) AS calificacionPromedio
+      ROUND(AVG(c.calificacion_comentario),2) AS calificacionPromedio
     FROM libro l
     LEFT JOIN libro_autor la ON l.id_libro = la.id_libro
     LEFT JOIN autor a ON la.id_autor = a.id_autor
@@ -285,7 +285,7 @@ export class ConexionBD {
       GROUP_CONCAT(DISTINCT CONCAT(a.id_autor, ':', a.nombre_autor, ':', a.apellido_autor) SEPARATOR '|') AS autores,
       GROUP_CONCAT(DISTINCT g.nombre_genero SEPARATOR '|') AS generos,
       COUNT(DISTINCT c.id_usuario) AS totalResenas,
-      ROUND(AVG(c.calificacion_libro),2) AS calificacionPromedio
+      ROUND(AVG(c.calificacion_comentario),2) AS calificacionPromedio
     FROM libro l
     LEFT JOIN idiomas i ON l.id_idioma_original = i.id_idioma
     LEFT JOIN libro_autor la ON l.id_libro = la.id_libro
@@ -302,7 +302,7 @@ export class ConexionBD {
 
     // Críticas y distribución de notas
     const [criticasRows] = await this.pool.query(
-      `SELECT id_libro, id_usuario, titulo_comentario, texto_comentario, calificacion_libro, fecha_comentario
+      `SELECT id_libro, id_usuario, titulo_comentario, texto_comentario, calificacion_comentario, fecha_comentario
         FROM libro_critica WHERE id_libro = ? ORDER BY fecha_comentario DESC`,
       [idLibro],
     );
@@ -311,14 +311,14 @@ export class ConexionBD {
       id_usuario: c.id_usuario,
       titulo_comentario: c.titulo_comentario,
       texto_comentario: c.texto_comentario,
-      calificacion_libro: Number(c.calificacion_libro),
+      calificacion_comentario: Number(c.calificacion_comentario),
       fecha_comentario: c.fecha_comentario,
     }));
 
     // Distribución de notas
     const frecuencias: number[] = [0, 0, 0, 0, 0];
     criticas.forEach((c) => {
-      const nota = Number(c.calificacion_libro);
+      const nota = Number(c.calificacion_comentario);
       if (nota > 0 && nota <= 5) frecuencias[nota - 1]++;
     });
     const total = criticas.length;
@@ -379,13 +379,6 @@ export class ConexionBD {
    * @param page Página (1-based)
    * @param limit Cantidad por página
    * @returns Array de listas
-   */
-  /**
-   * Obtiene un catálogo paginado de listas con el nombre del creador.
-   * Devuelve las listas en orden de id_lista ASC.
-   * @param page Página (1-based)
-   * @param limit Cantidad por página
-   * @returns Array de ListaApp
    */
   async obtenerCatalogoListas(page: number, limit: number): Promise<ListaApp[]> {
     const offset = (page - 1) * limit;
@@ -449,7 +442,7 @@ export class ConexionBD {
         l.id_libro,
         l.titulo_libro,
         GROUP_CONCAT(DISTINCT CONCAT(a.nombre_autor, ':', a.apellido_autor) SEPARATOR '|') AS autores,
-        ROUND(AVG(c.calificacion_libro),2) AS calificacionPromedio
+        ROUND(AVG(c.calificacion_comentario),2) AS calificacionPromedio
       FROM lista_contenido lc
       INNER JOIN libro l ON lc.id_libro = l.id_libro
       LEFT JOIN libro_autor la ON l.id_libro = la.id_libro
@@ -489,19 +482,24 @@ export class ConexionBD {
    */
   async obtenerComentariosDeLista(idLista: number) {
     const sql = `
-      SELECT id_listaComentario, id_lista, id_usuario, texto_comentario, id_com_respuesta, fecha_comentario
-      FROM lista_comentario
-      WHERE id_lista = ?
-      ORDER BY fecha_comentario ASC
-    `;
+    SELECT c.id_listaComentario, c.id_lista, c.id_usuario, c.titulo_comentario, c.texto_comentario, c.id_com_respuesta, c.fecha_comentario,
+          u.calificacion_lista
+    FROM lista_comentario c
+    LEFT JOIN lista_usuario u
+      ON u.id_lista = c.id_lista AND u.id_usuario = c.id_usuario
+    WHERE c.id_lista = ?
+    ORDER BY c.fecha_comentario ASC
+  `;
     const [rows] = await this.pool.query(sql, [idLista]);
     return (rows as Array<Record<string, any>>).map((row) => ({
       id_listaComentario: row.id_listaComentario,
       id_lista: row.id_lista,
       id_usuario: row.id_usuario,
+      titulo_comentario: row.titulo_comentario,
       texto_comentario: row.texto_comentario,
       id_com_respuesta: row.id_com_respuesta ?? null,
       fecha_comentario: row.fecha_comentario,
+      calificacion_lista: row.calificacion_lista ?? null,
     }));
   }
 

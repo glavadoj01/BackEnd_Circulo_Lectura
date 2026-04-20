@@ -16,7 +16,7 @@ function validarCritica(critica: any, esActualizacion = false): boolean {
     if (
       isNaN(parsePositiveInt(critica.id_libro)) ||
       isNaN(parsePositiveInt(critica.id_usuario)) ||
-      isNaN(parseCalificacion(critica.calificacion_libro))
+      isNaN(parseCalificacion(critica.calificacion_comentario))
     ) {
       return false;
     }
@@ -26,10 +26,10 @@ function validarCritica(critica: any, esActualizacion = false): boolean {
   if (critica.texto_comentario !== undefined && typeof critica.texto_comentario !== 'string')
     return false;
   if (
-    critica.calificacion_libro !== undefined &&
-    (isNaN(parseCalificacion(critica.calificacion_libro)) ||
-      parseCalificacion(critica.calificacion_libro) < 1 ||
-      parseCalificacion(critica.calificacion_libro) > 5)
+    critica.calificacion_comentario !== undefined &&
+    (isNaN(parseCalificacion(critica.calificacion_comentario)) ||
+      parseCalificacion(critica.calificacion_comentario) < 1 ||
+      parseCalificacion(critica.calificacion_comentario) > 5)
   )
     return false;
   return true;
@@ -55,8 +55,8 @@ function construirDatosCritica(body: any, esActualizacion = false): Partial<Libr
   if (body.texto_comentario !== undefined) {
     datos.texto_comentario = String(body.texto_comentario);
   }
-  if (body.calificacion_libro !== undefined) {
-    datos.calificacion_libro = parseCalificacion(body.calificacion_libro);
+  if (body.calificacion_comentario !== undefined) {
+    datos.calificacion_comentario = parseCalificacion(body.calificacion_comentario);
   }
   return datos;
 }
@@ -112,7 +112,7 @@ async function obtenerCriticasLibro(req: Request, res: Response) {
     const criticas: LibroCritica[] = resultado.datos
       .map((critica: any) => ({
         ...critica,
-        calificacion_libro: Number(critica.calificacion_libro),
+        calificacion_comentario: Number(critica.calificacion_comentario),
       }))
       .sort((a: any, b: any) => {
         const fechaA = new Date(a.fecha_comentario).getTime();
@@ -120,11 +120,11 @@ async function obtenerCriticasLibro(req: Request, res: Response) {
         return fechaA - fechaB;
       });
 
-    // Calcular frecuencias de notas (calificacion_libro)
+    // Calcular frecuencias de notas (calificacion_comentario)
     const maxNota = 5;
     const frecuencias: number[] = Array(maxNota).fill(0);
     for (const critica of criticas) {
-      const nota = Number(critica.calificacion_libro);
+      const nota = Number(critica.calificacion_comentario);
       if (!isNaN(nota) && nota >= 1 && nota <= maxNota) {
         frecuencias[nota - 1]++;
       }

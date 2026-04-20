@@ -21,8 +21,8 @@
   "scripts": {
     "reinstall": "rm -rf node_modules package-lock.json && npm install",
     "build": "tsc",
-    "start": "nodemon --watch src --exec \"npm run build && node dist/main.js\"",
-    "run": "npm run reinstall && npm run start"
+    "start": "clear && nodemon --watch src --exec \"npm run build && node dist/main.js\"",
+    "run": "clear && npm run reinstall && npm run start"
   },
   "prettier": {
     "printWidth": 100,
