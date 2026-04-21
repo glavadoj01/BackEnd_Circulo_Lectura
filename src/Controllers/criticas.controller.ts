@@ -14,9 +14,9 @@ function validarCritica(critica: any, esActualizacion = false): boolean {
   if (!critica || typeof critica !== 'object') return false;
   if (!esActualizacion) {
     if (
-      isNaN(parsePositiveInt(critica.id_libro)) ||
-      isNaN(parsePositiveInt(critica.id_usuario)) ||
-      isNaN(parseCalificacion(critica.calificacion_comentario))
+      Number.isNaN(parsePositiveInt(critica.id_libro)) ||
+      Number.isNaN(parsePositiveInt(critica.id_usuario)) ||
+      Number.isNaN(parseCalificacion(critica.calificacion_comentario))
     ) {
       return false;
     }
@@ -27,7 +27,7 @@ function validarCritica(critica: any, esActualizacion = false): boolean {
     return false;
   if (
     critica.calificacion_comentario !== undefined &&
-    (isNaN(parseCalificacion(critica.calificacion_comentario)) ||
+    (Number.isNaN(parseCalificacion(critica.calificacion_comentario)) ||
       parseCalificacion(critica.calificacion_comentario) < 1 ||
       parseCalificacion(critica.calificacion_comentario) > 5)
   )
@@ -104,7 +104,7 @@ async function obtenerCriticasLibro(req: Request, res: Response) {
   let conexionAbierta: ConexionBD | null = null;
   try {
     const idLibro = parsePositiveInt(req.params.id);
-    if (isNaN(idLibro)) {
+    if (Number.isNaN(idLibro)) {
       return respuestaError(res, 400, 'ID_LIBRO_INVALIDO');
     }
     conexionAbierta = new ConexionBD();
@@ -122,10 +122,10 @@ async function obtenerCriticasLibro(req: Request, res: Response) {
 
     // Calcular frecuencias de notas (calificacion_comentario)
     const maxNota = 5;
-    const frecuencias: number[] = Array(maxNota).fill(0);
+    const frecuencias: number[] = new Array(maxNota).fill(0);
     for (const critica of criticas) {
       const nota = Number(critica.calificacion_comentario);
-      if (!isNaN(nota) && nota >= 1 && nota <= maxNota) {
+      if (!Number.isNaN(nota) && nota >= 1 && nota <= maxNota) {
         frecuencias[nota - 1]++;
       }
     }
@@ -155,10 +155,10 @@ async function actualizarCritica(req: Request, res: Response) {
   try {
     const idLibro = parsePositiveInt(req.params.id);
     const idUsuario = parsePositiveInt(req.params.usuarioId);
-    if (isNaN(idLibro)) {
+    if (Number.isNaN(idLibro)) {
       return respuestaError(res, 400, 'ID_LIBRO_INVALIDO');
     }
-    if (isNaN(idUsuario)) {
+    if (Number.isNaN(idUsuario)) {
       return respuestaError(res, 400, 'ID_USUARIO_INVALIDO');
     }
     const datos = construirDatosCritica(req.body, true);
@@ -195,10 +195,10 @@ async function borrarCritica(req: Request, res: Response) {
   try {
     const idLibro = parsePositiveInt(req.params.id);
     const idUsuario = parsePositiveInt(req.params.usuarioId);
-    if (isNaN(idLibro)) {
+    if (Number.isNaN(idLibro)) {
       return respuestaError(res, 400, 'ID_LIBRO_INVALIDO');
     }
-    if (isNaN(idUsuario)) {
+    if (Number.isNaN(idUsuario)) {
       return respuestaError(res, 400, 'ID_USUARIO_INVALIDO');
     }
     conexionAbierta = new ConexionBD();

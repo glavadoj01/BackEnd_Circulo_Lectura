@@ -7,7 +7,7 @@ export async function obtenerLibrosDeLista(req: Request, res: Response) {
   let conexion: ConexionBD | null = null;
   try {
     const id = Number(req.params.id);
-    if (isNaN(id)) {
+    if (Number.isNaN(id)) {
       return respuestaError(res, 400, 'ID_LISTA_INVALIDO');
     }
     conexion = new ConexionBD();
@@ -25,7 +25,7 @@ export async function agregarLibroALista(req: Request, res: Response) {
   try {
     const id_lista = Number(req.params.id);
     const id_libro = Number(req.body.id_libro);
-    if (isNaN(id_lista) || isNaN(id_libro)) {
+    if (Number.isNaN(id_lista) || Number.isNaN(id_libro)) {
       return respuestaError(res, 400, 'ID_INVALIDO');
     }
     conexion = new ConexionBD();
@@ -52,7 +52,7 @@ export async function eliminarLibroDeLista(req: Request, res: Response) {
   try {
     const id_lista = Number(req.params.id);
     const id_libro = Number(req.params.libroId);
-    if (isNaN(id_lista) || isNaN(id_libro)) {
+    if (Number.isNaN(id_lista) || Number.isNaN(id_libro)) {
       return respuestaError(res, 400, 'ID_INVALIDO');
     }
     conexion = new ConexionBD();

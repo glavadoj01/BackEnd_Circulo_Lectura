@@ -157,15 +157,17 @@ async function obtenerLibros(req: Request, res: Response) {
   try {
     const page = req.query.page ? Number(req.query.page) : 1;
     const limit = req.query.limit ? Math.min(Number(req.query.limit), 50) : 20;
-    if (isNaN(page) || page < 1 || isNaN(limit) || limit < 1) {
+    if (Number.isNaN(page) || page < 1 || Number.isNaN(limit) || limit < 1) {
       return respuestaError(res, 400, 'PARAMETROS_PAGINACION_INVALIDOS');
     }
 
     // Filtros permitidos
     const filtros: { titulo?: string; autor?: string; genero?: string } = {};
-    if (req.query.titulo) filtros.titulo = String(req.query.titulo);
-    if (req.query.autor) filtros.autor = String(req.query.autor);
-    if (req.query.genero) filtros.genero = String(req.query.genero);
+    const q = req.query;
+
+    if (typeof q.titulo === 'string') filtros.titulo = q.titulo;
+    if (typeof q.autor === 'string') filtros.autor = q.autor;
+    if (typeof q.genero === 'string') filtros.genero = q.genero;
 
     conexionAbierta = new ConexionBD();
     const libros = await conexionAbierta.obtenerCatalogoLibros(filtros, page, limit);
@@ -189,7 +191,7 @@ async function obtenerLibroId(req: Request, res: Response) {
   try {
     const idRaw = req.query.id ?? req.params.id;
     const id = parsePositiveInt(idRaw);
-    if (isNaN(id)) {
+    if (Number.isNaN(id)) {
       return respuestaError(res, 400, 'ID_LIBRO_INVALIDO');
     }
 
@@ -222,7 +224,7 @@ async function actualizarLibro(req: Request, res: Response) {
     const id = parsePositiveInt(idRaw);
     const datos: Partial<LibroBD> =
       typeof req.body.libro === 'object' && req.body.libro !== null ? req.body.libro : req.body;
-    if (isNaN(id)) {
+    if (Number.isNaN(id)) {
       return respuestaError(res, 400, 'ID_LIBRO_INVALIDO');
     }
 
@@ -311,7 +313,7 @@ async function borrarLibro(req: Request, res: Response) {
   try {
     const idRaw = req.params.id ?? req.body.id_libro;
     const id = parsePositiveInt(idRaw);
-    if (isNaN(id)) {
+    if (Number.isNaN(id)) {
       return respuestaError(res, 400, 'ID_LIBRO_INVALIDO');
     }
 

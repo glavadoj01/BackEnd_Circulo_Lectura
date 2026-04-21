@@ -137,7 +137,7 @@ async function actualizarUsuario(req: Request, res: Response) {
   try {
     const idRaw = req.params.id ?? req.body.id_usuario;
     const id = parsePositiveInt(idRaw);
-    if (isNaN(id)) {
+    if (Number.isNaN(id)) {
       return respuestaError(res, 400, 'FALTA_ID_USUARIO');
     }
     if (!validarUsuario(req.body, true)) {
@@ -179,7 +179,7 @@ async function borrarUsuario(req: Request, res: Response) {
   try {
     const idRaw = req.params.id ?? req.body.id_usuario;
     const id = parsePositiveInt(idRaw);
-    if (isNaN(id)) {
+    if (Number.isNaN(id)) {
       return respuestaError(res, 400, 'FALTA_ID_USUARIO');
     }
     conexionAbierta = new ConexionBD();
