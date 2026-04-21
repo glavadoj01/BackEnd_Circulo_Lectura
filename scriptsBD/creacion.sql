@@ -258,6 +258,7 @@ CREATE TABLE lista_comentario (
 CREATE TABLE lista_usuario (
     id_lista        	INT NOT NULL,
     id_usuario      	INT NOT NULL,
+    me_gusta_lista   	TINYINT UNSIGNED DEFAULT NULL CHECK (me_gusta_lista IN (0,1)), -- 0:No  1:Sí
     calificacion_lista	TINYINT UNSIGNED DEFAULT NULL CHECK (calificacion_lista BETWEEN 0 AND 5),
 
     PRIMARY KEY (id_lista, id_usuario),

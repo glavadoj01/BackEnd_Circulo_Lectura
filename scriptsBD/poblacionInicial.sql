@@ -270,9 +270,13 @@ INSERT INTO lista (id_usuarioCrd, nombre_lista, descripcion_lista) VALUES
 (2, 'Lecturas 2024', 'Libros que quiero leer este año'),
 (3, 'Terror y Misterio', 'Selección de libros oscuros'),
 (4, 'Ciencia Ficción Top', 'Mis recomendaciones de Sci-Fi'),
--- Nuevas listas
 (1, 'Clásicos imprescindibles del Usuario1', 'Obras clásicas de todos los géneros'),
-(6, 'Novedades y coautorías', 'Libros recientes y escritos a varias manos');
+(6, 'Novedades y coautorías', 'Libros recientes y escritos a varias manos'),
+(2, 'Libros para regalar', 'Sugerencias para regalar libros a amigos'),
+(3, 'Lecturas de verano', 'Libros recomendados para el verano'),
+(4, 'Pendientes de leer', 'Libros que aún no he leído'),
+(5, 'Libros cortos', 'Selección de libros de menos de 300 páginas'),
+(7, 'Libros premiados', 'Libros que han ganado premios importantes');
 
 /* ============================
    RELACIÓN LISTA-CATEGORIA (N:M)
@@ -289,7 +293,12 @@ INSERT INTO lista_categoria (id_lista, id_categoria) VALUES
 (3, 2), (3, 5), (3, 8),
 (4, 3), (4, 11),
 (5, 1), (5, 9),
-(6, 10), (6, 7);
+(6, 10), (6, 7),
+(7, 1), (7, 11),
+(8, 2), (8, 10),
+(9, 3), (9, 10),
+(10, 1), (10, 6),
+(11, 1), (11, 11);
 
 /* ============================
    RELACIÓN C: LISTA-CONTENIDO
@@ -356,7 +365,17 @@ INSERT INTO lista_contenido VALUES
 (6, 33), -- Novedades y coautorías: La conspiración de Marte
 (6, 34), -- Novedades y coautorías: El legado de la mansión
 (6, 36), -- Novedades y coautorías: Placeholder B
-(6, 38); -- Novedades y coautorías: Historia inventada
+(6, 38), -- Novedades y coautorías: Historia inventada
+-- Lista 7: Libros para regalar
+(7, 1), (7, 2), (7, 3),
+-- Lista 8: Lecturas de verano
+(8, 4), (8, 5), (8, 6),
+-- Lista 9: Pendientes de leer
+(9, 7), (9, 8), (9, 9),
+-- Lista 10: Libros cortos
+(10, 10), (10, 11), (10, 12),
+-- Lista 11: Libros premiados
+(11, 13), (11, 14), (11, 15);
 
 /* ============================
    RELACIÓN D: LIBRO-USUARIO (estado lectura)
@@ -452,69 +471,88 @@ INSERT INTO libro_critica VALUES
 /* ============================
    RELACIÓN F: LISTA-COMENTARIO
    ============================ */
-INSERT INTO lista_comentario (id_lista, id_usuario, titulo_comentario, texto_comentario, id_com_respuesta) VALUES
+INSERT INTO lista_comentario (id_lista, id_usuario, titulo_comentario, texto_comentario, id_com_respuesta, fecha_comentario) VALUES
 -- Lista 1: Favoritos de Usuario1
-(1, 2, 'Selección destacada', 'Buena selección de libros', NULL),
-(1, 3, 'Fan de LOTR', 'Me encanta LOTR', NULL),
-(1, 5, 'Clásico favorito', 'Siempre vuelvo a Frankenstein Occaecat officia ad eu est enim adipisicing minim fugiat magna proident eiusmod nostrud eu consequat. Laborum ex ipsum duis minim laborum. Deserunt eu sint nostrud excepteur laboris nisi consectetur labore veniam. Adipisicing occaecat exercitation nisi ex consectetur labore proident dolore anim id. Est ipsum veniam mollit voluptate sint est tempor sit sint excepteur anim non. Culpa amet fugiat enim ut nisi proident fugiat nisi do dolore consequat ut. Lorem nisi proident commodo qui irure commodo ullamco officia voluptate consequat ex sunt do.\nDeserunt tempor amet Lorem occaecat excepteur eu dolor. Elit ipsum eu aliquip non sint nostrud commodo do consequat exercitation Lorem deserunt occaecat. Do nulla deserunt nisi amet. Pariatur adipisicing sint ad occaecat minim ut exercitation proident. In aliqua ipsum sunt excepteur nisi. Enim occaecat ullamco id tempor non ut consequat amet cillum ea ut excepteur.\nQuis et veniam ex cillum reprehenderit esse laboris eiusmod. Est laboris incididunt nostrud labore ipsum laboris cillum sint labore reprehenderit ipsum irure nulla. Excepteur aliquip veniam Lorem ex laboris duis veniam reprehenderit excepteur esse. Ad commodo occaecat enim consectetur officia. Ex eiusmod veniam sunt ipsum.', NULL),
-(1, 6, 'Dune top', 'Dune es de mis favoritos', NULL),
-(1, 1, 'Agradecimiento', 'Gracias!', 1),
+(1, 2, 'Selección destacada', 'Buena selección de libros', NULL, '2024-01-01 10:00:00'),
+(1, 3, 'Fan de LOTR', 'Me encanta LOTR', NULL, '2024-01-01 10:05:00'),
+(1, 5, 'Clásico favorito', 'Siempre vuelvo a Frankenstein\nOccaecat officia ad eu est enim adipisicing minim fugiat magna proident eiusmod nostrud eu consequat. Laborum ex ipsum duis minim laborum. Deserunt eu sint nostrud excepteur laboris nisi consectetur labore veniam. Adipisicing occaecat exercitation nisi ex consectetur labore proident dolore anim id. Est ipsum veniam mollit voluptate sint est tempor sit sint excepteur anim non. Culpa amet fugiat enim ut nisi proident fugiat nisi do dolore consequat ut. Lorem nisi proident commodo qui irure commodo ullamco officia voluptate consequat ex sunt do.\nDeserunt tempor amet Lorem occaecat excepteur eu dolor. Elit ipsum eu aliquip non sint nostrud commodo do consequat exercitation Lorem deserunt occaecat. Do nulla deserunt nisi amet. Pariatur adipisicing sint ad occaecat minim ut exercitation proident. In aliqua ipsum sunt excepteur nisi. Enim occaecat ullamco id tempor non ut consequat amet cillum ea ut excepteur.\nQuis et veniam ex cillum reprehenderit esse laboris eiusmod. Est laboris incididunt nostrud labore ipsum laboris cillum sint labore reprehenderit ipsum irure nulla. Excepteur aliquip veniam Lorem ex laboris duis veniam reprehenderit excepteur esse. Ad commodo occaecat enim consectetur officia. Ex eiusmod veniam sunt ipsum.', NULL, '2024-01-01 10:10:00'),
+(1, 6, 'Dune top', 'Dune es de mis favoritos', NULL, '2024-01-01 10:15:00'),
+(1, 1, 'Agradecimiento', 'Gracias!', 1, '2024-01-01 10:20:00'),
 -- Lista 2: Lecturas 2024
-(2, 1, 'Clásico de ciencia ficción', 'Fundación es un clásico', NULL),
-(2, 7, 'Solaris pendiente', 'Quiero leer Solaris este año', NULL),
-(2, 8, 'Interés en Buenos presagios', 'Buenos presagios me llama la atención', NULL),
-(2, 9, 'Parentesco en lista', 'Quiero leer Parentesco de Octavia Butler este año', NULL),
-(2, 10, 'Marte rojo recomendado', 'Marte rojo de Kim Stanley Robinson es muy realista', NULL),
+(2, 1, 'Clásico de ciencia ficción', 'Fundación es un clásico', NULL, '2024-01-02 10:00:00'),
+(2, 7, 'Solaris pendiente', 'Quiero leer Solaris este año', NULL, '2024-01-02 10:05:00'),
+(2, 8, 'Interés en Buenos presagios', 'Buenos presagios me llama la atención', NULL, '2024-01-02 10:10:00'),
+(2, 9, 'Parentesco en lista', 'Quiero leer Parentesco de Octavia Butler este año', NULL, '2024-01-02 10:15:00'),
+(2, 10, 'Marte rojo recomendado', 'Marte rojo de Kim Stanley Robinson es muy realista', NULL, '2024-01-02 10:20:00'),
 -- Lista 3: Terror y Misterio
-(3, 4, 'Terror puro', 'It da mucho miedo', NULL),
-(3, 9, 'Salem''s Lot brutal', 'El misterio de Salem''s Lot es brutal', NULL),
-(3, 10, 'Intriga en la mansión', 'El legado de la mansión es muy intrigante', NULL),
+(3, 4, 'Terror puro', 'It da mucho miedo', NULL, '2024-01-03 10:00:00'),
+(3, 9, 'Salem''s Lot brutal', 'El misterio de Salem''s Lot es brutal', NULL, '2024-01-03 10:05:00'),
+(3, 10, 'Intriga en la mansión', 'El legado de la mansión es muy intrigante', NULL, '2024-01-03 10:10:00'),
 -- Lista 4: Ciencia Ficción Top
-(4, 1, 'Dune imprescindible', 'Dune de Frank Herbert es imprescindible', NULL),
-(4, 2, 'Visión futurista', 'Me fascina la visión de futuro de Asimov en Fundación', NULL),
-(4, 3, 'Solaris reflexivo', 'Solaris de Lem me dejó pensando días', NULL),
-(4, 4, 'Tres cuerpos brutal', 'El problema de los tres cuerpos de Cixin Liu es brutal', NULL),
-(4, 5, 'Originalidad Le Guin', 'La mano izquierda de la oscuridad de Le Guin es muy original', NULL),
-(4, 6, 'Ciberpunk puro', 'Snow Crash de Stephenson es puro ciberpunk', NULL),
-(4, 7, 'Distopía inquietante', 'El cuento de la criada de Atwood es inquietante', NULL),
-(4, 8, 'Clásico espacial', '2001 de Arthur C. Clarke es un clásico del género', NULL),
-(4, 6, 'Variedad de ciencia ficción', 'Ciencia ficción para todos los gustos', NULL),
-(4, 8, 'Joya oculta', 'El códice de las sombras es una joya', NULL),
+(4, 1, 'Dune imprescindible', 'Dune de Frank Herbert es imprescindible', NULL, '2024-01-04 10:00:00'),
+(4, 2, 'Visión futurista', 'Me fascina la visión de futuro de Asimov en Fundación', NULL, '2024-01-04 10:05:00'),
+(4, 3, 'Solaris reflexivo', 'Solaris de Lem me dejó pensando días', NULL, '2024-01-04 10:10:00'),
+(4, 4, 'Tres cuerpos brutal', 'El problema de los tres cuerpos de Cixin Liu es brutal', NULL, '2024-01-04 10:15:00'),
+(4, 5, 'Originalidad Le Guin', 'La mano izquierda de la oscuridad de Le Guin es muy original', NULL, '2024-01-04 10:20:00'),
+(4, 6, 'Ciberpunk puro', 'Snow Crash de Stephenson es puro ciberpunk', NULL, '2024-01-04 10:25:00'),
+(4, 7, 'Distopía inquietante', 'El cuento de la criada de Atwood es inquietante', NULL, '2024-01-04 10:30:00'),
+(4, 8, 'Clásico espacial', '2001 de Arthur C. Clarke es un clásico del género', NULL, '2024-01-04 10:35:00'),
+(4, 6, 'Variedad de ciencia ficción', 'Ciencia ficción para todos los gustos', NULL, '2024-01-04 10:40:00'),
+(4, 8, 'Joya oculta', 'El códice de las sombras es una joya', NULL, '2024-01-04 10:45:00'),
 -- Lista 5: Clásicos imprescindibles
-(5, 1, 'Lectura obligada', 'Clásicos que hay que leer sí o sí', NULL),
-(5, 2, 'Variedad de géneros', 'Me encanta la variedad de géneros', NULL),
-(5, 3, 'Imprescindibles distópicos', 'Fahrenheit 451 y Un mundo feliz son imprescindibles', NULL),
+(5, 1, 'Lectura obligada', 'Clásicos que hay que leer sí o sí', NULL, '2024-01-05 10:00:00'),
+(5, 2, 'Variedad de géneros', 'Me encanta la variedad de géneros', NULL, '2024-01-05 10:05:00'),
+(5, 3, 'Imprescindibles distópicos', 'Fahrenheit 451 y Un mundo feliz son imprescindibles', NULL, '2024-01-05 10:10:00'),
 -- Lista 6: Novedades y coautorías
-(6, 4, 'Selección de novedades', 'Interesante selección de novedades', NULL),
-(6, 5, 'Coautoría valorada', 'Me gustan los libros escritos a varias manos', NULL),
-(6, 6, 'Curiosidad literaria', 'Placeholder B es curioso', NULL),
-(6, 7, 'Sorpresa positiva', 'Historia inventada sorprende para bien', NULL);
+(6, 4, 'Selección de novedades', 'Interesante selección de novedades', NULL, '2024-01-06 10:00:00'),
+(6, 5, 'Coautoría valorada', 'Me gustan los libros escritos a varias manos', NULL, '2024-01-06 10:05:00'),
+(6, 6, 'Curiosidad literaria', 'Placeholder B es curioso', NULL, '2024-01-06 10:10:00'),
+(6, 7, 'Sorpresa positiva', 'Historia inventada sorprende para bien', NULL, '2024-01-06 10:15:00'),
+-- Lista 7: Libros para regalar
+(7, 2, 'Regalo perfecto', 'Este año regalaré LOTR', NULL, '2024-01-07 10:00:00'),
+(7, 3, 'Ciencia ficción para todos', 'Fundación nunca falla como regalo', NULL, '2024-01-07 10:05:00'),
+-- Lista 8: Lecturas de verano
+(8, 4, 'Verano de terror', 'Drácula es ideal para el verano', NULL, '2024-01-08 10:00:00'),
+(8, 5, 'Clásico corto', 'El gato negro se lee en una tarde', NULL, '2024-01-08 10:05:00'),
+-- Lista 9: Pendientes de leer
+(9, 6, 'Pendiente', 'La Sombra del Viento está en mi lista', NULL, '2024-01-09 10:00:00'),
+(9, 7, 'Recomendación', 'El nombre de la rosa es mi próxima lectura', NULL, '2024-01-09 10:05:00'),
+-- Lista 10: Libros cortos
+(10, 8, 'Corto pero intenso', 'Fahrenheit 451 es breve y potente', NULL, '2024-01-10 10:00:00'),
+(10, 9, 'Androides', '¿Sueñan los androides...? es corto y genial', NULL, '2024-01-10 10:05:00'),
+-- Lista 11: Libros premiados
+(11, 10, 'Premio merecido', 'Forastero en tierra extraña es imprescindible', NULL, '2024-01-11 10:00:00'),
+(11, 1, 'Dune', 'Dune ha ganado muchos premios', NULL, '2024-01-11 10:05:00');
 
 /* ============================
    RELACIÓN G: LISTA-USUARIO
    ============================ */
-INSERT INTO lista_usuario VALUES
-(1, 2, 5),
-(1, 3, 4),
-(1, 5, 3),
-(1, 6, 2),
-(2, 1, 3),
-(2, 7, 4),
-(2, 8, 5),
-(3, 4, 5),
-(3, 9, 3),
-(3, 10, 4),
-(4, 1, 4),
-(4, 6, 3),
-(4, 8, 2),
--- Nuevas listas
-(5, 1, 5),
-(5, 2, 4),
-(5, 3, 5),
-(6, 4, 4),
-(6, 5, 3),
-(6, 6, 2),
-(6, 7, 4);
+INSERT INTO lista_usuario (id_lista, id_usuario, me_gusta_lista, calificacion_lista) VALUES
+(1, 2, 1, 5),
+(1, 3, 1, 4),
+(1, 5, 0, 3),
+(1, 6, 0, 2),
+(2, 1, 0, 3),
+(2, 7, 1, 4),
+(2, 8, 1, 5),
+(3, 4, 1, 5),
+(3, 9, 0, 3),
+(3, 10, 1, 4),
+(4, 1, 1, 4),
+(4, 6, 0, 3),
+(4, 8, 0, 2),
+(5, 1, 1, 5),
+(5, 2, 1, 4),
+(5, 3, 1, 5),
+(6, 4, 1, 4),
+(6, 5, 0, 3),
+(6, 6, 0, 2),
+(6, 7, 1, 4),
+(7, 2, 1, 5), (7, 3, 1, 4), (7, 4, 0, 3),
+(8, 5, 1, 5), (8, 6, 1, 4), (8, 7, 0, 3),
+(9, 8, 1, 5), (9, 9, 1, 4), (9, 10, 0, 3),
+(10, 1, 1, 5), (10, 2, 1, 4), (10, 3, 0, 3),
+(11, 4, 1, 5), (11, 5, 1, 4), (11, 6, 0, 3);
 
 /* ============================
    EVENTOS

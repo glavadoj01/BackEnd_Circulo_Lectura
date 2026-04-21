@@ -1,7 +1,7 @@
 import mysql, { Pool, FieldPacket } from 'mysql2/promise';
-import { readFile } from 'fs/promises';
-import path, { dirname } from 'path';
-import { fileURLToPath } from 'url';
+import { readFile } from 'node:fs/promises';
+import path, { dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 import {
   DetalleLibroCompleto,
@@ -22,7 +22,7 @@ import {
   =========================================================================================================== */
 
 /** Estructura para condiciones avanzadas en WHERE */
-export interface whereCondition {
+export interface WmhereCondition {
   operador: string;
   valor: string | number | Date | (string | number | Date)[];
 }
@@ -36,9 +36,9 @@ export interface whereCondition {
  * Incluye métodos CRUD genéricos y utilidades especializadas para libros, autores y géneros.
  */
 export class ConexionBD {
-  private pool: Pool;
-  private charset: string;
-  private collation: string;
+  private readonly pool: Pool;
+  private readonly charset: string;
+  private readonly collation: string;
   /* ===========================================================================================================
     Constructor/Destructor y configuración de conexión
     =========================================================================================================== */
@@ -382,6 +382,7 @@ export class ConexionBD {
    */
   async obtenerCatalogoListas(page: number, limit: number): Promise<ListaApp[]> {
     const offset = (page - 1) * limit;
+    // 1. Obtener listas y nombre del creador
     const sql = `
       SELECT l.*, u.nombre_usuario AS nombreCreador
       FROM lista l
@@ -390,20 +391,88 @@ export class ConexionBD {
       LIMIT ? OFFSET ?
     `;
     const [rows] = await this.pool.query(sql, [limit, offset]);
-    return (rows as Array<Record<string, unknown>>).map((row) => {
-      const lista: ListaBD = {
-        id_lista: row.id_lista as number,
-        id_usuarioCrd: row.id_usuarioCrd as number,
-        nombre_lista: row.nombre_lista as string,
-        descripcion_lista: row.descripcion_lista as string | undefined,
-      };
-      return {
-        lista,
-        nombreCreador: row.nombreCreador as string,
-      } as ListaApp;
-    });
-  }
 
+    // 2. Obtener categorías asociadas a cada lista
+    const listaIds = (rows as Array<any>).map((row) => row.id_lista);
+    let categoriasPorLista: Record<number, string[]> = {};
+    if (listaIds.length > 0) {
+      const sqlCat = `
+        SELECT lc.id_lista, c.nombre_categoria
+        FROM lista_categoria lc
+        JOIN categoria c ON lc.id_categoria = c.id_categoria
+        WHERE lc.id_lista IN (${listaIds.map(() => '?').join(',')})
+      `;
+      const [catRows] = await this.pool.query(sqlCat, listaIds);
+      categoriasPorLista = {};
+      (catRows as Array<any>).forEach((row) => {
+        if (!categoriasPorLista[row.id_lista]) categoriasPorLista[row.id_lista] = [];
+        categoriasPorLista[row.id_lista].push(row.nombre_categoria);
+      });
+
+      // 3. Obtener los 2-3 primeros libros de cada lista y el total de libros por lista (para portada y contador)
+      let librosPortadaPorLista: Record<number, number[]> = {};
+      let totalLibrosPorLista: Record<number, number> = {};
+
+      const sqlLibros = `
+        SELECT id_lista, id_libro
+        FROM lista_contenido
+        WHERE id_lista IN (${listaIds.map(() => '?').join(',')})
+        ORDER BY id_lista ASC, id_libro ASC
+      `;
+      const [libRows] = await this.pool.query(sqlLibros, listaIds);
+      librosPortadaPorLista = {};
+      (libRows as Array<any>).forEach((row) => {
+        // Contador real
+        if (!totalLibrosPorLista[row.id_lista]) {
+          totalLibrosPorLista[row.id_lista] = 0;
+        }
+        totalLibrosPorLista[row.id_lista]++;
+
+        // Portadas (solo 3)
+        if (!librosPortadaPorLista[row.id_lista]) {
+          librosPortadaPorLista[row.id_lista] = [];
+        }
+        if (librosPortadaPorLista[row.id_lista].length < 3) {
+          librosPortadaPorLista[row.id_lista].push(row.id_libro);
+        }
+      });
+
+      // 4. Obtener el total de "Me gusta" por lista
+      let totalMeGustaPorLista: Record<number, number> = {};
+      const sqlMeGusta = `
+      SELECT id_lista, COUNT(*) AS totalMeGusta
+      FROM lista_usuario
+      WHERE me_gusta_lista = 1 AND id_lista IN (${listaIds.map(() => '?').join(',')}) GROUP BY id_lista`;
+      const [meGustaRows] = await this.pool.query(sqlMeGusta, listaIds);
+      totalMeGustaPorLista = {};
+      (meGustaRows as Array<any>).forEach((row) => {
+        totalMeGustaPorLista[row.id_lista] = row.totalMeGusta;
+      });
+
+      // 5. Mapear resultado final
+      return (rows as Array<Record<string, unknown>>).map((row) => {
+        const lista: ListaBD = {
+          id_lista: row.id_lista as number,
+          id_usuarioCrd: row.id_usuarioCrd as number,
+          nombre_lista: row.nombre_lista as string,
+          descripcion_lista: row.descripcion_lista as string | undefined,
+        };
+        return {
+          id_lista: lista.id_lista,
+          id_usuarioCreador: lista.id_usuarioCrd,
+          nombre_lista: lista.nombre_lista,
+          nombreCreador: row.nombreCreador as string,
+          categorias: categoriasPorLista[row.id_lista as number] || [],
+          librosPortada: librosPortadaPorLista[row.id_lista as number] || [],
+          totalLibros: totalLibrosPorLista[lista.id_lista] || 0,
+          totalMeGusta: totalMeGustaPorLista[lista.id_lista] || 0,
+          descripcion_lista: lista.descripcion_lista || undefined,
+        } as ListaApp;
+      });
+    } else {
+      throw new Error('Error al obtener listas: No se encontraron listas en la base de datos.');
+    }
+  }
   /**
    * Obtiene una lista por su ID, incluyendo el nombre del creador.
    * Devuelve null si no existe.
@@ -423,10 +492,10 @@ export class ConexionBD {
     const row = (rows as Array<any>)[0];
     return {
       id_lista: row.id_lista,
-      id_usuarioCrd: row.id_usuarioCrd,
+      id_usuarioCreador: row.id_usuarioCrd,
       nombre_lista: row.nombre_lista,
-      descripcion_lista: row.descripcion_lista,
       nombreCreador: row.nombreCreador,
+      descripcion_lista: row.descripcion_lista,
     } as ListaApp;
   }
 
@@ -549,7 +618,7 @@ export class ConexionBD {
     if (!datos || typeof datos !== 'object') {
       throw new Error('Datos inválidos.');
     }
-    const nombreValido = /^[a-zA-Z0-9_]+$/;
+    const nombreValido = /^[\w_]+$/;
     if (!nombreValido.test(tabla)) throw new Error('Nombre de tabla no permitido.');
     for (const col of Object.keys(datos)) {
       if (!nombreValido.test(col)) throw new Error(`Nombre de columna no permitido: ${col}`);
@@ -673,12 +742,9 @@ export class ConexionBD {
           clausulas.push(`\`${prefijo}${campo}\` ${operador} ? AND ?`);
           valores.push(valor.valor[0], valor.valor[1]);
         } else if (
-          (operador === 'LIKE' || operador === 'NOT LIKE') &&
-          typeof valor.valor === 'string'
+          ((operador === 'LIKE' || operador === 'NOT LIKE') && typeof valor.valor === 'string') ||
+          ['!=', '<>', '<', '>', '<=', '>='].includes(operador)
         ) {
-          clausulas.push(`\`${prefijo}${campo}\` ${operador} ?`);
-          valores.push(valor.valor);
-        } else if (['!=', '<>', '<', '>', '<=', '>='].includes(operador)) {
           clausulas.push(`\`${prefijo}${campo}\` ${operador} ?`);
           valores.push(valor.valor);
         } else {

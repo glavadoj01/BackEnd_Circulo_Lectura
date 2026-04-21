@@ -22,8 +22,8 @@ function obtenerEnv(
   const requerido = opciones?.requerido ?? false;
   const permitirVacio = opciones?.permitirVacio ?? false;
 
-  if (typeof valor === 'undefined') {
-    if (typeof opciones?.defaultValue !== 'undefined') {
+  if (valor === undefined) {
+    if (opciones?.defaultValue !== undefined) {
       return opciones.defaultValue;
     }
     if (requerido) {
@@ -34,7 +34,7 @@ function obtenerEnv(
 
   const limpio = valor.trim();
   if (!permitirVacio && limpio.length === 0) {
-    if (typeof opciones?.defaultValue !== 'undefined') {
+    if (opciones?.defaultValue !== undefined) {
       return opciones.defaultValue;
     }
     if (requerido) {
@@ -50,7 +50,6 @@ try {
   const dbHost = obtenerEnv('DB_HOST', { requerido: true });
   const dbPortRaw = obtenerEnv('DB_PORT', { requerido: true });
   const dbUser = obtenerEnv('DB_USER', { requerido: true });
-  const dbPassword = obtenerEnv('DB_PASSWORD', { permitirVacio: true });
   const dbDatabase = obtenerEnv('DB_NAME', { requerido: true });
 
   if (!dbDatabase) {

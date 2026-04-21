@@ -150,7 +150,7 @@ export function respuestaOk(
 ) {
   const incluirMensaje = opciones?.incluirMensaje ?? true;
 
-  if (typeof payload === 'undefined') {
+  if (payload === undefined) {
     return res.status(statusCode).json({
       message: MENSAJES_ESTANDARIZADOS[codigo],
     });

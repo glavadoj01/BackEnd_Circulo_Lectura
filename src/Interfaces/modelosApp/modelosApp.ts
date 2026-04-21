@@ -4,7 +4,6 @@ import {
   GeneroNombre,
   LibroBD,
   LibroCritica,
-  ListaBD,
   ListaComentarios,
 } from './../modelosBD/modelosBD.js';
 
@@ -76,11 +75,20 @@ export interface LibroResumen {
  * - descripcion_lista: descripción de la lista (opcional).
  * - nombreCreador: nombre del usuario creador de la lista.
  */
-export interface ListaApp extends ListaBD {
-  lista: ListaBD;
+/**
+ * Interfaz resumen para el catálogo de listas.
+ * Solo los campos necesarios para el recuadro del catálogo.
+ */
+export interface ListaApp {
+  id_lista: number;
+  id_usuarioCreador: number;
+  nombre_lista: string;
   nombreCreador: string;
   categorias: string[];
-  libros: number[];
+  librosPortada: number[]; // Solo los 2-3 ids para portada
+  totalLibros: number;
+  totalMeGusta: number;
+  descripcion_lista?: string;
 }
 
 /**

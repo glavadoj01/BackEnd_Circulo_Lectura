@@ -117,7 +117,7 @@ export interface LibroAutor {
 export interface LibroUsuario {
   id_libro: number; // FK
   id_usuario: number; // FK
-  estado_lectura: Boolean; // 0-1
+  estado_lectura: boolean; // 0-1
 }
 
 // Relación E: Libro-Critica (Reseña)
@@ -145,6 +145,7 @@ export interface ListaComentarios {
 export interface ListaUsuario {
   id_lista: number; // FK
   id_usuario: number; // FK
+  me_gusta_lista?: number | null; // 0: No, 1: Sí
   calificacion_lista?: number | null; // 0-5
 }
 

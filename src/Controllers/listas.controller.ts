@@ -37,7 +37,7 @@ export async function obtenerListas(req: Request, res: Response) {
   try {
     const page = req.query.page ? Number(req.query.page) : 1;
     const limit = req.query.limit ? Math.min(Number(req.query.limit), 50) : 20;
-    if (isNaN(page) || page < 1 || isNaN(limit) || limit < 1) {
+    if (Number.isNaN(page) || page < 1 || Number.isNaN(limit) || limit < 1) {
       return respuestaError(res, 400, 'PARAMETROS_PAGINACION_INVALIDOS');
     }
     conexion = new ConexionBD();
@@ -50,7 +50,6 @@ export async function obtenerListas(req: Request, res: Response) {
   }
 }
 
-// Obtener el total de listas
 /**
  * Obtener el total de listas.
  * @param _req Objeto de solicitud de Express (no se usa).
@@ -82,7 +81,7 @@ export async function obtenerListaId(req: Request, res: Response) {
   let conexion: ConexionBD | null = null;
   try {
     const id = Number(req.query.id ?? req.params.id);
-    if (isNaN(id)) {
+    if (Number.isNaN(id)) {
       return respuestaError(res, 400, 'ID_LISTA_INVALIDO');
     }
     conexion = new ConexionBD();
@@ -113,7 +112,7 @@ export async function actualizarLista(req: Request, res: Response) {
     const id = Number(req.params.id ?? req.body.id_lista);
     const datos: Partial<ListaBD> =
       typeof req.body.lista === 'object' && req.body.lista !== null ? req.body.lista : req.body;
-    if (isNaN(id)) {
+    if (Number.isNaN(id)) {
       return respuestaError(res, 400, 'ID_LISTA_INVALIDO');
     }
     conexion = new ConexionBD();
@@ -141,7 +140,7 @@ export async function borrarLista(req: Request, res: Response) {
   let conexion: ConexionBD | null = null;
   try {
     const id = Number(req.params.id ?? req.body.id_lista);
-    if (isNaN(id)) {
+    if (Number.isNaN(id)) {
       return respuestaError(res, 400, 'ID_LISTA_INVALIDO');
     }
     conexion = new ConexionBD();
