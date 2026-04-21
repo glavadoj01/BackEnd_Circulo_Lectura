@@ -9,13 +9,7 @@ import {
   LibroResumen,
   ListaApp,
 } from '../Interfaces/modelosApp/modelosApp.js';
-import {
-  AutorApellido,
-  AutorNombre,
-  GeneroNombre,
-  LibroCritica,
-  ListaBD,
-} from '../Interfaces/modelosBD/modelosBD.js';
+import { LibroCritica, ListaBD } from '../Interfaces/modelosBD/modelosBD.js';
 
 /* ===========================================================================================================
   Tipos y utilidades
@@ -344,18 +338,15 @@ export class ConexionBD {
               const [id_autor, nombre_autor, apellido_autor] = a.split(':');
               return {
                 id_autor: Number(id_autor),
-                nombre_autor: { nombre_autor, trim: () => nombre_autor.trim() } as AutorNombre,
-                apellido_autor: {
-                  apellido_autor,
-                  trim: () => apellido_autor.trim(),
-                } as AutorApellido,
+                nombre_autor,
+                apellido_autor,
               };
             })
           : [],
       generos:
         typeof row.generos === 'string' && row.generos.length > 0
           ? row.generos.split('|').map((nombre_genero: string) => ({
-              nombre_genero: { nombre_genero, trim: () => nombre_genero.trim() } as GeneroNombre,
+              nombre_genero,
             }))
           : [],
       totalResenas: Number(row.totalResenas) || 0,
@@ -618,7 +609,7 @@ export class ConexionBD {
     if (!datos || typeof datos !== 'object') {
       throw new Error('Datos inválidos.');
     }
-    const nombreValido = /^[\w_]+$/;
+    const nombreValido = /^\w+$/;
     if (!nombreValido.test(tabla)) throw new Error('Nombre de tabla no permitido.');
     for (const col of Object.keys(datos)) {
       if (!nombreValido.test(col)) throw new Error(`Nombre de columna no permitido: ${col}`);

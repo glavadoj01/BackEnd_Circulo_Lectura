@@ -1,11 +1,4 @@
-import {
-  AutorApellido,
-  AutorNombre,
-  GeneroNombre,
-  LibroBD,
-  LibroCritica,
-  ListaComentarios,
-} from './../modelosBD/modelosBD.js';
+import { LibroBD, LibroCritica, ListaComentarios } from './../modelosBD/modelosBD.js';
 
 /****************** INTERFACES DE LA CAPA DE APLICACIÓN ******************/
 
@@ -25,8 +18,8 @@ import {
  * - nombre_idioma_original: nombre del idioma original del libro (opcional).
  */
 export interface LibroApp extends LibroBD {
-  autores?: Array<{ nombre_autor: AutorNombre; apellido_autor: AutorApellido; id_autor: number }>; // Lista de autores del libro
-  generos?: Array<{ nombre_genero: GeneroNombre }>; // Lista de géneros del libro
+  autores?: Array<{ nombre_autor: string; apellido_autor: string; id_autor: number }>; // Lista de autores del libro
+  generos?: Array<{ nombre_genero: string }>; // Lista de géneros del libro
   totalResenas?: number; // Total de reseñas del libro
   calificacionPromedio?: number; // Calificación promedio del libro
   nombre_idioma_original?: string;

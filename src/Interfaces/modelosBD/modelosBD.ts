@@ -5,43 +5,21 @@
 // Entidades Fuertes
 export interface UsuarioBD {
   id_usuario: number;
-  nombre_usuario: NombreUsuario;
-  nombre_real: NombreReal;
+  nombre_usuario: string;
+  nombre_real: string;
   apellido_usuario?: string;
   esAdministrador: boolean; // 0: No, 1: Mod, 2: Admin
 }
 
-export interface NombreUsuario {
-  nombre_usuario: string;
-  trim(): string;
-}
-
-export interface NombreReal {
-  nombre_real: string;
-  trim(): string;
-}
-
 export interface GeneroBD {
   id_genero: number;
-  nombre_genero: GeneroNombre;
-  descripcion_genero?: string;
-}
-
-// Para typado externo (sin ID)
-export interface GeneroNombre {
   nombre_genero: string;
-  trim(): string;
+  descripcion_genero?: string;
 }
 
 export interface IdiomaBD {
   id_idioma: number;
-  nombre_idioma: IdiomaNombre;
-}
-
-// Para typado externo (sin ID)
-export interface IdiomaNombre {
   nombre_idioma: string;
-  trim(): string;
 }
 
 export interface LibroBD {
@@ -57,26 +35,10 @@ export interface LibroBD {
 export interface AutorBD {
   id_autor: number;
   id_usuario?: number; // FK a Usuario (si el autor es también usuario)
-  nombre_autor: AutorNombre;
-  apellido_autor: AutorApellido;
-  pais_autor: PaisNombre;
-  esUsuario: boolean; // (0-1)
-}
-// Para typado externo (sin ID)
-export interface AutorNombre {
   nombre_autor: string;
-
-  trim(): string;
-}
-export interface AutorApellido {
   apellido_autor: string;
-
-  trim(): string;
-}
-
-export interface PaisNombre {
-  nombre_pais: string;
-  trim(): string;
+  pais_autor: string;
+  esUsuario: boolean; // (0-1)
 }
 
 // Entidades Débiles
@@ -90,16 +52,11 @@ export interface ListaBD {
 export interface EventoBD {
   id_evento: number;
   id_usuarioCrd: number; // FK a Usuario (creador)
-  nombre_evento: NombreEvento;
+  nombre_evento: string;
   fecha_evento: Date; // o string dependiendo cómo lo manejes
   hora_evento?: string; // "HH:MM:SS"
   direccion_evento?: string;
   descripcion_evento: string;
-}
-
-export interface NombreEvento {
-  nombre_evento: string;
-  trim(): string;
 }
 
 // ============================================

@@ -44,7 +44,7 @@ async function procesarAutores(conexion: ConexionBD, autores: any[]): Promise<nu
     let encontrado = (
       await conexion.listarRegistros('autor', { nombre_autor, apellido_autor }, '', 1, 'id_autor')
     ).datos[0];
-    if (!encontrado) {
+    if (encontrado === undefined) {
       const idAutor = (
         await conexion.insertarRegistro('autor', {
           nombre_autor,
@@ -75,7 +75,7 @@ async function procesarGeneros(conexion: ConexionBD, generos: any[]): Promise<nu
     let encontrado = (
       await conexion.listarRegistros('genero', { nombre_genero }, '', 1, 'id_genero')
     ).datos[0];
-    if (!encontrado) {
+    if (encontrado === undefined) {
       const idGenero = (
         await conexion.insertarRegistro('genero', {
           nombre_genero,
