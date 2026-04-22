@@ -25,6 +25,8 @@ INSERT INTO usuario (nombre_usuario, nombre_real, apellido_usuario) VALUES
    CATEGORÍAS DE LISTAS
    ============================ */
 INSERT INTO categoria (nombre_categoria) VALUES
+('Recientes'),
+('Populares'),
 ('Ficción'),
 ('Terror'),
 ('Ciencia-Ficción'),
@@ -33,9 +35,7 @@ INSERT INTO categoria (nombre_categoria) VALUES
 ('No-Ficción'),
 ('Ensayo'),
 ('Misterio'),
-('Histórica'),
-('Recientes'),
-('Populares');
+('Histórica');
 
 /* ============================
    GENEROS

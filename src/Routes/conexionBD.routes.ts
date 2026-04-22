@@ -13,6 +13,9 @@ import {
   obtenerLibroId,
   obtenerLibrosTotal,
 } from '../Controllers/libros.controller.js';
+import { obtenerGeneros } from '../Controllers/generos.controller.js';
+import { obtenerAutores } from '../Controllers/autores.controller.js';
+import { obtenerYears } from '../Controllers/years.controller.js';
 import {
   crearLista,
   obtenerListas,
@@ -53,6 +56,11 @@ conexionRouter.get('/libros', obtenerLibros);
 conexionRouter.get('/libros/total', obtenerLibrosTotal);
 conexionRouter.put('/libro/:id', actualizarLibro);
 conexionRouter.delete('/libro/:id', borrarLibro);
+
+// Definición de rutas para géneros, autores y años (filtros)
+conexionRouter.get('/generos', obtenerGeneros);
+conexionRouter.get('/autores', obtenerAutores);
+conexionRouter.get('/years', obtenerYears);
 
 // Definición de rutas para criticas/reseñas de libros
 conexionRouter.post('/libro/:id/critica', crearCritica);

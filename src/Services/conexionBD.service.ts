@@ -195,43 +195,80 @@ export class ConexionBD {
    * @returns Array de libros con autores, géneros, idioma, totalResenas y calificacionPromedio
    */
   async obtenerCatalogoLibros(
-    filtros: { titulo?: string; autor?: string; genero?: string },
+    filtros: {
+      titulo?: string;
+      generos?: number[];
+      autores?: number[];
+      years?: number[];
+      valoraciones?: number[];
+    },
     page: number,
     limit: number,
   ): Promise<LibroResumen[]> {
     const offset = (page - 1) * limit;
-    const params: any[] = [];
+    const params: (string | number)[] = [];
 
-    let where: string[] = [];
-    if (filtros.titulo) {
-      where.push('l.titulo_libro LIKE ?');
-      params.push(`%${filtros.titulo}%`);
-    }
-    if (filtros.autor) {
-      where.push('(a.nombre_autor LIKE ? OR a.apellido_autor LIKE ?)');
-      params.push(`%${filtros.autor}%`, `%${filtros.autor}%`);
-    }
-    if (filtros.genero) {
-      where.push('g.nombre_genero LIKE ?');
-      params.push(`%${filtros.genero}%`);
-    }
-    const whereClause = where.length > 0 ? 'WHERE ' + where.join(' AND ') : '';
-
+    // Where 1=1 es necesario si mando cualquier filtro sin enviar tambien el filtro de titulo.
     const sql = `
-    SELECT
-      l.id_libro,
-      l.titulo_libro,
-      GROUP_CONCAT(DISTINCT CONCAT(a.nombre_autor, ':', a.apellido_autor) SEPARATOR '|') AS autores,
-      ROUND(AVG(c.calificacion_comentario),2) AS calificacionPromedio
-    FROM libro l
-    LEFT JOIN libro_autor la ON l.id_libro = la.id_libro
-    LEFT JOIN autor a ON la.id_autor = a.id_autor
-    LEFT JOIN libro_critica c ON l.id_libro = c.id_libro
-    ${whereClause}
-    GROUP BY l.id_libro
-    ORDER BY l.id_libro ASC
-    LIMIT ? OFFSET ?
-  `;
+SELECT
+  l.id_libro,
+  l.titulo_libro,
+  GROUP_CONCAT(DISTINCT CONCAT(a.nombre_autor, ':', a.apellido_autor) SEPARATOR '|') AS autores,
+  ROUND(AVG(c.calificacion_comentario),2) AS calificacionPromedio
+FROM libro l
+LEFT JOIN libro_autor la ON l.id_libro = la.id_libro
+LEFT JOIN autor a ON la.id_autor = a.id_autor
+LEFT JOIN libro_critica c ON l.id_libro = c.id_libro
+WHERE 1=1
+  ${filtros.titulo ? 'AND l.titulo_libro LIKE ?' : ''}
+  ${
+    filtros.generos && filtros.generos.length > 0
+      ? `
+  AND EXISTS (
+    SELECT 1 FROM libro_genero lg2
+    WHERE lg2.id_libro = l.id_libro
+    AND lg2.id_genero IN (${filtros.generos.map(() => '?').join(',')})
+  )`
+      : ''
+  }
+  ${
+    filtros.autores && filtros.autores.length > 0
+      ? `
+  AND EXISTS (
+    SELECT 1 FROM libro_autor la2
+    WHERE la2.id_libro = l.id_libro
+    AND la2.id_autor IN (${filtros.autores.map(() => '?').join(',')})
+  )`
+      : ''
+  }
+  ${
+    filtros.years && filtros.years.length > 0
+      ? `AND l.year_publicacion IN (${filtros.years.map(() => '?').join(',')})`
+      : ''
+  }
+  ${
+    filtros.valoraciones && filtros.valoraciones.length > 0
+      ? `
+  AND EXISTS (
+    SELECT 1 FROM libro_critica c2
+    WHERE c2.id_libro = l.id_libro
+    AND ROUND(c2.calificacion_comentario,2) IN (${filtros.valoraciones.map(() => '?').join(',')})
+  )`
+      : ''
+  }
+GROUP BY l.id_libro
+ORDER BY l.id_libro ASC
+LIMIT ? OFFSET ?
+
+`;
+
+    // Parámetros en orden
+    if (filtros.titulo) params.push(`%${filtros.titulo}%`);
+    if (filtros.generos) params.push(...filtros.generos);
+    if (filtros.autores) params.push(...filtros.autores);
+    if (filtros.years) params.push(...filtros.years);
+    if (filtros.valoraciones) params.push(...filtros.valoraciones);
+
     params.push(limit, offset);
 
     const [rows] = await this.pool.query(sql, params);
@@ -700,6 +737,61 @@ export class ConexionBD {
   }
 
   /**
+   * Procesar un operador especial en las condiciones (IS NULL, IN, BETWEEN, LIKE, etc.) y construir las cláusulas y valores correspondientes para la consulta.
+   * @param campo Campo/columna al que se le aplica el operador.
+   * @param valor Objeto con el operador y el valor.
+   * @param prefijo Prefijo para el nombre de la columna.
+   * @returns Objeto con las cláusulas y valores procesados.
+   * @throws Error si el operador no es soportado o si los valores no son válidos para el operador.
+   * Ejemplo de valor: { operador: 'IN', valor: [1, 2, 3] } o { operador: 'BETWEEN', valor: [10, 20] } o { operador: 'IS NULL' }
+   */
+  private procesarOperador(
+    campo: string,
+    valor: any,
+    prefijo: string,
+  ): { clausulas: string[]; valores: any[] } {
+    const clausulas: string[] = [];
+    const valores: any[] = [];
+
+    const operador = valor.operador.toString().toUpperCase();
+
+    if (operador === 'IS NULL' || operador === 'IS NOT NULL') {
+      clausulas.push(`\`${prefijo}${campo}\` ${operador}`);
+      return { clausulas, valores };
+    }
+
+    if ((operador === 'IN' || operador === 'NOT IN') && Array.isArray(valor.valor)) {
+      if (valor.valor.length === 0)
+        throw new Error(`El array para IN/NOT IN en '${campo}' está vacío.`);
+      const placeholders = valor.valor.map(() => '?').join(', ');
+      clausulas.push(`\`${prefijo}${campo}\` ${operador} (${placeholders})`);
+      valores.push(...valor.valor);
+      return { clausulas, valores };
+    }
+
+    if (
+      (operador === 'BETWEEN' || operador === 'NOT BETWEEN') &&
+      Array.isArray(valor.valor) &&
+      valor.valor.length === 2
+    ) {
+      clausulas.push(`\`${prefijo}${campo}\` ${operador} ? AND ?`);
+      valores.push(valor.valor[0], valor.valor[1]);
+      return { clausulas, valores };
+    }
+
+    if (
+      ((operador === 'LIKE' || operador === 'NOT LIKE') && typeof valor.valor === 'string') ||
+      ['!=', '<>', '<', '>', '<=', '>='].includes(operador)
+    ) {
+      clausulas.push(`\`${prefijo}${campo}\` ${operador} ?`);
+      valores.push(valor.valor);
+      return { clausulas, valores };
+    }
+
+    throw new Error(`Operador no soportado en condiciones: ${operador}`);
+  }
+
+  /**
    * Método privado para construir cláusulas WHERE flexibles con operadores especiales (IS NULL, IN, BETWEEN, LIKE, etc.)
    *
    * @param condiciones Objeto con condiciones, donde la clave es el nombre de la columna y el valor puede ser un valor directo o un objeto { operador, valor }.
@@ -712,40 +804,21 @@ export class ConexionBD {
   ): { clausulas: string[]; valores: any[] } {
     const clausulas: string[] = [];
     const valores: any[] = [];
+    const prefijo = alias ? `${alias}.` : '';
+
     for (const campo in condiciones) {
       const valor = condiciones[campo];
-      const prefijo = alias ? `${alias}.` : '';
+
       if (valor && typeof valor === 'object' && 'operador' in valor) {
-        const operador = valor.operador.toString().toUpperCase();
-        if (operador === 'IS NULL' || operador === 'IS NOT NULL') {
-          clausulas.push(`\`${prefijo}${campo}\` ${operador}`);
-        } else if ((operador === 'IN' || operador === 'NOT IN') && Array.isArray(valor.valor)) {
-          if (valor.valor.length === 0)
-            throw new Error(`El array para IN/NOT IN en '${campo}' está vacío.`);
-          const placeholders = valor.valor.map(() => '?').join(', ');
-          clausulas.push(`\`${prefijo}${campo}\` ${operador} (${placeholders})`);
-          valores.push(...valor.valor);
-        } else if (
-          (operador === 'BETWEEN' || operador === 'NOT BETWEEN') &&
-          Array.isArray(valor.valor) &&
-          valor.valor.length === 2
-        ) {
-          clausulas.push(`\`${prefijo}${campo}\` ${operador} ? AND ?`);
-          valores.push(valor.valor[0], valor.valor[1]);
-        } else if (
-          ((operador === 'LIKE' || operador === 'NOT LIKE') && typeof valor.valor === 'string') ||
-          ['!=', '<>', '<', '>', '<=', '>='].includes(operador)
-        ) {
-          clausulas.push(`\`${prefijo}${campo}\` ${operador} ?`);
-          valores.push(valor.valor);
-        } else {
-          throw new Error(`Operador no soportado en condiciones: ${operador}`);
-        }
+        const res = this.procesarOperador(campo, valor, prefijo);
+        clausulas.push(...res.clausulas);
+        valores.push(...res.valores);
       } else {
         clausulas.push(`\`${prefijo}${campo}\` = ?`);
         valores.push(valor);
       }
     }
+
     return { clausulas, valores };
   }
 }
