@@ -85,10 +85,10 @@ async function crearCritica(req: Request, res: Response) {
         { incluirMensaje: false },
       );
     } else {
-      return respuestaError(res, 500, 'ERROR_CREAR_CRITICA');
+      return respuestaError(res, 500, 'ERROR_CREAR_CRITICA', resultado.mensaje);
     }
   } catch (error: any) {
-    return respuestaError(res, 500, error.message || 'ERROR_CREAR_CRITICA');
+    return respuestaError(res, 500, 'ERROR_CREAR_CRITICA', error.message);
   } finally {
     if (conexionAbierta) await conexionAbierta.close();
   }
@@ -138,7 +138,7 @@ async function obtenerCriticasLibro(req: Request, res: Response) {
       { incluirMensaje: false },
     );
   } catch (error: any) {
-    return respuestaError(res, 500, error.message || 'ERROR_OBTENER_CRITICAS');
+    return respuestaError(res, 500, 'ERROR_OBTENER_CRITICAS', error.message);
   } finally {
     if (conexionAbierta) await conexionAbierta.close();
   }
@@ -174,11 +174,11 @@ async function actualizarCritica(req: Request, res: Response) {
       id_usuario: idUsuario,
     });
     if (resultado.datos.affectedRows === 0) {
-      return respuestaError(res, 404, 'CRITICA_NO_ENCONTRADA');
+      return respuestaError(res, 404, 'ERROR_OBTENER_CRITICAS', resultado.mensaje);
     }
     return respuestaOk(res, 200, 'CRITICA_ACTUALIZADA_OK', undefined, { incluirMensaje: false });
   } catch (error: any) {
-    return respuestaError(res, 500, error.message || 'ERROR_ACTUALIZAR_CRITICA');
+    return respuestaError(res, 500, 'ERROR_ACTUALIZAR_CRITICA', error.message);
   } finally {
     if (conexionAbierta) await conexionAbierta.close();
   }
@@ -207,11 +207,11 @@ async function borrarCritica(req: Request, res: Response) {
       id_usuario: idUsuario,
     });
     if (resultado.datos.affectedRows === 0) {
-      return respuestaError(res, 404, 'CRITICA_NO_ENCONTRADA');
+      return respuestaError(res, 404, 'ERROR_OBTENER_CRITICAS', resultado.mensaje);
     }
     return respuestaOk(res, 200, 'CRITICA_BORRADA_OK', undefined, { incluirMensaje: false });
   } catch (error: any) {
-    return respuestaError(res, 500, error.message || 'ERROR_BORRAR_CRITICA');
+    return respuestaError(res, 500, 'ERROR_BORRAR_CRITICA', error.message);
   } finally {
     if (conexionAbierta) await conexionAbierta.close();
   }

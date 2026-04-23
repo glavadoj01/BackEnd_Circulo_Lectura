@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { ConexionBD } from '../Services/conexionBD.service.js';
 import { parsePositiveInt } from '../Utils/validation.utils.js';
 import { respuestaError, respuestaOk } from '../Utils/validationMessages.utils.js';
+import { ConexionUsuarios } from '../Services/conexionUsuarios.service.js';
 
 /**
  * Valida los datos de un usuario.
@@ -78,7 +79,7 @@ async function crearUsuario(req: Request, res: Response) {
       { incluirMensaje: false },
     );
   } catch (error: any) {
-    return respuestaError(res, 500, error.message || 'ERROR_CREAR_USUARIO');
+    return respuestaError(res, 500, 'ERROR_CREAR_USUARIO', error.message);
   } finally {
     if (conexionAbierta) await conexionAbierta.close();
   }
@@ -116,11 +117,11 @@ async function obtenerUsuarios(req: Request, res: Response) {
       limite,
       columnas,
     );
-    return respuestaOk(res, 200, 'USUARIOS_OBTENIDOS_OK', resultado.datos, {
+    return respuestaOk(res, 200, 'USUARIO_OBTENIDO_OK', resultado.datos[0], {
       incluirMensaje: false,
     });
   } catch (error: any) {
-    return respuestaError(res, 500, error.message || 'ERROR_OBTENER_USUARIOS');
+    return respuestaError(res, 500, 'ERROR_OBTENER_USUARIO', error.message);
   } finally {
     if (conexionAbierta) await conexionAbierta.close();
   }
@@ -138,7 +139,7 @@ async function actualizarUsuario(req: Request, res: Response) {
     const idRaw = req.params.id ?? req.body.id_usuario;
     const id = parsePositiveInt(idRaw);
     if (Number.isNaN(id)) {
-      return respuestaError(res, 400, 'FALTA_ID_USUARIO');
+      return respuestaError(res, 400, 'ID_USUARIO_INVALIDO');
     }
     if (!validarUsuario(req.body, true)) {
       return respuestaError(res, 400, 'NO_HAY_CAMPOS_ACTUALIZAR');
@@ -152,7 +153,7 @@ async function actualizarUsuario(req: Request, res: Response) {
       await conexionAbierta.actualizarRegistro('usuario', datosBD, { id_usuario: id })
     ).datos.affectedRows;
     if (afectados === 0) {
-      return respuestaError(res, 404, 'USUARIO_NO_ENCONTRADO');
+      return respuestaError(res, 404, 'ERROR_ACTUALIZAR_USUARIO', 'Usuario no encontrado');
     }
     return respuestaOk(
       res,
@@ -162,7 +163,7 @@ async function actualizarUsuario(req: Request, res: Response) {
       { incluirMensaje: false },
     );
   } catch (error: any) {
-    return respuestaError(res, 500, error.message || 'ERROR_ACTUALIZAR_USUARIO');
+    return respuestaError(res, 500, 'ERROR_ACTUALIZAR_USUARIO', error.message);
   } finally {
     if (conexionAbierta) await conexionAbierta.close();
   }
@@ -180,13 +181,13 @@ async function borrarUsuario(req: Request, res: Response) {
     const idRaw = req.params.id ?? req.body.id_usuario;
     const id = parsePositiveInt(idRaw);
     if (Number.isNaN(id)) {
-      return respuestaError(res, 400, 'FALTA_ID_USUARIO');
+      return respuestaError(res, 400, 'ID_USUARIO_INVALIDO');
     }
     conexionAbierta = new ConexionBD();
     const afectados = (await conexionAbierta.borrarRegistro('usuario', { id_usuario: id })).datos
       .affectedRows;
     if (afectados === 0) {
-      return respuestaError(res, 404, 'USUARIO_NO_ENCONTRADO');
+      return respuestaError(res, 404, 'ERROR_BORRAR_USUARIO', 'Usuario no encontrado');
     }
     return respuestaOk(
       res,
@@ -196,10 +197,178 @@ async function borrarUsuario(req: Request, res: Response) {
       { incluirMensaje: false },
     );
   } catch (error: any) {
-    return respuestaError(res, 500, error.message || 'ERROR_BORRAR_USUARIO');
+    return respuestaError(res, 500, 'ERROR_BORRAR_USUARIO', error.message);
   } finally {
     if (conexionAbierta) await conexionAbierta.close();
   }
 }
 
-export { crearUsuario, obtenerUsuarios, actualizarUsuario, borrarUsuario };
+async function obtenerLibrosLeidosUsuario(req: Request, res: Response) {
+  let conexionAbierta: ConexionUsuarios | null = null;
+  try {
+    const id = Number(req.params.id);
+    if (!Number.isFinite(id)) {
+      return respuestaError(res, 400, 'ID_USUARIO_INVALIDO');
+    }
+
+    conexionAbierta = new ConexionUsuarios();
+    const datos = await conexionAbierta.obtenerLibrosLeidosPendientes(id, 1);
+
+    return respuestaOk(res, 200, 'LIBROS_LEIDOS_OK', datos, { incluirMensaje: false });
+  } catch (error: any) {
+    return respuestaError(res, 500, 'ERROR_OBTENER_LIBROS_LEIDOS', error.message);
+  } finally {
+    if (conexionAbierta) await conexionAbierta.close();
+  }
+}
+
+async function obtenerLibrosPendientesUsuario(req: Request, res: Response) {
+  let conexionAbierta: ConexionUsuarios | null = null;
+  try {
+    const id = Number(req.params.id);
+    if (!Number.isFinite(id)) {
+      return respuestaError(res, 400, 'ID_USUARIO_INVALIDO');
+    }
+
+    conexionAbierta = new ConexionUsuarios();
+    const datos = await conexionAbierta.obtenerLibrosLeidosPendientes(id, 0);
+
+    return respuestaOk(res, 200, 'LIBROS_PENDIENTES_OK', datos, { incluirMensaje: false });
+  } catch (error: any) {
+    return respuestaError(res, 500, 'ERROR_OBTENER_LIBROS_PENDIENTES', error.message);
+  } finally {
+    if (conexionAbierta) await conexionAbierta.close();
+  }
+}
+
+async function obtenerListasCreadasUsuario(req: Request, res: Response) {
+  let conexionAbierta: ConexionUsuarios | null = null;
+  try {
+    const id = Number(req.params.id);
+    if (!Number.isFinite(id)) {
+      return respuestaError(res, 400, 'ID_USUARIO_INVALIDO');
+    }
+    conexionAbierta = new ConexionUsuarios();
+
+    const idListasCreadas = await conexionAbierta.listarRegistros(
+      'lista',
+      { id_usuarioCrd: id },
+      '',
+      0,
+      'id_lista',
+    );
+
+    const datos = await conexionAbierta.obtenerListasPorIds(
+      idListasCreadas.datos.map((l: any) => l.id_lista),
+    );
+
+    return respuestaOk(res, 200, 'LISTAS_CREADAS_OK', datos, { incluirMensaje: false });
+  } catch (error: any) {
+    return respuestaError(res, 500, 'ERROR_OBTENER_LISTAS_CREADAS', error.message);
+  } finally {
+    if (conexionAbierta) await conexionAbierta.close();
+  }
+}
+
+async function obtenerListasSeguidasUsuario(req: Request, res: Response) {
+  let conexionAbierta: ConexionUsuarios | null = null;
+  try {
+    const id = Number(req.params.id);
+    if (!Number.isFinite(id)) {
+      return respuestaError(res, 400, 'ID_USUARIO_INVALIDO');
+    }
+    conexionAbierta = new ConexionUsuarios();
+
+    const idListasSeguidas = await conexionAbierta.listarRegistros(
+      'lista_usuario',
+      {
+        id_usuario: id,
+        me_gusta_lista: 1,
+      },
+      '',
+      0,
+      'id_lista',
+    );
+
+    const datos = await conexionAbierta.obtenerListasPorIds(
+      idListasSeguidas.datos.map((lu: any) => lu.id_lista),
+    );
+
+    return respuestaOk(res, 200, 'LISTAS_SEGUIDAS_OK', datos, { incluirMensaje: false });
+  } catch (error: any) {
+    return respuestaError(res, 500, 'ERROR_OBTENER_LISTAS_SEGUIDAS', error.message);
+  } finally {
+    if (conexionAbierta) await conexionAbierta.close();
+  }
+}
+
+async function obtenerEventosCreadosUsuario(req: Request, res: Response) {
+  let conexionAbierta: ConexionUsuarios | null = null;
+  try {
+    const id = Number(req.params.id);
+    if (!Number.isFinite(id)) {
+      return respuestaError(res, 400, 'ID_USUARIO_INVALIDO');
+    }
+
+    conexionAbierta = new ConexionUsuarios();
+    const datos = await conexionAbierta.obtenerEventosCreados(id);
+
+    return respuestaOk(res, 200, 'EVENTOS_CREADOS_OK', datos, { incluirMensaje: false });
+  } catch (error: any) {
+    return respuestaError(res, 500, 'ERROR_OBTENER_EVENTOS_CREADOS', error.message);
+  } finally {
+    if (conexionAbierta) await conexionAbierta.close();
+  }
+}
+
+async function obtenerEventosAsistidosUsuario(req: Request, res: Response) {
+  let conexionAbierta: ConexionUsuarios | null = null;
+  try {
+    const id = Number(req.params.id);
+    if (!Number.isFinite(id)) {
+      return respuestaError(res, 400, 'ID_USUARIO_INVALIDO');
+    }
+
+    conexionAbierta = new ConexionUsuarios();
+    const datos = await conexionAbierta.obtenerEventosAsistidos(id);
+
+    return respuestaOk(res, 200, 'EVENTOS_ASISTIDOS_OK', datos, { incluirMensaje: false });
+  } catch (error: any) {
+    return respuestaError(res, 500, 'ERROR_OBTENER_EVENTOS_ASISTIDOS', error.message);
+  } finally {
+    if (conexionAbierta) await conexionAbierta.close();
+  }
+}
+
+async function obtenerCriticasUsuario(req: Request, res: Response) {
+  let conexionAbierta: ConexionUsuarios | null = null;
+  try {
+    const id = Number(req.params.id);
+    if (!Number.isFinite(id)) {
+      return respuestaError(res, 400, 'ID_USUARIO_INVALIDO');
+    }
+
+    conexionAbierta = new ConexionUsuarios();
+    const datos = await conexionAbierta.obtenerCriticasUsuario(id);
+
+    return respuestaOk(res, 200, 'USUARIO_CRITICAS_OK', datos, { incluirMensaje: false });
+  } catch (error: any) {
+    return respuestaError(res, 500, 'ERROR_OBTENER_CRITICAS_USUARIO', error.message);
+  } finally {
+    if (conexionAbierta) await conexionAbierta.close();
+  }
+}
+
+export {
+  crearUsuario,
+  obtenerUsuarios,
+  actualizarUsuario,
+  borrarUsuario,
+  obtenerLibrosLeidosUsuario,
+  obtenerLibrosPendientesUsuario,
+  obtenerListasCreadasUsuario,
+  obtenerListasSeguidasUsuario,
+  obtenerEventosCreadosUsuario,
+  obtenerEventosAsistidosUsuario,
+  obtenerCriticasUsuario,
+};

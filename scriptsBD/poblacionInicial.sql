@@ -8,18 +8,18 @@ SET SESSION sql_mode = '';
 /* ============================
    USUARIOS
    ============================ */
-INSERT INTO usuario (nombre_usuario, nombre_real, apellido_usuario) VALUES
-('usuario1', 'Usuario1', 'Apellido Uno'),
-('usuario2', 'Usuario2', 'Apellido Dos'),
-('usuario3', 'Usuario3', 'Apellido Tres'),
-('usuario4', 'Usuario4', 'Apellido Cuatro'),
-('usuario5', 'Usuario5', 'Apellido Cinco'),
-('usuario6', 'Usuario6', 'Apellido Seis'),
-('usuario7', 'Usuario7', 'Apellido Siete'),
-('usuario8', 'Usuario8', 'Apellido Ocho'),
-('usuario9', 'Usuario9', 'Apellido Nueve'),
-('usuario10', 'Usuario10', 'Apellido Diez'),
-('Autor', 'Autor', 'Sin nada');              -- Usuario que también es autor
+INSERT INTO usuario (nombre_usuario, nombre_real, apellido_usuario, email_usuario, fecha_registro_usuario, esAdministrador) VALUES
+('usuario1', 'Usuario1', 'Apellido Uno', 'usuario1@example.com', NOW(), 2),
+('usuario2', 'Usuario2', 'Apellido Dos', 'usuario2@example.com', NOW(), 0),
+('usuario3', 'Usuario3', 'Apellido Tres', 'usuario3@example.com', NOW(), 0),
+('usuario4', 'Usuario4', 'Apellido Cuatro', 'usuario4@example.com', NOW(), 0),
+('usuario5', 'Usuario5', 'Apellido Cinco', 'usuario5@example.com', NOW(), 0),
+('usuario6', 'Usuario6', 'Apellido Seis', 'usuario6@example.com', NOW(), 0),
+('usuario7', 'Usuario7', 'Apellido Siete', 'usuario7@example.com', NOW(), 0),
+('usuario8', 'Usuario8', 'Apellido Ocho', 'usuario8@example.com', NOW(), 0),
+('usuario9', 'Usuario9', 'Apellido Nueve', 'usuario9@example.com', NOW(), 0),
+('usuario10', 'Usuario10', 'Apellido Diez', 'usuario10@example.com', NOW(), 0),
+('Autor', 'Autor', 'Sin nada', 'autor@example.com', NOW(), 1); -- Usuario que también es autor y moderador (1)
 
 /* ============================
    CATEGORÍAS DE LISTAS

@@ -1,37 +1,5 @@
 import { Router } from 'express';
-import {
-  crearUsuario,
-  obtenerUsuarios,
-  actualizarUsuario,
-  borrarUsuario,
-} from '../Controllers/usuarios.controller.js';
-import {
-  actualizarLibro,
-  borrarLibro,
-  crearLibro,
-  obtenerLibros,
-  obtenerLibroId,
-  obtenerLibrosTotal,
-} from '../Controllers/libros.controller.js';
-import { obtenerGeneros } from '../Controllers/generos.controller.js';
 import { obtenerAutores } from '../Controllers/autores.controller.js';
-import { obtenerYears } from '../Controllers/years.controller.js';
-import {
-  crearLista,
-  obtenerListas,
-  obtenerListaId,
-  actualizarLista,
-  borrarLista,
-  obtenerListasTotal,
-} from '../Controllers/listas.controller.js';
-import {
-  actualizarCritica,
-  borrarCritica,
-  crearCritica,
-  obtenerCriticasLibro,
-} from '../Controllers/criticas.controller.js';
-import { resetearAPI } from '../Controllers/resetAPI.controller.js';
-import { respuestaError } from '../Utils/validationMessages.utils.js';
 import {
   crearComentarioLista,
   obtenerComentariosLista,
@@ -39,10 +7,49 @@ import {
   borrarComentarioLista,
 } from '../Controllers/comentariosLista.controller.js';
 import {
+  crearCritica,
+  obtenerCriticasLibro,
+  actualizarCritica,
+  borrarCritica,
+} from '../Controllers/criticas.controller.js';
+import { obtenerGeneros } from '../Controllers/generos.controller.js';
+import {
+  crearLibro,
+  obtenerLibroId,
+  obtenerLibros,
+  obtenerLibrosTotal,
+  actualizarLibro,
+  borrarLibro,
+} from '../Controllers/libros.controller.js';
+import {
   agregarLibroALista,
   obtenerLibrosDeLista,
   eliminarLibroDeLista,
 } from '../Controllers/librosLista.controller.js';
+import {
+  crearLista,
+  obtenerListaId,
+  obtenerListas,
+  obtenerListasTotal,
+  actualizarLista,
+  borrarLista,
+} from '../Controllers/listas.controller.js';
+import { resetearAPI } from '../Controllers/resetAPI.controller.js';
+import {
+  crearUsuario,
+  obtenerUsuarios,
+  actualizarUsuario,
+  borrarUsuario,
+  obtenerLibrosLeidosUsuario,
+  obtenerLibrosPendientesUsuario,
+  obtenerListasSeguidasUsuario,
+  obtenerEventosAsistidosUsuario,
+  obtenerCriticasUsuario,
+  obtenerListasCreadasUsuario,
+  obtenerEventosCreadosUsuario,
+} from '../Controllers/usuarios.controller.js';
+import { obtenerYears } from '../Controllers/years.controller.js';
+import { respuestaError } from '../Utils/validationMessages.utils.js';
 
 // Creación del router Express para manejar las rutas de la API
 const conexionRouter = Router();
@@ -92,6 +99,15 @@ conexionRouter.post('/usuario', crearUsuario);
 conexionRouter.get('/usuarios', obtenerUsuarios);
 conexionRouter.put('/usuario/:id', actualizarUsuario);
 conexionRouter.delete('/usuario/:id', borrarUsuario);
+
+// Datos relacionados Usuario
+conexionRouter.get('/usuario/libros/leidos/:id', obtenerLibrosLeidosUsuario);
+conexionRouter.get('/usuario/libros/pendientes/:id', obtenerLibrosPendientesUsuario);
+conexionRouter.get('/usuario/listas/creadas/:id', obtenerListasCreadasUsuario);
+conexionRouter.get('/usuario/listas/seguidas/:id', obtenerListasSeguidasUsuario);
+conexionRouter.get('/usuario/eventos/creados/:id', obtenerEventosCreadosUsuario);
+conexionRouter.get('/usuario/eventos/asistidos/:id', obtenerEventosAsistidosUsuario);
+conexionRouter.get('/usuario/criticas/:id', obtenerCriticasUsuario);
 
 // Redirección/Respuesta de rutas no definidas
 conexionRouter.use((_req, res) => {

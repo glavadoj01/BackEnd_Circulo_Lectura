@@ -6,8 +6,10 @@
 export interface UsuarioBD {
   id_usuario: number;
   nombre_usuario: string;
+  email_usuario: string;
   nombre_real: string;
   apellido_usuario?: string;
+  fecha_registro_usuario: Date | string;
   esAdministrador: boolean; // 0: No, 1: Mod, 2: Admin
 }
 

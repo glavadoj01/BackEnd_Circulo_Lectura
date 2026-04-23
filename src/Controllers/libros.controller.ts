@@ -3,6 +3,7 @@ import { ConexionBD } from '../Services/conexionBD.service.js';
 import { LibroBD } from '../Interfaces/modelosBD/modelosBD.js';
 import { parsePositiveInt } from '../Utils/validation.utils.js';
 import { respuestaOk, respuestaError } from '../Utils/validationMessages.utils.js';
+import { ConexionLibros } from '../Services/conexionLibros.service.js';
 
 /**
  * Valida los datos de un autor.
@@ -140,7 +141,7 @@ async function crearLibro(req: Request, res: Response) {
       { incluirMensaje: false },
     );
   } catch (error: any) {
-    return respuestaError(res, 500, error.message || 'ERROR_CREAR_LIBRO');
+    return respuestaError(res, 500, 'ERROR_CREAR_LIBRO', error.message);
   } finally {
     if (conexionAbierta) await conexionAbierta.close();
   }
@@ -153,7 +154,7 @@ async function crearLibro(req: Request, res: Response) {
  * @returns JSON con un array de libros que coinciden con los filtros, o un error si ocurrió algún problema.
  */
 async function obtenerLibros(req: Request, res: Response) {
-  let conexionAbierta: ConexionBD | null = null;
+  let conexionAbierta: ConexionLibros | null = null;
   try {
     const q = req.query;
 
@@ -182,7 +183,7 @@ async function obtenerLibros(req: Request, res: Response) {
     if (typeof q.valoraciones === 'string')
       filtros.valoraciones = q.valoraciones.split(',').map(Number).filter(Number.isFinite);
 
-    conexionAbierta = new ConexionBD();
+    conexionAbierta = new ConexionLibros();
     const libros = await conexionAbierta.obtenerCatalogoLibros(filtros, page, limit);
 
     return respuestaOk(res, 200, 'LIBROS_OBTENIDOS_OK', libros, { incluirMensaje: false });
@@ -200,7 +201,7 @@ async function obtenerLibros(req: Request, res: Response) {
  * @returns JSON con los datos del libro encontrado, incluyendo autores y géneros como arrays, o un error si ocurrió algún problema o si el libro no fue encontrado.
  */
 async function obtenerLibroId(req: Request, res: Response) {
-  let conexionAbierta: ConexionBD | null = null;
+  let conexionAbierta: ConexionLibros | null = null;
   try {
     const idRaw = req.query.id ?? req.params.id;
     const id = parsePositiveInt(idRaw);
@@ -208,17 +209,17 @@ async function obtenerLibroId(req: Request, res: Response) {
       return respuestaError(res, 400, 'ID_LIBRO_INVALIDO');
     }
 
-    conexionAbierta = new ConexionBD();
+    conexionAbierta = new ConexionLibros();
     const libro = await conexionAbierta.obtenerDetalleLibro(id);
 
     if (!libro) {
-      return respuestaError(res, 404, 'LIBRO_NO_ENCONTRADO');
+      return respuestaError(res, 404, 'ERROR_OBTENER_LIBRO');
     }
 
     // Devuelve autores y géneros como arrays, igual que en la paginación
     return respuestaOk(res, 200, 'LIBRO_OBTENIDO_OK', libro, { incluirMensaje: false });
-  } catch (error) {
-    return respuestaError(res, 500, 'ERROR_OBTENER_LIBRO', (error as Error).message);
+  } catch (error: any) {
+    return respuestaError(res, 500, 'ERROR_OBTENER_LIBRO', error.message);
   } finally {
     if (conexionAbierta) await conexionAbierta.close();
   }
@@ -304,7 +305,7 @@ async function actualizarLibro(req: Request, res: Response) {
     const afectados = (await conexionAbierta.actualizarRegistro('libro', datos, { id_libro: id }))
       .datos.affectedRows;
     if (afectados === 0) {
-      return respuestaError(res, 404, 'LIBRO_NO_ENCONTRADO');
+      return respuestaError(res, 404, 'ERROR_OBTENER_LIBRO');
     }
 
     const autores = Array.isArray(req.body.autores) ? req.body.autores : [];
@@ -329,7 +330,7 @@ async function actualizarLibro(req: Request, res: Response) {
       { incluirMensaje: false },
     );
   } catch (error: any) {
-    return respuestaError(res, 500, error.message || 'ERROR_ACTUALIZAR_LIBRO');
+    return respuestaError(res, 500, 'ERROR_ACTUALIZAR_LIBRO', error.message);
   } finally {
     if (conexionAbierta) await conexionAbierta.close();
   }
@@ -354,7 +355,7 @@ async function borrarLibro(req: Request, res: Response) {
     const afectados = (await conexionAbierta.borrarRegistro('libro', { id_libro: id })).datos
       .affectedRows;
     if (afectados === 0) {
-      return respuestaError(res, 404, 'LIBRO_NO_ENCONTRADO');
+      return respuestaError(res, 404, 'ERROR_OBTENER_LIBRO');
     }
     return respuestaOk(
       res,
@@ -363,8 +364,8 @@ async function borrarLibro(req: Request, res: Response) {
       { borrado: true, afectados },
       { incluirMensaje: false },
     );
-  } catch (error) {
-    return respuestaError(res, 500, 'ERROR_BORRAR_LIBRO', (error as Error).message);
+  } catch (error: any) {
+    return respuestaError(res, 500, 'ERROR_BORRAR_LIBRO', error.message);
   } finally {
     if (conexionAbierta) await conexionAbierta.close();
   }
@@ -377,9 +378,9 @@ async function borrarLibro(req: Request, res: Response) {
  * @returns JSON con el total de libros en la base de datos.
  */
 async function obtenerLibrosTotal(req: Request, res: Response) {
-  let conexionAbierta: ConexionBD | null = null;
+  let conexionAbierta: ConexionLibros | null = null;
   try {
-    conexionAbierta = new ConexionBD();
+    conexionAbierta = new ConexionLibros();
 
     const filtros = {
       titulo: typeof req.query.titulo === 'string' ? req.query.titulo : undefined,
@@ -408,8 +409,8 @@ async function obtenerLibrosTotal(req: Request, res: Response) {
       { total: total },
       { incluirMensaje: false },
     );
-  } catch (error) {
-    return respuestaError(res, 500, 'ERROR_TOTAL_LIBROS', (error as Error).message);
+  } catch (error: any) {
+    return respuestaError(res, 500, 'ERROR_TOTAL_LIBROS', error.message);
   } finally {
     if (conexionAbierta) await conexionAbierta.close();
   }

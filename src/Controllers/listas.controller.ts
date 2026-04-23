@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { ConexionBD } from '../Services/conexionBD.service.js';
 import { ListaBD } from '../Interfaces/modelosBD/modelosBD.js';
 import { respuestaOk, respuestaError } from '../Utils/validationMessages.utils.js';
+import { ConexionListas } from '../Services/conexionListas.service.js';
 
 // Crear una nueva lista
 export async function crearLista(req: Request, res: Response) {
@@ -25,7 +26,7 @@ export async function crearLista(req: Request, res: Response) {
       { incluirMensaje: false },
     );
   } catch (error: any) {
-    return respuestaError(res, 500, error.message || 'ERROR_CREAR_LISTA');
+    return respuestaError(res, 500, 'ERROR_CREAR_LISTA', error.message);
   } finally {
     if (conexion) await conexion.close();
   }
@@ -33,18 +34,23 @@ export async function crearLista(req: Request, res: Response) {
 
 // Obtener listas con/sin filtros y paginación
 export async function obtenerListas(req: Request, res: Response) {
-  let conexion: ConexionBD | null = null;
+  let conexion: ConexionListas | null = null;
   try {
     const page = req.query.page ? Number(req.query.page) : 1;
     const limit = req.query.limit ? Math.min(Number(req.query.limit), 50) : 20;
     if (Number.isNaN(page) || page < 1 || Number.isNaN(limit) || limit < 1) {
-      return respuestaError(res, 400, 'PARAMETROS_PAGINACION_INVALIDOS');
+      return respuestaError(
+        res,
+        400,
+        'PARAMETROS_PAGINACION_INVALIDOS',
+        'Page y limit deben ser números enteros positivos',
+      );
     }
-    conexion = new ConexionBD();
+    conexion = new ConexionListas();
     const listas = await conexion.obtenerCatalogoListas(page, limit);
     return respuestaOk(res, 200, 'LISTAS_OBTENIDAS_OK', listas, { incluirMensaje: false });
   } catch (error: any) {
-    return respuestaError(res, 500, error.message || 'ERROR_OBTENER_LISTAS');
+    return respuestaError(res, 500, 'ERROR_OBTENER_LISTAS', error.message);
   } finally {
     if (conexion) await conexion.close();
   }
@@ -69,8 +75,8 @@ export async function obtenerListasTotal(_req: Request, res: Response) {
       { total: totalListas },
       { incluirMensaje: false },
     );
-  } catch (error) {
-    return respuestaError(res, 500, 'ERROR_TOTAL_LISTAS', (error as Error).message);
+  } catch (error: any) {
+    return respuestaError(res, 500, 'ERROR_TOTAL_LISTAS', error.message);
   } finally {
     if (conexion) await conexion.close();
   }
@@ -78,16 +84,16 @@ export async function obtenerListasTotal(_req: Request, res: Response) {
 
 // Obtener una lista por ID
 export async function obtenerListaId(req: Request, res: Response) {
-  let conexion: ConexionBD | null = null;
+  let conexion: ConexionListas | null = null;
   try {
     const id = Number(req.query.id ?? req.params.id);
     if (Number.isNaN(id)) {
       return respuestaError(res, 400, 'ID_LISTA_INVALIDO');
     }
-    conexion = new ConexionBD();
+    conexion = new ConexionListas();
     const lista = await conexion.obtenerListaConCreadorPorId(id);
     if (!lista) {
-      return respuestaError(res, 404, 'LISTA_NO_ENCONTRADA');
+      return respuestaError(res, 404, 'ERROR_OBTENER_LISTA', 'Lista no encontrada');
     }
     // Obtener los libros asociados en formato resumen
     const librosResumen = await conexion.obtenerLibrosDeListaResumen(id);
@@ -98,8 +104,8 @@ export async function obtenerListaId(req: Request, res: Response) {
       { ...lista, libros: librosResumen },
       { incluirMensaje: false },
     );
-  } catch (error) {
-    return respuestaError(res, 500, 'ERROR_OBTENER_LISTA', (error as Error).message);
+  } catch (error: any) {
+    return respuestaError(res, 500, 'ERROR_OBTENER_LISTA', error.message);
   } finally {
     if (conexion) await conexion.close();
   }
@@ -119,7 +125,7 @@ export async function actualizarLista(req: Request, res: Response) {
     const afectados = (await conexion.actualizarRegistro('lista', datos, { id_lista: id })).datos
       .affectedRows;
     if (afectados === 0) {
-      return respuestaError(res, 404, 'LISTA_NO_ENCONTRADA');
+      return respuestaError(res, 404, 'ERROR_ACTUALIZAR_LISTA', 'Lista no encontrada');
     }
     return respuestaOk(
       res,
@@ -129,7 +135,7 @@ export async function actualizarLista(req: Request, res: Response) {
       { incluirMensaje: false },
     );
   } catch (error: any) {
-    return respuestaError(res, 500, error.message || 'ERROR_ACTUALIZAR_LISTA');
+    return respuestaError(res, 500, 'ERROR_ACTUALIZAR_LISTA', error.message);
   } finally {
     if (conexion) await conexion.close();
   }
@@ -146,7 +152,7 @@ export async function borrarLista(req: Request, res: Response) {
     conexion = new ConexionBD();
     const afectados = (await conexion.borrarRegistro('lista', { id_lista: id })).datos.affectedRows;
     if (afectados === 0) {
-      return respuestaError(res, 404, 'LISTA_NO_ENCONTRADA');
+      return respuestaError(res, 404, 'ERROR_BORRAR_LISTA', 'Lista no encontrada');
     }
     return respuestaOk(
       res,
@@ -155,8 +161,8 @@ export async function borrarLista(req: Request, res: Response) {
       { borrado: true, afectados },
       { incluirMensaje: false },
     );
-  } catch (error) {
-    return respuestaError(res, 500, 'ERROR_BORRAR_LISTA', (error as Error).message);
+  } catch (error: any) {
+    return respuestaError(res, 500, 'ERROR_BORRAR_LISTA', error.message);
   } finally {
     if (conexion) await conexion.close();
   }

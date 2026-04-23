@@ -8,8 +8,11 @@ USE circuloLectura;
 CREATE TABLE usuario (
 	id_usuario 		INT PRIMARY KEY AUTO_INCREMENT,
     nombre_usuario 	VARCHAR(50) UNIQUE NOT NULL,
+    email_usuario 	VARCHAR(100) UNIQUE NOT NULL,
     nombre_real 	VARCHAR(50) NOT NULL,
-    apellido_usuario VARCHAR(50)
+    apellido_usuario VARCHAR(50),
+    fecha_registro_usuario DATETIME NOT NULL DEFAULT now(), -- YYYY-MM-DD:HH:MM:SS
+    esAdministrador 	TINYINT UNSIGNED NOT NULL CHECK (esAdministrador IN (0,1,2))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_spanish_ci;
 
 CREATE TABLE genero (
