@@ -206,70 +206,36 @@ export class ConexionBD {
     limit: number,
   ): Promise<LibroResumen[]> {
     const offset = (page - 1) * limit;
-    const params: (string | number)[] = [];
 
-    // Where 1=1 es necesario si mando cualquier filtro sin enviar tambien el filtro de titulo.
+    const { clausulas, valores } = this.construirFiltrosLibros(filtros);
+
+    const whereFinal =
+      clausulas.length > 0 ? 'WHERE ' + clausulas.map((c) => `(${c})`).join(' AND ') : '';
+
     const sql = `
-SELECT
-  l.id_libro,
-  l.titulo_libro,
-  GROUP_CONCAT(DISTINCT CONCAT(a.nombre_autor, ':', a.apellido_autor) SEPARATOR '|') AS autores,
-  ROUND(AVG(c.calificacion_comentario),2) AS calificacionPromedio
-FROM libro l
-LEFT JOIN libro_autor la ON l.id_libro = la.id_libro
-LEFT JOIN autor a ON la.id_autor = a.id_autor
-LEFT JOIN libro_critica c ON l.id_libro = c.id_libro
-WHERE 1=1
-  ${filtros.titulo ? 'AND l.titulo_libro LIKE ?' : ''}
-  ${
-    filtros.generos && filtros.generos.length > 0
-      ? `
-  AND EXISTS (
-    SELECT 1 FROM libro_genero lg2
-    WHERE lg2.id_libro = l.id_libro
-    AND lg2.id_genero IN (${filtros.generos.map(() => '?').join(',')})
-  )`
-      : ''
-  }
-  ${
-    filtros.autores && filtros.autores.length > 0
-      ? `
-  AND EXISTS (
-    SELECT 1 FROM libro_autor la2
-    WHERE la2.id_libro = l.id_libro
-    AND la2.id_autor IN (${filtros.autores.map(() => '?').join(',')})
-  )`
-      : ''
-  }
-  ${
-    filtros.years && filtros.years.length > 0
-      ? `AND l.year_publicacion IN (${filtros.years.map(() => '?').join(',')})`
-      : ''
-  }
-  ${
-    filtros.valoraciones && filtros.valoraciones.length > 0
-      ? `
-  AND EXISTS (
-    SELECT 1 FROM libro_critica c2
-    WHERE c2.id_libro = l.id_libro
-    AND ROUND(c2.calificacion_comentario,2) IN (${filtros.valoraciones.map(() => '?').join(',')})
-  )`
-      : ''
-  }
-GROUP BY l.id_libro
-ORDER BY l.id_libro ASC
-LIMIT ? OFFSET ?
+    SELECT
+      t.id_libro,
+      t.titulo_libro,
+      t.autores,
+      t.calificacionPromedio
+    FROM (
+      SELECT
+        l.id_libro,
+        l.titulo_libro,
+        GROUP_CONCAT(DISTINCT CONCAT(a.nombre_autor, ':', a.apellido_autor) SEPARATOR '|') AS autores,
+        AVG(c.calificacion_comentario) AS calificacionPromedio,
+        FLOOR(AVG(c.calificacion_comentario)) AS calificacionBucket
+      FROM libro l
+      LEFT JOIN libro_autor la ON l.id_libro = la.id_libro
+      LEFT JOIN autor a ON la.id_autor = a.id_autor
+      LEFT JOIN libro_critica c ON l.id_libro = c.id_libro
+      ${whereFinal}
+      GROUP BY l.id_libro
+    ) AS t
+    LIMIT ? OFFSET ?
+  `;
 
-`;
-
-    // Parámetros en orden
-    if (filtros.titulo) params.push(`%${filtros.titulo}%`);
-    if (filtros.generos) params.push(...filtros.generos);
-    if (filtros.autores) params.push(...filtros.autores);
-    if (filtros.years) params.push(...filtros.years);
-    if (filtros.valoraciones) params.push(...filtros.valoraciones);
-
-    params.push(limit, offset);
+    const params = [...valores, limit, offset];
 
     const [rows] = await this.pool.query(sql, params);
 
@@ -628,6 +594,29 @@ LIMIT ? OFFSET ?
     }
   }
 
+  async obtenerTotalLibrosFiltrado(filtros: {
+    titulo?: string;
+    generos?: number[];
+    autores?: number[];
+    years?: number[];
+    valoraciones?: number[];
+  }): Promise<number> {
+    const { clausulas, valores } = this.construirFiltrosLibros(filtros);
+
+    const whereFinal =
+      clausulas.length > 0 ? 'WHERE ' + clausulas.map((c) => `(${c})`).join(' AND ') : '';
+
+    const sql = `
+    SELECT COUNT(DISTINCT l.id_libro) AS total
+    FROM libro l
+    LEFT JOIN libro_critica c ON l.id_libro = c.id_libro
+    ${whereFinal}
+  `;
+
+    const [rows] = await this.pool.query(sql, valores);
+    return (rows as any[])?.[0]?.total ?? 0;
+  }
+
   /* ===========================================================================================================
     Métodos privados de validación y construcción de queries
     =========================================================================================================== */
@@ -820,6 +809,81 @@ LIMIT ? OFFSET ?
     }
 
     return { clausulas, valores };
+  }
+
+  /**
+   * Construir cláusulas WHERE específicas para la consulta de libros, combinando filtros simples y complejos (EXISTS).
+   * @param filtros Colección de filtros para libros: { titulo, generos, autores, years, valoraciones }
+   * @returns Objeto con array de cláusulas y valores.
+   */
+  private construirFiltrosLibros(filtros: {
+    titulo?: string;
+    generos?: number[];
+    autores?: number[];
+    years?: number[];
+    valoraciones?: number[];
+  }): { clausulas: string[]; valores: any[] } {
+    // 1. Filtros simples con tus helpers
+    const condiciones: Record<string, any> = {};
+
+    if (filtros.titulo) {
+      condiciones['titulo_libro'] = { operador: 'LIKE', valor: `%${filtros.titulo}%` };
+    }
+
+    if (filtros.years && filtros.years.length > 0) {
+      condiciones['year_publicacion'] = { operador: 'IN', valor: filtros.years };
+    }
+
+    const { clausulas: simples, valores: valoresSimples } = this.construirClausulasWhere(
+      condiciones,
+      'l',
+    );
+
+    // 2. Filtros complejos (EXISTS)
+    const extras: string[] = [];
+    const valoresExtras: any[] = [];
+
+    if (filtros.generos && filtros.generos.length > 0) {
+      extras.push(`
+      EXISTS (
+        SELECT 1 FROM libro_genero lg2
+        WHERE lg2.id_libro = l.id_libro
+        AND lg2.id_genero IN (${filtros.generos.map(() => '?').join(',')})
+      )
+    `);
+      valoresExtras.push(...filtros.generos);
+    }
+
+    if (filtros.autores && filtros.autores.length > 0) {
+      extras.push(`
+      EXISTS (
+        SELECT 1 FROM libro_autor la2
+        WHERE la2.id_libro = l.id_libro
+        AND la2.id_autor IN (${filtros.autores.map(() => '?').join(',')})
+      )
+    `);
+      valoresExtras.push(...filtros.autores);
+    }
+
+    if (filtros.valoraciones && filtros.valoraciones.length > 0) {
+      extras.push(`
+      EXISTS (
+      SELECT 1
+      FROM libro_critica c2
+      WHERE c2.id_libro = l.id_libro
+      GROUP BY c2.id_libro
+      HAVING FLOOR(AVG(c2.calificacion_comentario)) IN (${filtros.valoraciones
+        .map(() => '?')
+        .join(',')})
+      )
+    `);
+      valoresExtras.push(...filtros.valoraciones);
+    }
+
+    return {
+      clausulas: [...simples, ...extras],
+      valores: [...valoresSimples, ...valoresExtras],
+    };
   }
 }
 

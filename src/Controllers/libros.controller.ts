@@ -381,44 +381,26 @@ async function obtenerLibrosTotal(req: Request, res: Response) {
   try {
     conexionAbierta = new ConexionBD();
 
-    const { titulo, generos, autores, years, valoraciones } = req.query;
+    const filtros = {
+      titulo: typeof req.query.titulo === 'string' ? req.query.titulo : undefined,
+      generos:
+        typeof req.query.generos === 'string'
+          ? req.query.generos.split(',').map(Number)
+          : undefined,
+      autores:
+        typeof req.query.autores === 'string'
+          ? req.query.autores.split(',').map(Number)
+          : undefined,
+      years:
+        typeof req.query.years === 'string' ? req.query.years.split(',').map(Number) : undefined,
+      valoraciones:
+        typeof req.query.valoraciones === 'string'
+          ? req.query.valoraciones.split(',').map(Number)
+          : undefined,
+    };
 
-    const condiciones: Record<string, any> = {};
+    const total = await conexionAbierta.obtenerTotalLibrosFiltrado(filtros);
 
-    if (typeof titulo === 'string' && titulo.trim().length > 0) {
-      condiciones['titulo'] = { operador: 'LIKE', valor: `%${titulo}%` };
-    }
-
-    if (typeof generos === 'string' && generos.length > 0) {
-      const lista = generos.split(',').map(Number);
-      condiciones['id_genero'] = { operador: 'IN', valor: lista };
-    }
-
-    if (typeof autores === 'string' && autores.length > 0) {
-      const lista = autores.split(',').map(Number);
-      condiciones['id_autor'] = { operador: 'IN', valor: lista };
-    }
-
-    if (typeof years === 'string' && years.length > 0) {
-      const lista = years.split(',').map(Number);
-      condiciones['year_publicacion'] = { operador: 'IN', valor: lista };
-    }
-
-    if (typeof valoraciones === 'string' && valoraciones.length > 0) {
-      const lista = valoraciones.split(',').map(Number);
-      condiciones['valoracion'] = { operador: 'IN', valor: lista };
-    }
-
-    // 2. Usar tu método genérico para COUNT(*)
-    const resultado = await conexionAbierta.listarRegistros(
-      'libro',
-      condiciones,
-      '',
-      0,
-      'COUNT(*) AS total',
-    );
-
-    const total = resultado?.datos?.[0]?.total ?? 0;
     return respuestaOk(
       res,
       200,

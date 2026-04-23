@@ -1,6 +1,6 @@
 {
   "name": "backend_circulo_lectura",
-  "version": "0.3.4",
+  "version": "0.3.5",
   "description": "Backend para proyecto educativo - TFC",
   "homepage": "https://github.com/glavadoj01/BackEnd_Circulo_Lectura#readme",
   "repository": {
@@ -23,7 +23,7 @@
     "build": "tsc",
     "kill3000": "powershell -Command \"try { Get-NetTCPConnection -LocalPort 3000 -State Listen -ErrorAction Stop | Select-Object -ExpandProperty OwningProcess | ForEach-Object { Stop-Process -Id $_ -Force } } catch {}\"",
     "dev": "clear && tsx watch src/main.ts",
-    "start": "clear && npm run kill3000 && node dist/main.js"
+    "start": "clear && node dist/main.js"
   },
   "prettier": {
     "printWidth": 100,
