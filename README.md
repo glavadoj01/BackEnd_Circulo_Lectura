@@ -65,7 +65,7 @@ El backend está preparado para escuchar en el puerto **3000** y aceptar peticio
 - En modo desarrollo (con recarga automática):
 
     ```bash
-    npm run start
+    npm run dev
     ```
 
 Si necesitas cambiar la IP local permitida, edita el array `allowedOrigins` en el archivo `src/main.ts`:
