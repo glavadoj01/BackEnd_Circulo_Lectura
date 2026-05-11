@@ -50,6 +50,12 @@ import {
 } from '../Controllers/usuarios.controller.js';
 import { obtenerYears } from '../Controllers/years.controller.js';
 import { respuestaError } from '../Utils/validationMessages.utils.js';
+import {
+  obtenerAsistentesEvento,
+  obtenerComentariosEvento,
+  obtenerEventoId,
+  obtenerLibrosEvento,
+} from '../Controllers/eventos.controller.js';
 
 // Creación del router Express para manejar las rutas de la API
 const conexionRouter = Router();
@@ -108,6 +114,12 @@ conexionRouter.get('/usuario/listas/seguidas/:id', obtenerListasSeguidasUsuario)
 conexionRouter.get('/usuario/eventos/creados/:id', obtenerEventosCreadosUsuario);
 conexionRouter.get('/usuario/eventos/asistidos/:id', obtenerEventosAsistidosUsuario);
 conexionRouter.get('/usuario/criticas/:id', obtenerCriticasUsuario);
+
+// Datos relacionados Eventos
+conexionRouter.get('/evento/:id', obtenerEventoId);
+conexionRouter.get('/evento/:id/asistentes', obtenerAsistentesEvento);
+conexionRouter.get('/evento/:id/libros', obtenerLibrosEvento);
+conexionRouter.get('/evento/:id/comentarios', obtenerComentariosEvento);
 
 // Redirección/Respuesta de rutas no definidas
 conexionRouter.use((_req, res) => {

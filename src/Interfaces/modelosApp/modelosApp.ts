@@ -1,5 +1,7 @@
 import {
   EventoBD,
+  EventoComentario,
+  EventoUsuario,
   LibroBD,
   LibroCritica,
   ListaComentarios,
@@ -123,4 +125,12 @@ export interface UsuarioCompleto extends UsuarioBD {
 
 export interface CriticaConTitulo extends LibroCritica {
   titulo_libro: string;
+}
+
+export interface DetalleEventoCompleto {
+  evento: EventoBD;
+  asistentes: EventoUsuario[];
+  libros: LibroResumen[];
+  comentarios: EventoComentario[];
+  errorComentarios: boolean;
 }
