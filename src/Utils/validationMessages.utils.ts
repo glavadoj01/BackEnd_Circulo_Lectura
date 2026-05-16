@@ -41,8 +41,10 @@ const VALIDACION_MENSAJES = {
   USUARIO_CREADO_OK: 'Usuario creado exitosamente',
   USUARIO_CRITICAS_OK: 'Críticas del usuario obtenidas exitosamente',
   USUARIO_OBTENIDO_OK: 'Usuario obtenido exitosamente',
+  USUARIOS_OBTENIDOS_OK: 'Usuarios obtenidos exitosamente',
   USUARIO_ACTUALIZADO_OK: 'Usuario actualizado exitosamente',
   USUARIO_BORRADO_OK: 'Usuario borrado exitosamente',
+  USUARIO_NOMBRE_OBTENIDO_OK: 'Nombre de usuario obtenido exitosamente',
 } as const;
 
 const ERROR_MENSAJES = {
@@ -79,6 +81,8 @@ const ERROR_MENSAJES = {
   ERROR_OBTENER_LISTAS_SEGUIDAS: 'Error al obtener las listas seguidas',
   ERROR_OBTENER_LISTA: 'Error al obtener lista',
   ERROR_OBTENER_USUARIO: 'Error al obtener usuario',
+  ERROR_OBTENER_USUARIO_NOMBRE: 'Error al obtener el nombre de usuario',
+  ERROR_OBTENER_USUARIOS: 'Error al obtener usuarios',
   ERROR_OBTENER_YEARS: 'Error al obtener los años de publicación',
 
   ERROR_BORRAR_CRITICA: 'Error al borrar crítica',
@@ -94,6 +98,16 @@ const ERROR_MENSAJES = {
   ERROR_TOTAL_LISTAS: 'Error al obtener total de listas',
 
   ERROR_AGREGAR_LIBRO_LISTA: 'Error al agregar libro a la lista',
+
+  ERROR_USUARIO_ACTUALIZAR_USUARIO: 'Error al actualizar usuario',
+  ERROR_USUARIO_BORRAR_USUARIO: 'Error al borrar usuario',
+  ERROR_USUARIO_CREAR_USUARIO: 'Error al crear usuario',
+  ERROR_USUARIO_OBTENER_CRITICAS: 'Error al obtener críticas del usuario',
+  ERROR_USUARIO_OBTENER_USUARIO: 'Error al obtener usuario',
+  ERROR_USUARIO_OBTENER_USUARIOS: 'Error al obtener usuarios',
+  ERROR_USUARIO_PARAMETROS_PAGINACION_INVALIDOS: 'Parámetros de paginación inválidos',
+  ERROR_USUARIO_EMAIL_YA_EXISTE: 'El email de usuario ya existe',
+  ERROR_USUARIO_NOMBRE_USUARIO_YA_EXISTE: 'El nombre de usuario ya existe',
 } as const;
 
 const CATALOGO_MENSAJES = {
@@ -121,6 +135,12 @@ const CATALOGO_MENSAJES = {
   RUTA_NO_ENCONTRADA: 'Ruta no encontrada',
   PARAMETROS_PAGINACION_INVALIDOS: 'Parámetros de paginación inválidos',
   DATOS_INVALIDOS: 'Datos inválidos',
+
+  ERROR_USUARIO_NOMBRE_OBLIGATORIO: 'El nombre de usuario es obligatorio',
+  ERROR_USUARIO_EMAIL_OBLIGATORIO: 'El email de usuario es obligatorio',
+  ERROR_USUARIO_NOMBRE_REAL_OBLIGATORIO: 'El nombre real de usuario es obligatorio',
+  ERROR_USUARIO_APELLIDO_INVALIDO: 'El apellido de usuario es inválido',
+  ERROR_USUARIO_ESADMINISTRADOR_INVALIDO: 'El campo esAdministrador es inválido',
 } as const;
 
 const MENSAJES_ESTANDARIZADOS = {
@@ -129,7 +149,7 @@ const MENSAJES_ESTANDARIZADOS = {
   ...CATALOGO_MENSAJES,
 } as const;
 
-type CodigoRespuesta = keyof typeof MENSAJES_ESTANDARIZADOS;
+export type CodigoRespuesta = keyof typeof MENSAJES_ESTANDARIZADOS;
 
 function construirErrorResponse(
   codigo: CodigoRespuesta,
@@ -171,25 +191,23 @@ export function respuestaError(
 }
 
 export function respuestaOk(
-  res: Response,
-  statusCode: number,
-  codigo: CodigoRespuesta,
-  payload?: unknown,
-  opciones?: { incluirMensaje?: boolean },
+  res: Response, // Respuesta de Express
+  statusCode: number, // Código de estado HTTP (200, 201, etc.)
+  codigo: CodigoRespuesta, // Código de mensaje estandarizado para identificar la respuesta
+  payload?: unknown, // Datos adicionales a incluir en la respuesta (opcional)
 ) {
-  const incluirMensaje = opciones?.incluirMensaje ?? true;
-
   if (payload === undefined) {
     return res.status(statusCode).json({
       message: MENSAJES_ESTANDARIZADOS[codigo],
     });
   }
 
-  if (!incluirMensaje) {
-    return res.status(statusCode).json(payload);
-  }
-
-  if (Array.isArray(payload)) {
+  if (
+    Array.isArray(payload) ||
+    typeof payload === 'string' ||
+    typeof payload === 'number' ||
+    typeof payload === 'boolean'
+  ) {
     return res.status(statusCode).json({
       message: MENSAJES_ESTANDARIZADOS[codigo],
       data: payload,
@@ -199,7 +217,7 @@ export function respuestaOk(
   if (payload !== null && typeof payload === 'object') {
     return res.status(statusCode).json({
       message: MENSAJES_ESTANDARIZADOS[codigo],
-      ...(payload as Record<string, unknown>),
+      data: payload as Record<string, unknown>,
     });
   }
 

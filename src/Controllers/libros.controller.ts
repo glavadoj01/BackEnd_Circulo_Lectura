@@ -133,13 +133,12 @@ async function crearLibro(req: Request, res: Response) {
       });
     }
 
-    return respuestaOk(
-      res,
-      201,
-      'LIBRO_CREADO_OK',
-      { id_libro: insertId, ...datos, autores: autoresIds, generos: generosIds },
-      { incluirMensaje: false },
-    );
+    return respuestaOk(res, 201, 'LIBRO_CREADO_OK', {
+      id_libro: insertId,
+      ...datos,
+      autores: autoresIds,
+      generos: generosIds,
+    });
   } catch (error: any) {
     return respuestaError(res, 500, 'ERROR_CREAR_LIBRO', error.message);
   } finally {
@@ -186,7 +185,7 @@ async function obtenerLibros(req: Request, res: Response) {
     conexionAbierta = new ConexionLibros();
     const libros = await conexionAbierta.obtenerCatalogoLibros(filtros, page, limit);
 
-    return respuestaOk(res, 200, 'LIBROS_OBTENIDOS_OK', libros, { incluirMensaje: false });
+    return respuestaOk(res, 200, 'LIBROS_OBTENIDOS_OK', libros);
   } catch (error: any) {
     return respuestaError(res, 500, 'ERROR_OBTENER_LIBROS', error.message);
   } finally {
@@ -217,7 +216,7 @@ async function obtenerLibroId(req: Request, res: Response) {
     }
 
     // Devuelve autores y géneros como arrays, igual que en la paginación
-    return respuestaOk(res, 200, 'LIBRO_OBTENIDO_OK', libro, { incluirMensaje: false });
+    return respuestaOk(res, 200, 'LIBRO_OBTENIDO_OK', libro);
   } catch (error: any) {
     return respuestaError(res, 500, 'ERROR_OBTENER_LIBRO', error.message);
   } finally {
@@ -322,13 +321,7 @@ async function actualizarLibro(req: Request, res: Response) {
       await sincronizarGeneros(conexionAbierta, id, generosIds);
     }
 
-    return respuestaOk(
-      res,
-      200,
-      'LIBRO_ACTUALIZADO_OK',
-      { actualizado: true, afectados },
-      { incluirMensaje: false },
-    );
+    return respuestaOk(res, 200, 'LIBRO_ACTUALIZADO_OK', { actualizado: true, afectados });
   } catch (error: any) {
     return respuestaError(res, 500, 'ERROR_ACTUALIZAR_LIBRO', error.message);
   } finally {
@@ -357,13 +350,7 @@ async function borrarLibro(req: Request, res: Response) {
     if (afectados === 0) {
       return respuestaError(res, 404, 'ERROR_OBTENER_LIBRO');
     }
-    return respuestaOk(
-      res,
-      200,
-      'LIBRO_BORRADO_OK',
-      { borrado: true, afectados },
-      { incluirMensaje: false },
-    );
+    return respuestaOk(res, 200, 'LIBRO_BORRADO_OK', { borrado: true, afectados });
   } catch (error: any) {
     return respuestaError(res, 500, 'ERROR_BORRAR_LIBRO', error.message);
   } finally {
@@ -402,13 +389,7 @@ async function obtenerLibrosTotal(req: Request, res: Response) {
 
     const total = await conexionAbierta.obtenerTotalLibrosFiltrado(filtros);
 
-    return respuestaOk(
-      res,
-      200,
-      'TOTAL_LIBROS_OBTENIDO_OK',
-      { total: total },
-      { incluirMensaje: false },
-    );
+    return respuestaOk(res, 200, 'TOTAL_LIBROS_OBTENIDO_OK', { total: total });
   } catch (error: any) {
     return respuestaError(res, 500, 'ERROR_TOTAL_LIBROS', error.message);
   } finally {

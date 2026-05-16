@@ -106,10 +106,13 @@ export interface DetalleListaCompleta {
   errorComentarios: boolean;
 }
 
-export interface EventoResumen extends EventoBD {
+export interface EventoApp extends EventoBD {
   nombreCreador: string;
+}
+
+export interface EventoResumen extends EventoApp {
   totalAsistentes: number;
-  categorias: string[];
+  categorias?: string[];
 }
 
 export interface UsuarioCompleto extends UsuarioBD {
@@ -128,7 +131,7 @@ export interface CriticaConTitulo extends LibroCritica {
 }
 
 export interface DetalleEventoCompleto {
-  evento: EventoBD;
+  evento: EventoResumen;
   asistentes: EventoUsuario[];
   libros: LibroResumen[];
   comentarios: EventoComentario[];

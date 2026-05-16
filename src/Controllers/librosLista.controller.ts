@@ -12,7 +12,7 @@ export async function obtenerLibrosDeLista(req: Request, res: Response) {
     }
     conexion = new ConexionListas();
     const libros = await conexion.obtenerLibrosDeListaResumen(id);
-    return respuestaOk(res, 200, 'LIBROS_LISTA_OK', libros, { incluirMensaje: false });
+    return respuestaOk(res, 200, 'LIBROS_LISTA_OK', libros);
   } catch (error: any) {
     return respuestaError(res, 500, 'ERROR_OBTENER_LIBROS_LISTA', error.message);
   } finally {
@@ -38,13 +38,7 @@ export async function agregarLibroALista(req: Request, res: Response) {
     if (!result.exito) {
       return respuestaError(res, 500, 'ERROR_AGREGAR_LIBRO_LISTA', result.mensaje);
     }
-    return respuestaOk(
-      res,
-      201,
-      'LIBRO_AGREGADO_LISTA_OK',
-      { id_lista, id_libro },
-      { incluirMensaje: false },
-    );
+    return respuestaOk(res, 201, 'LIBRO_AGREGADO_LISTA_OK', { id_lista, id_libro });
   } catch (error: any) {
     return respuestaError(res, 500, 'ERROR_AGREGAR_LIBRO_LISTA', error.message);
   } finally {
@@ -75,13 +69,7 @@ export async function eliminarLibroDeLista(req: Request, res: Response) {
         'Libro no encontrado en la lista',
       );
     }
-    return respuestaOk(
-      res,
-      200,
-      'LIBRO_ELIMINADO_LISTA_OK',
-      { id_lista, id_libro },
-      { incluirMensaje: false },
-    );
+    return respuestaOk(res, 200, 'LIBRO_ELIMINADO_LISTA_OK', { id_lista, id_libro });
   } catch (error: any) {
     return respuestaError(res, 500, 'ERROR_BORRAR_LIBRO_LISTA', error.message);
   } finally {

@@ -97,7 +97,7 @@ export class ConexionListas extends ConexionBD {
           totalLibros: totalLibrosPorLista[lista.id_lista] || 0,
           totalMeGusta: totalMeGustaPorLista[lista.id_lista] || 0,
           descripcion_lista: lista.descripcion_lista || undefined,
-        } as ListaApp;
+        };
       });
     } else {
       throw new Error('Error al obtener listas: No se encontraron listas en la base de datos.');
@@ -119,7 +119,7 @@ export class ConexionListas extends ConexionBD {
       `;
     const [rows] = await this.pool.query(sql, [idLista]);
     if (!rows || (rows as any[]).length === 0) return null;
-    const row = (rows as Array<any>)[0];
+    const row = (rows as Array<Record<string, unknown>>)[0];
     return {
       id_lista: row.id_lista,
       id_usuarioCreador: row.id_usuarioCrd,

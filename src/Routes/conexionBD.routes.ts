@@ -38,6 +38,7 @@ import { resetearAPI } from '../Controllers/resetAPI.controller.js';
 import {
   crearUsuario,
   obtenerUsuarios,
+  obtenerUsuario,
   actualizarUsuario,
   borrarUsuario,
   obtenerLibrosLeidosUsuario,
@@ -47,6 +48,7 @@ import {
   obtenerCriticasUsuario,
   obtenerListasCreadasUsuario,
   obtenerEventosCreadosUsuario,
+  obtenerNombreUsuario,
 } from '../Controllers/usuarios.controller.js';
 import { obtenerYears } from '../Controllers/years.controller.js';
 import { respuestaError } from '../Utils/validationMessages.utils.js';
@@ -101,8 +103,10 @@ conexionRouter.get('/lista/:id/libros', obtenerLibrosDeLista);
 conexionRouter.delete('/lista/:id/libro/:libroId', eliminarLibroDeLista);
 
 // Definición de las rutas para usuarios
-conexionRouter.post('/usuario', crearUsuario);
 conexionRouter.get('/usuarios', obtenerUsuarios);
+conexionRouter.get('/usuario/nombre/:id', obtenerNombreUsuario);
+conexionRouter.get('/usuario/:id', obtenerUsuario);
+conexionRouter.post('/usuario', crearUsuario);
 conexionRouter.put('/usuario/:id', actualizarUsuario);
 conexionRouter.delete('/usuario/:id', borrarUsuario);
 

@@ -10,7 +10,7 @@ export async function obtenerEventoId(req: Request, res: Response) {
     conexion = new ConexionEventos();
     const evento = await conexion.obtenerEventoPorId(id_evento);
     if (!evento) return respuestaError(res, 404, 'NO_ENCONTRADO_EVENTO');
-    return respuestaOk(res, 200, 'EVENTO_OBTENIDO_OK', evento, { incluirMensaje: false });
+    return respuestaOk(res, 200, 'EVENTO_OBTENIDO_OK', evento);
   } catch (error: any) {
     return respuestaError(res, 500, 'ERROR_OBTENER_EVENTO', error.message);
   } finally {
@@ -25,7 +25,7 @@ export async function obtenerAsistentesEvento(req: Request, res: Response) {
     if (Number.isNaN(id_evento)) return respuestaError(res, 400, 'ID_EVENTO_INVALIDO');
     conexion = new ConexionEventos();
     const asistentes = await conexion.obtenerAsistentesEvento(id_evento);
-    return respuestaOk(res, 200, 'ASISTENTES_EVENTO_OK', asistentes, { incluirMensaje: false });
+    return respuestaOk(res, 200, 'ASISTENTES_EVENTO_OK', { asistentes });
   } catch (error: any) {
     return respuestaError(res, 500, 'ERROR_OBTENER_ASISTENTES_EVENTO', error.message);
   } finally {
@@ -40,7 +40,7 @@ export async function obtenerLibrosEvento(req: Request, res: Response) {
     if (Number.isNaN(id_evento)) return respuestaError(res, 400, 'ID_EVENTO_INVALIDO');
     conexion = new ConexionEventos();
     const libros = await conexion.obtenerLibrosEvento(id_evento);
-    return respuestaOk(res, 200, 'LIBROS_EVENTO_OK', libros, { incluirMensaje: false });
+    return respuestaOk(res, 200, 'LIBROS_EVENTO_OK', { libros });
   } catch (error: any) {
     return respuestaError(res, 500, 'ERROR_OBTENER_LIBROS_EVENTO', error.message);
   } finally {
@@ -55,7 +55,7 @@ export async function obtenerComentariosEvento(req: Request, res: Response) {
     if (Number.isNaN(id_evento)) return respuestaError(res, 400, 'ID_EVENTO_INVALIDO');
     conexion = new ConexionEventos();
     const comentarios = await conexion.obtenerComentariosEvento(id_evento);
-    return respuestaOk(res, 200, 'COMENTARIOS_EVENTO_OK', comentarios, { incluirMensaje: false });
+    return respuestaOk(res, 200, 'COMENTARIOS_EVENTO_OK', comentarios);
   } catch (error: any) {
     return respuestaError(res, 500, 'ERROR_OBTENER_COMENTARIOS_EVENTO', error.message);
   } finally {

@@ -18,13 +18,7 @@ export async function crearLista(req: Request, res: Response) {
     }
     conexion = new ConexionBD();
     const insertId = (await conexion.insertarRegistro('lista', datos)).datos.insertId;
-    return respuestaOk(
-      res,
-      201,
-      'LISTA_CREADA_OK',
-      { id_lista: insertId, ...datos },
-      { incluirMensaje: false },
-    );
+    return respuestaOk(res, 201, 'LISTA_CREADA_OK', { data: { id_lista: insertId, ...datos } });
   } catch (error: any) {
     return respuestaError(res, 500, 'ERROR_CREAR_LISTA', error.message);
   } finally {
@@ -48,7 +42,7 @@ export async function obtenerListas(req: Request, res: Response) {
     }
     conexion = new ConexionListas();
     const listas = await conexion.obtenerCatalogoListas(page, limit);
-    return respuestaOk(res, 200, 'LISTAS_OBTENIDAS_OK', listas, { incluirMensaje: false });
+    return respuestaOk(res, 200, 'LISTAS_OBTENIDAS_OK', listas);
   } catch (error: any) {
     return respuestaError(res, 500, 'ERROR_OBTENER_LISTAS', error.message);
   } finally {
@@ -68,13 +62,7 @@ export async function obtenerListasTotal(_req: Request, res: Response) {
     conexion = new ConexionBD();
     const total = (await conexion.listarRegistros('lista', {}, '', 0, 'COUNT(*) AS total')).datos;
     const totalListas = total[0]?.total ?? 0;
-    return respuestaOk(
-      res,
-      200,
-      'TOTAL_LISTAS_OBTENIDO_OK',
-      { total: totalListas },
-      { incluirMensaje: false },
-    );
+    return respuestaOk(res, 200, 'TOTAL_LISTAS_OBTENIDO_OK', { total: totalListas });
   } catch (error: any) {
     return respuestaError(res, 500, 'ERROR_TOTAL_LISTAS', error.message);
   } finally {
@@ -97,13 +85,7 @@ export async function obtenerListaId(req: Request, res: Response) {
     }
     // Obtener los libros asociados en formato resumen
     const librosResumen = await conexion.obtenerLibrosDeListaResumen(id);
-    return respuestaOk(
-      res,
-      200,
-      'LISTA_OBTENIDA_OK',
-      { ...lista, libros: librosResumen },
-      { incluirMensaje: false },
-    );
+    return respuestaOk(res, 200, 'LISTA_OBTENIDA_OK', { ...lista, libros: librosResumen });
   } catch (error: any) {
     return respuestaError(res, 500, 'ERROR_OBTENER_LISTA', error.message);
   } finally {
@@ -127,13 +109,7 @@ export async function actualizarLista(req: Request, res: Response) {
     if (afectados === 0) {
       return respuestaError(res, 404, 'ERROR_ACTUALIZAR_LISTA', 'Lista no encontrada');
     }
-    return respuestaOk(
-      res,
-      200,
-      'LISTA_ACTUALIZADA_OK',
-      { actualizado: true, afectados },
-      { incluirMensaje: false },
-    );
+    return respuestaOk(res, 200, 'LISTA_ACTUALIZADA_OK', { actualizado: true, afectados });
   } catch (error: any) {
     return respuestaError(res, 500, 'ERROR_ACTUALIZAR_LISTA', error.message);
   } finally {
@@ -154,13 +130,7 @@ export async function borrarLista(req: Request, res: Response) {
     if (afectados === 0) {
       return respuestaError(res, 404, 'ERROR_BORRAR_LISTA', 'Lista no encontrada');
     }
-    return respuestaOk(
-      res,
-      200,
-      'LISTA_BORRADA_OK',
-      { borrado: true, afectados },
-      { incluirMensaje: false },
-    );
+    return respuestaOk(res, 200, 'LISTA_BORRADA_OK', { borrado: true, afectados });
   } catch (error: any) {
     return respuestaError(res, 500, 'ERROR_BORRAR_LISTA', error.message);
   } finally {

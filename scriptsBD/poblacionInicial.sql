@@ -558,20 +558,64 @@ INSERT INTO lista_usuario (id_lista, id_usuario, me_gusta_lista, calificacion_li
    EVENTOS
    ============================ */
 INSERT INTO evento (id_usuarioCrd, nombre_evento, fecha_evento, hora_evento, direccion_evento, descripcion_evento) VALUES
-(1, 'Club de lectura Enero', '2025-01-15', '18:00:00', 'Calle Mayor 10', 'Debate sobre libros clásicos'),
-(2, 'Reunión Sci-Fi', '2025-02-20', '19:30:00', 'Av. Futuro 22', 'Charla sobre ciencia ficción'),
-(3, 'Noche de Terror', '2025-10-31', '21:00:00', 'Casa del Miedo', 'Lectura de relatos de terror');
+(1, 'Club de lectura Enero', '2026-01-15', '18:00:00', 'Calle Mayor 10', 'Debate sobre libros clásicos'),
+(2, 'Reunión Sci-Fi', '2026-02-20', '19:30:00', 'Av. Futuro 22', 'Charla sobre ciencia ficción'),
+(3, 'Noche de Terror', '2026-06-31', '21:00:00', 'Casa del Miedo', 'Lectura de relatos de terror'),
+-- Evento 4: Debate sobre distopías (pasado)
+(4, 'Debate sobre distopías', '2026-03-10', '18:30:00', 'Biblioteca Central', 'Debate sobre novelas distópicas clásicas y modernas'),
+-- Evento 5: Presentación de libro (pasado)
+(5, 'Presentación de "Historia inventada"', '2026-05-10', '19:00:00', 'Librería El Búho', 'Presentación y firma de la novela "Historia inventada"'),
+-- Evento 6: Maratón de lectura veraniega (futuro)
+(6, 'Maratón de lectura veraniega', '2026-06-15', '17:00:00', 'Parque del Sol', 'Lectura colectiva de libros cortos para el verano'),
+-- Evento 7: Encuentro de autores (futuro)
+(7, 'Encuentro de autores', '2026-07-20', '20:00:00', 'Centro Cultural', 'Charla y networking con autores y lectores'),
+
+-- Pasados adicionales
+(8, 'Debate de Ensayo', '2026-01-25', '18:30:00', 'Aula Magna', 'Debate sobre ensayos literarios y no ficción'),
+(9, 'Cómic y Novela Gráfica', '2026-02-15', '18:00:00', 'Sala Comic', 'Encuentro sobre cómic y novela gráfica'),
+(10, 'Círculo de Poesía', '2026-03-01', '19:00:00', 'Jardín Literario', 'Lectura y creación de poesía'),
+(1, 'Terror Otoñal', '2026-03-10', '20:00:00', 'Casa Encantada', 'Lectura de relatos de terror para otoño'),
+(2, 'Cierre de Invierno', '2026-05-28', '21:00:00', 'Salón Principal', 'Fiesta y balance de lecturas de invierno'),
+-- Futuros adicionales
+(3, 'Encuentro Primavera', '2026-08-01', '18:30:00', 'Sala Primavera', 'Lecturas y actividades de primavera'),
+(4, 'Cómic y Novela Gráfica II', '2026-08-15', '18:00:00', 'Sala Comic', 'Segundo encuentro sobre cómic y novela gráfica'),
+(5, 'Círculo de Poesía II', '2026-09-01', '19:00:00', 'Jardín Literario', 'Nueva edición de poesía'),
+(6, 'Terror Otoñal II', '2026-10-10', '20:00:00', 'Casa Encantada', 'Segunda lectura de relatos de terror para otoño'),
+(7, 'Cierre de Temporada', '2026-12-01', '21:00:00', 'Salón Principal', 'Fiesta y balance de lecturas anuales');
 
 /* ============================
    RELACIÓN H: EVENTO-USUARIO
    ============================ */
 INSERT INTO evento_usuario VALUES
+-- Evento 1
 (1, 1, 5, 1),   -- asiste
 (1, 2, 4, 2),   -- quizás
 (1, 3, NULL, NULL), -- sin respuesta
+-- Evento 2
 (2, 1, 5, 1),
 (2, 4, 3, 0),   -- no asiste
-(3, 3, 4, 1);
+-- Evento 3
+(3, 3, 4, 1),
+-- Evento 4
+(4, 1, 5, 1),(4, 2, 4, 1),(4, 3, 5, 1),(4, 4, 3, 2),
+-- Evento 5
+(5, 5, 5, 1),(5, 6, 4, 2),(5, 7, NULL, NULL),
+-- Evento 6
+(6, 8, NULL, 2),(6, 9, 5, 1),(6, 10, 4, 1),
+-- Evento 7
+(7, 1, NULL, 2),(7, 2, 5, 1),(7, 3, 4, 1),(7, 11, 5, 1),
+-- Pasados adicionales
+(8, 2, 5, 1), (8, 3, 4, 1), (8, 4, 3, 2),
+(9, 5, 5, 1), (9, 6, 4, 1), (9, 7, NULL, NULL),
+(10, 8, NULL, 2), (10, 9, 5, 1), (10, 10, 4, 1),
+(11, 1, 5, 1), (11, 2, 4, 1), (11, 3, 5, 1),
+(12, 4, 3, 2), (12, 5, 5, 1), (12, 6, 4, 1),
+-- Futuros adicionales
+(13, 7, 5, 1), (13, 8, 4, 1), (13, 9, 3, 2),
+(14, 2, 5, 1), (14, 3, 4, 1), (14, 4, 3, 2),
+(15, 5, 5, 1), (15, 6, 4, 1), (15, 7, NULL, NULL),
+(16, 8, NULL, 2), (16, 9, 5, 1), (16, 10, 4, 1),
+(17, 1, 5, 1), (17, 2, 4, 1), (17, 3, 5, 1);
 
 /* ============================
    RELACIÓN I: EVENTO-COMENTARIO
@@ -597,7 +641,57 @@ INSERT INTO evento_comentario (id_evento, id_usuario, texto_comentario, id_com_r
 (3, 4, 'It da mucho miedo', NULL),
 (3, 8, 'Perfecta elección para Halloween: Frankenstein de Shelley', NULL),
 (3, 9, 'Comentario de usuario9 en evento 3', NULL),
-(3, 10, 'Texto de usuario10 en evento 3', NULL);
+(3, 10, 'Texto de usuario10 en evento 3', NULL),
+-- Evento 4
+(4, 1, 'Un mundo feliz y Fahrenheit 451 son mis favoritos', NULL),
+(4, 2, 'Me gustaría debatir sobre el control social en las distopías', NULL),
+(4, 3, '¿Alguien leyó Parentesco?', NULL),
+(4, 4, 'Las distopías modernas también son interesantes', NULL),
+-- Evento 5
+(5, 5, '¡Gracias por venir a la presentación!', NULL),
+(5, 6, 'Me encantó la firma de libros', NULL),
+(5, 7, 'Espero que haya más eventos así', NULL),
+-- Evento 6
+(6, 8, '¿Qué libros cortos recomiendan para el verano?', NULL),
+(6, 9, 'Me apunto a la maratón', NULL),
+(6, 10, '¡Llevaré bocadillos!', NULL),
+-- Evento 7
+(7, 1, 'Será genial conocer a los autores', NULL),
+(7, 2, '¿Habrá firma de libros?', NULL),
+(7, 3, '¡No falten!', NULL),
+(7, 11, 'Confirmo mi asistencia como autor', NULL),
+-- Pasados adicionales
+(8, 2, 'Los ensayos también son literatura', NULL),
+(8, 3, 'Me interesa la no ficción', NULL),
+(8, 4, '¿Habrá debate abierto?', NULL),
+(9, 5, 'Me encantan los cómics', NULL),
+(9, 6, '¿Alguien recomienda novela gráfica?', NULL),
+(9, 7, 'Voy a llevar mi colección', NULL),
+(10, 8, 'La poesía es vida', NULL),
+(10, 9, '¿Habrá micro abierto?', NULL),
+(10, 10, 'Quiero leer mis versos', NULL),
+(11, 1, 'Terror en otoño, planazo', NULL),
+(11, 2, '¿Se puede ir disfrazado?', NULL),
+(11, 3, 'Llevaré calabazas', NULL),
+(12, 4, 'Gran invierno de lecturas', NULL),
+(12, 5, 'Espero repetir el próximo año', NULL),
+(12, 6, '¡Gracias a todos!', NULL),
+-- Futuros adicionales
+(13, 7, 'Lecturas de primavera', NULL),
+(13, 8, '¿Habrá actividades al aire libre?', NULL),
+(13, 9, 'Llevaré bocadillos', NULL),
+(14, 2, 'Me encantan los cómics', NULL),
+(14, 3, '¿Alguien recomienda novela gráfica?', NULL),
+(14, 4, 'Voy a llevar mi colección', NULL),
+(15, 5, 'La poesía es vida', NULL),
+(15, 6, '¿Habrá micro abierto?', NULL),
+(15, 7, 'Quiero leer mis versos', NULL),
+(16, 8, 'Terror en otoño, planazo', NULL),
+(16, 9, '¿Se puede ir disfrazado?', NULL),
+(16, 10, 'Llevaré calabazas', NULL),
+(17, 1, 'Gran año de lecturas', NULL),
+(17, 2, 'Espero repetir el próximo año', NULL),
+(17, 3, '¡Gracias a todos!', NULL);
 
 /* ============================
    RELACIÓN J: EVENTO-CONTENIDO
@@ -632,4 +726,32 @@ INSERT INTO evento_contenido VALUES
 (2, 27, FALSE), -- La historia de tu vida
 -- Evento 3: Noche de Terror
 (3, 3, TRUE),   -- It libro principal
-(3, 20, FALSE); -- Frankenstein en Noche de Terror
+(3, 20, FALSE), -- Frankenstein en Noche de Terror
+-- Evento 4: Debate sobre distopías
+(4, 11, TRUE),   -- Fahrenheit 451 principal
+(4, 23, FALSE),  -- Un mundo feliz
+(4, 12, FALSE),  -- ¿Sueñan los androides...?
+-- Evento 5: Presentación de "Historia inventada"
+(5, 38, TRUE),   -- Historia inventada principal
+(5, 36, FALSE),  -- Placeholder B
+-- Evento 6: Maratón de lectura veraniega
+(6, 6, TRUE),    -- El gato negro principal
+(6, 36, FALSE),  -- Placeholder B
+(6, 40, FALSE),  -- Libro sin género ni autor
+-- Evento 7: Encuentro de autores
+(7, 32, TRUE),   -- El códice de las sombras principal
+(7, 35, FALSE),  -- Placeholder A
+(7, 1, FALSE),   -- LOTR
+
+-- Pasados adicionales
+(8, 9, TRUE), (8, 8, FALSE), (8, 40, FALSE),
+(9, 12, TRUE), (9, 20, FALSE), (9, 28, FALSE),
+(10, 30, TRUE), (10, 32, FALSE), (10, 35, FALSE),
+(11, 3, TRUE), (11, 4, FALSE), (11, 37, FALSE),
+(12, 1, TRUE), (12, 14, FALSE), (12, 23, FALSE),
+-- Futuros adicionales
+(13, 7, TRUE), (13, 8, FALSE), (13, 31, FALSE),
+(14, 12, TRUE), (14, 20, FALSE), (14, 28, FALSE),
+(15, 30, TRUE), (15, 32, FALSE), (15, 35, FALSE),
+(16, 3, TRUE), (16, 4, FALSE), (16, 37, FALSE),
+(17, 1, TRUE), (17, 14, FALSE), (17, 23, FALSE);

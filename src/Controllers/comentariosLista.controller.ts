@@ -12,7 +12,7 @@ export async function obtenerComentariosLista(req: Request, res: Response) {
     }
     conexion = new ConexionListas();
     const comentarios = await conexion.obtenerComentariosDeLista(id_lista);
-    return respuestaOk(res, 200, 'COMENTARIOS_LISTA_OK', comentarios, { incluirMensaje: false });
+    return respuestaOk(res, 200, 'COMENTARIOS_LISTA_OK', comentarios);
   } catch (error: any) {
     return respuestaError(res, 500, 'ERROR_OBTENER_COMENTARIOS_LISTA', error.message);
   } finally {
@@ -42,13 +42,12 @@ export async function crearComentarioLista(req: Request, res: Response) {
     if (!result.exito) {
       return respuestaError(res, 500, 'ERROR_CREAR_COMENTARIO_LISTA', result.mensaje);
     }
-    return respuestaOk(
-      res,
-      201,
-      'COMENTARIO_LISTA_CREADO_OK',
-      { id_lista, id_usuario, titulo_comentario, texto_comentario },
-      { incluirMensaje: false },
-    );
+    return respuestaOk(res, 201, 'COMENTARIO_LISTA_CREADO_OK', {
+      id_lista,
+      id_usuario,
+      titulo_comentario,
+      texto_comentario,
+    });
   } catch (error: any) {
     return respuestaError(res, 500, 'ERROR_CREAR_COMENTARIO_LISTA', error.message);
   } finally {
@@ -78,13 +77,11 @@ export async function actualizarComentarioLista(req: Request, res: Response) {
     if (!result.exito || result.datos === 0) {
       return respuestaError(res, 404, 'ERROR_OBTENER_COMENTARIOS_LISTA', result.mensaje);
     }
-    return respuestaOk(
-      res,
-      200,
-      'COMENTARIO_LISTA_ACTUALIZADO_OK',
-      { id_listaComentario, titulo_comentario, texto_comentario },
-      { incluirMensaje: false },
-    );
+    return respuestaOk(res, 200, 'COMENTARIO_LISTA_ACTUALIZADO_OK', {
+      id_listaComentario,
+      titulo_comentario,
+      texto_comentario,
+    });
   } catch (error: any) {
     return respuestaError(res, 500, 'ERROR_ACTUALIZAR_COMENTARIO_LISTA', error.message);
   } finally {
@@ -104,13 +101,7 @@ export async function borrarComentarioLista(req: Request, res: Response) {
     if (!result.exito || result.datos === 0) {
       return respuestaError(res, 404, 'ERROR_OBTENER_COMENTARIOS_LISTA', result.mensaje);
     }
-    return respuestaOk(
-      res,
-      200,
-      'COMENTARIO_LISTA_BORRADO_OK',
-      { id_listaComentario },
-      { incluirMensaje: false },
-    );
+    return respuestaOk(res, 200, 'COMENTARIO_LISTA_BORRADO_OK', { id_listaComentario });
   } catch (error: any) {
     return respuestaError(res, 500, 'ERROR_BORRAR_COMENTARIO_LISTA', error.message);
   } finally {

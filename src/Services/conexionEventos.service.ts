@@ -1,12 +1,29 @@
 import { ConexionBD } from './conexionBD.service.js';
-import { EventoBD, EventoUsuario } from '../Interfaces/modelosBD/modelosBD.js';
-import { LibroResumen } from '../Interfaces/modelosApp/modelosApp.js';
+import { EventoUsuario } from '../Interfaces/modelosBD/modelosBD.js';
+import { EventoApp, LibroResumen } from '../Interfaces/modelosApp/modelosApp.js';
 
 export class ConexionEventos extends ConexionBD {
-  async obtenerEventoPorId(idEvento: number): Promise<EventoBD | null> {
-    const sql = 'SELECT * FROM evento WHERE id_evento = ?';
+  async obtenerEventoPorId(idEvento: number): Promise<EventoApp | null> {
+    const sql = `
+      SELECT e.*, u.nombre_usuario AS nombreCreador
+      FROM evento e
+      LEFT JOIN usuario u ON e.id_usuarioCrd = u.id_usuario
+      WHERE id_evento = ?
+      LIMIT 1
+    `;
     const [rows] = await this.pool.query(sql, [idEvento]);
-    return Array.isArray(rows) && rows.length > 0 ? (rows[0] as EventoBD) : null;
+    if (!rows || (rows as any[]).length === 0) return null;
+    const row = (rows as Array<any>)[0];
+    return {
+      id_evento: row.id_evento,
+      id_usuarioCrd: row.id_usuario,
+      nombreCreador: row.nombreCreador,
+      nombre_evento: row.nombre_evento,
+      fecha_evento: row.fecha_evento,
+      hora_evento: row.hora_evento,
+      direccion_evento: row.direccion_evento,
+      descripcion_evento: row.descripcion_evento,
+    };
   }
 
   async obtenerAsistentesEvento(idEvento: number): Promise<EventoUsuario[]> {

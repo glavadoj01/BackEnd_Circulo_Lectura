@@ -77,13 +77,9 @@ async function crearCritica(req: Request, res: Response) {
     conexionAbierta = new ConexionBD();
     const resultado = await conexionAbierta.insertarRegistro('libro_critica', datos, false);
     if (resultado.datos.affectedRows > 0 || resultado.datos.insertId) {
-      return respuestaOk(
-        res,
-        201,
-        'CRITICA_CREADA_OK',
-        { critica: { id_libro: datos.id_libro, id_usuario: datos.id_usuario } },
-        { incluirMensaje: false },
-      );
+      return respuestaOk(res, 201, 'CRITICA_CREADA_OK', {
+        critica: { id_libro: datos.id_libro, id_usuario: datos.id_usuario },
+      });
     } else {
       return respuestaError(res, 500, 'ERROR_CREAR_CRITICA', resultado.mensaje);
     }
@@ -130,13 +126,7 @@ async function obtenerCriticasLibro(req: Request, res: Response) {
       }
     }
 
-    return respuestaOk(
-      res,
-      200,
-      'CRITICAS_OBTENIDAS_OK',
-      { criticas, frecuencias },
-      { incluirMensaje: false },
-    );
+    return respuestaOk(res, 200, 'CRITICAS_OBTENIDAS_OK', { criticas, frecuencias });
   } catch (error: any) {
     return respuestaError(res, 500, 'ERROR_OBTENER_CRITICAS', error.message);
   } finally {
@@ -176,7 +166,7 @@ async function actualizarCritica(req: Request, res: Response) {
     if (resultado.datos.affectedRows === 0) {
       return respuestaError(res, 404, 'ERROR_OBTENER_CRITICAS', resultado.mensaje);
     }
-    return respuestaOk(res, 200, 'CRITICA_ACTUALIZADA_OK', undefined, { incluirMensaje: false });
+    return respuestaOk(res, 200, 'CRITICA_ACTUALIZADA_OK', resultado.datos);
   } catch (error: any) {
     return respuestaError(res, 500, 'ERROR_ACTUALIZAR_CRITICA', error.message);
   } finally {
@@ -209,7 +199,7 @@ async function borrarCritica(req: Request, res: Response) {
     if (resultado.datos.affectedRows === 0) {
       return respuestaError(res, 404, 'ERROR_OBTENER_CRITICAS', resultado.mensaje);
     }
-    return respuestaOk(res, 200, 'CRITICA_BORRADA_OK', undefined, { incluirMensaje: false });
+    return respuestaOk(res, 200, 'CRITICA_BORRADA_OK', resultado.datos);
   } catch (error: any) {
     return respuestaError(res, 500, 'ERROR_BORRAR_CRITICA', error.message);
   } finally {
