@@ -90,4 +90,70 @@ export class ConexionEventos extends ConexionBD {
     const [rows] = await this.pool.query(sql, [idEvento]);
     return Array.isArray(rows) ? rows : [];
   }
+
+  async obtenerEventos(
+    tipo: 'proximos' | 'pasados' = 'proximos',
+    pagina: number = 1,
+    limit: number = 2,
+    busqueda: string = '',
+  ): Promise<any[]> {
+    const offset = (pagina - 1) * limit;
+    const operador = tipo === 'proximos' ? '>=' : '<';
+    const orden = tipo === 'proximos' ? 'ASC' : 'DESC';
+
+    let sql = `
+      SELECT 
+        e.id_evento,
+        e.id_usuarioCrd,
+        e.nombre_evento,
+        e.fecha_evento,
+        e.hora_evento,
+        e.direccion_evento,
+        e.descripcion_evento,
+        u.nombre_usuario AS nombreCreador,
+        COUNT(DISTINCT eu.id_usuario) AS totalAsistentes
+      FROM evento e
+      LEFT JOIN usuario u ON e.id_usuarioCrd = u.id_usuario
+      LEFT JOIN evento_usuario eu ON e.id_evento = eu.id_evento
+      WHERE e.fecha_evento ${operador} CURDATE()
+    `;
+
+    const params: any[] = [];
+
+    if (busqueda && busqueda.trim()) {
+      sql += ` AND (e.nombre_evento LIKE ? OR e.descripcion_evento LIKE ?)`;
+      const searchTerm = `%${busqueda}%`;
+      params.push(searchTerm, searchTerm);
+    }
+
+    sql += `
+      GROUP BY e.id_evento
+      ORDER BY e.fecha_evento ${orden}
+      LIMIT ? OFFSET ?
+    `;
+    params.push(limit, offset);
+
+    const [rows] = await this.pool.query(sql, params);
+    return Array.isArray(rows) ? rows : [];
+  }
+
+  async obtenerTotalEventos(
+    tipo: 'proximos' | 'pasados' = 'proximos',
+    busqueda: string = '',
+  ): Promise<number> {
+    const operador = tipo === 'proximos' ? '>=' : '<';
+
+    let sql = `SELECT COUNT(DISTINCT e.id_evento) as total FROM evento e WHERE e.fecha_evento ${operador} CURDATE()`;
+    const params: any[] = [];
+
+    if (busqueda && busqueda.trim()) {
+      sql += ` AND (e.nombre_evento LIKE ? OR e.descripcion_evento LIKE ?)`;
+      const searchTerm = `%${busqueda}%`;
+      params.push(searchTerm, searchTerm);
+    }
+
+    const [rows] = await this.pool.query(sql, params);
+    const result = Array.isArray(rows) ? (rows as any[])[0] : { total: 0 };
+    return result?.total ?? 0;
+  }
 }

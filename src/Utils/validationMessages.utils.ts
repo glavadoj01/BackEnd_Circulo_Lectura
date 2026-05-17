@@ -15,6 +15,7 @@ const VALIDACION_MENSAJES = {
   LISTA_BORRADA_OK: 'Lista borrada exitosamente',
   YEARS_OBTENIDOS_OK: 'Años de publicación obtenidos exitosamente',
   EVENTOS_CREADOS_OK: 'Eventos creados obtenidos exitosamente',
+  EVENTOS_OBTENIDOS_OK: 'Eventos obtenidos exitosamente',
   EVENTOS_ASISTIDOS_OK: 'Eventos asistidos obtenidos exitosamente',
   EVENTO_OBTENIDO_OK: 'Evento obtenido exitosamente',
   GENEROS_OBTENIDOS_OK: 'Géneros obtenidos exitosamente',
@@ -30,6 +31,7 @@ const VALIDACION_MENSAJES = {
   LIBRO_BORRADO_OK: 'Libro borrado exitosamente',
   TOTAL_LIBROS_OBTENIDO_OK: 'Total de libros obtenido exitosamente',
   TOTAL_LISTAS_OBTENIDO_OK: 'Total de listas obtenido exitosamente',
+  TOTAL_EVENTOS_OBTENIDO_OK: 'Total de eventos obtenido exitosamente',
   LIBRO_AGREGADO_LISTA_OK: 'Libro agregado a la lista exitosamente',
   LIBRO_ELIMINADO_LISTA_OK: 'Libro eliminado de la lista exitosamente',
   LIBROS_EVENTO_OK: 'Libros del evento obtenidos exitosamente',
@@ -67,8 +69,10 @@ const ERROR_MENSAJES = {
   ERROR_OBTENER_CRITICAS: 'Error al obtener críticas',
   ERROR_OBTENER_CRITICAS_USUARIO: 'Error al obtener las críticas del usuario',
   ERROR_OBTENER_EVENTO: 'Error al obtener el evento',
+  ERROR_OBTENER_EVENTOS: 'Error al obtener los eventos',
   ERROR_OBTENER_EVENTOS_CREADOS: 'Error al obtener los eventos creados',
   ERROR_OBTENER_EVENTOS_ASISTIDOS: 'Error al obtener los eventos asistidos',
+  ERROR_OBTENER_TOTAL_EVENTOS: 'Error al obtener el total de eventos',
   ERROR_OBTENER_GENEROS: 'Error al obtener los géneros',
   ERROR_OBTENER_LIBROS: 'Error al obtener libros',
   ERROR_OBTENER_LIBRO: 'Error al obtener libro',
@@ -118,6 +122,7 @@ const CATALOGO_MENSAJES = {
   NO_ENCONTRADO_COMENTARIO: 'Comentario no encontrado',
   NO_ENCONTRADO_LIBRO_EN_LISTA: 'El libro no se encuentra en la lista',
   NO_ENCONTRADO_EVENTO: 'Evento no encontrado',
+  NO_ENCONTRADOS_EVENTOS: 'No se encontraron eventos',
 
   CAMPOS_OBLIGATORIOS: 'Faltan campos obligatorios',
 
@@ -129,6 +134,7 @@ const CATALOGO_MENSAJES = {
 
   FILTROS_MAL_FORMATEADOS: 'Filtros mal formateados',
   FILTRO_NO_PERMITIDO: 'Filtro no permitido',
+  TIPO_EVENTO_INVALIDO: 'Tipo de evento inválido',
 
   CALIFICACION_RANGO: 'La calificación debe estar entre 1 y 5',
   NO_HAY_CAMPOS_ACTUALIZAR: 'No hay campos para actualizar',

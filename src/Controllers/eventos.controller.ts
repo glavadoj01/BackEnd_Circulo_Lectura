@@ -62,3 +62,55 @@ export async function obtenerComentariosEvento(req: Request, res: Response) {
     if (conexion) await conexion.close();
   }
 }
+
+export async function obtenerEventos(req: Request, res: Response) {
+  let conexion: ConexionEventos | null = null;
+  try {
+    const tipo = (req.query.tipo as string) || 'proximos';
+    const pagina = Number(req.query.pagina) || 1;
+    const limit = Number(req.query.limit) || 2;
+    const busqueda = (req.query.busqueda as string) || '';
+
+    if (tipo !== 'proximos' && tipo !== 'pasados') {
+      return respuestaError(res, 400, 'TIPO_EVENTO_INVALIDO');
+    }
+
+    conexion = new ConexionEventos();
+    const eventos = await conexion.obtenerEventos(
+      tipo as 'proximos' | 'pasados',
+      pagina,
+      limit,
+      busqueda,
+    );
+
+    if (!eventos || eventos.length === 0) {
+      return respuestaOk(res, 200, 'NO_ENCONTRADOS_EVENTOS', []);
+    }
+    return respuestaOk(res, 200, 'EVENTOS_OBTENIDOS_OK', eventos);
+  } catch (error: any) {
+    return respuestaError(res, 500, 'ERROR_OBTENER_EVENTOS', error.message);
+  } finally {
+    if (conexion) await conexion.close();
+  }
+}
+
+export async function obtenerTotalEventos(req: Request, res: Response) {
+  let conexion: ConexionEventos | null = null;
+  try {
+    const tipo = (req.query.tipo as string) || 'proximos';
+    const busqueda = (req.query.busqueda as string) || '';
+
+    if (tipo !== 'proximos' && tipo !== 'pasados') {
+      return respuestaError(res, 400, 'TIPO_EVENTO_INVALIDO');
+    }
+
+    conexion = new ConexionEventos();
+    const total = await conexion.obtenerTotalEventos(tipo as 'proximos' | 'pasados', busqueda);
+
+    return respuestaOk(res, 200, 'TOTAL_EVENTOS_OBTENIDO_OK', { total });
+  } catch (error: any) {
+    return respuestaError(res, 500, 'ERROR_OBTENER_TOTAL_EVENTOS', error.message);
+  } finally {
+    if (conexion) await conexion.close();
+  }
+}

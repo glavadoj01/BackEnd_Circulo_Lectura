@@ -57,6 +57,8 @@ import {
   obtenerComentariosEvento,
   obtenerEventoId,
   obtenerLibrosEvento,
+  obtenerEventos,
+  obtenerTotalEventos,
 } from '../Controllers/eventos.controller.js';
 
 // Creación del router Express para manejar las rutas de la API
@@ -120,6 +122,8 @@ conexionRouter.get('/usuario/eventos/asistidos/:id', obtenerEventosAsistidosUsua
 conexionRouter.get('/usuario/criticas/:id', obtenerCriticasUsuario);
 
 // Datos relacionados Eventos
+conexionRouter.get('/eventos', obtenerEventos);
+conexionRouter.get('/eventos/total', obtenerTotalEventos);
 conexionRouter.get('/evento/:id', obtenerEventoId);
 conexionRouter.get('/evento/:id/asistentes', obtenerAsistentesEvento);
 conexionRouter.get('/evento/:id/libros', obtenerLibrosEvento);
