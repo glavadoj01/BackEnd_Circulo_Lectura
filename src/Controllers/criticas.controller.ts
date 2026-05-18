@@ -1,8 +1,8 @@
 import { Request, Response } from 'express';
-import { LibroCritica } from '../Interfaces/modelosBD/modelosBD.js';
-import { ConexionBD } from '../Services/conexionBD.service.js';
-import { parseCalificacion, parsePositiveInt } from '../Utils/validation.utils.js';
-import { respuestaError, respuestaOk } from '../Utils/validationMessages.utils.js';
+import { LibroCritica } from '../interfaces/modelosBD/modelosBD.js';
+import { ConexionBD } from '../services/conexionBD.service.js';
+import { parseCalificacion, parsePositiveInt } from '../utils/validation.utils.js';
+import { respuestaError, respuestaOk } from '../utils/validationMessages.utils.js';
 
 /**
  * Valida los datos de una crítica.

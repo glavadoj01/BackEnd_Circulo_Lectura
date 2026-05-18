@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
-import { respuestaError, respuestaOk } from '../Utils/validationMessages.utils.js';
-import { ConexionListas } from '../Services/conexionListas.service.js';
+import { respuestaError, respuestaOk } from '../utils/validationMessages.utils.js';
+import { ConexionListas } from '../services/conexionListas.service.js';
 
 // ================= MÉTODOS: LIBROS EN LISTA =================
 export async function obtenerLibrosDeLista(req: Request, res: Response) {

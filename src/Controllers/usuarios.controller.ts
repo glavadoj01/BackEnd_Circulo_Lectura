@@ -1,8 +1,8 @@
 import { Request, Response } from 'express';
-import { ConexionBD } from '../Services/conexionBD.service.js';
-import { parsePositiveInt } from '../Utils/validation.utils.js';
-import { CodigoRespuesta, respuestaError, respuestaOk } from '../Utils/validationMessages.utils.js';
-import { ConexionUsuarios } from '../Services/conexionUsuarios.service.js';
+import { ConexionBD } from '../services/conexionBD.service.js';
+import { parsePositiveInt } from '../utils/validation.utils.js';
+import { CodigoRespuesta, respuestaError, respuestaOk } from '../utils/validationMessages.utils.js';
+import { ConexionUsuarios } from '../services/conexionUsuarios.service.js';
 
 /**
  * Valida los datos de un usuario según el modelo de la BD.

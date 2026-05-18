@@ -2,8 +2,8 @@ import {
   LibroResumen,
   DetalleLibroCompleto,
   LibroApp,
-} from '../Interfaces/modelosApp/modelosApp.js';
-import { LibroCritica } from '../Interfaces/modelosBD/modelosBD.js';
+} from '../interfaces/modelosApp/modelosApp.js';
+import { LibroCritica } from '../interfaces/modelosBD/modelosBD.js';
 import { ConexionBD } from './conexionBD.service.js';
 
 export class ConexionLibros extends ConexionBD {

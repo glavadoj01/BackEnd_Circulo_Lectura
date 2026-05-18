@@ -1,5 +1,5 @@
-import { ListaApp, LibroResumen } from '../Interfaces/modelosApp/modelosApp.js';
-import { ListaBD } from '../Interfaces/modelosBD/modelosBD.js';
+import { ListaApp, LibroResumen } from '../interfaces/modelosApp/modelosApp.js';
+import { ListaBD } from '../interfaces/modelosBD/modelosBD.js';
 import { ConexionBD } from './conexionBD.service.js';
 
 export class ConexionListas extends ConexionBD {

@@ -1,9 +1,9 @@
 import { Request, Response } from 'express';
-import { ConexionBD } from '../Services/conexionBD.service.js';
-import { LibroBD } from '../Interfaces/modelosBD/modelosBD.js';
-import { parsePositiveInt } from '../Utils/validation.utils.js';
-import { respuestaOk, respuestaError } from '../Utils/validationMessages.utils.js';
-import { ConexionLibros } from '../Services/conexionLibros.service.js';
+import { ConexionBD } from '../services/conexionBD.service.js';
+import { LibroBD } from '../interfaces/modelosBD/modelosBD.js';
+import { parsePositiveInt } from '../utils/validation.utils.js';
+import { respuestaOk, respuestaError } from '../utils/validationMessages.utils.js';
+import { ConexionLibros } from '../services/conexionLibros.service.js';
 
 /**
  * Valida los datos de un autor.

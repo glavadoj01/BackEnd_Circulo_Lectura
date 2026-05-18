@@ -1,6 +1,6 @@
 import { ConexionBD } from './conexionBD.service.js';
-import { EventoUsuario } from '../Interfaces/modelosBD/modelosBD.js';
-import { EventoApp, LibroResumen } from '../Interfaces/modelosApp/modelosApp.js';
+import { EventoUsuario } from '../interfaces/modelosBD/modelosBD.js';
+import { EventoApp, LibroResumen } from '../interfaces/modelosApp/modelosApp.js';
 
 export class ConexionEventos extends ConexionBD {
   async obtenerEventoPorId(idEvento: number): Promise<EventoApp | null> {

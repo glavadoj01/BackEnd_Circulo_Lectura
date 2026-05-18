@@ -1,4 +1,4 @@
-import { ListaApp } from '../Interfaces/modelosApp/modelosApp.js';
+import { ListaApp } from '../interfaces/modelosApp/modelosApp.js';
 import { ConexionBD } from './conexionBD.service.js';
 
 export class ConexionUsuarios extends ConexionBD {

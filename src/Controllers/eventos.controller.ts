@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
-import { ConexionEventos } from '../Services/conexionEventos.service.js';
-import { respuestaOk, respuestaError } from '../Utils/validationMessages.utils.js';
+import { ConexionEventos } from '../services/conexionEventos.service.js';
+import { respuestaOk, respuestaError } from '../utils/validationMessages.utils.js';
 
 export async function obtenerEventoId(req: Request, res: Response) {
   let conexion: ConexionEventos | null = null;
