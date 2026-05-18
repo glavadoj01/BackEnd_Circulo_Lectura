@@ -22,33 +22,32 @@ cd BackEnd_Circulo_Lectura
 
 1. Instalar [Volta](https://volta.sh/)
 
-    ```bash
-    winget install Volta.Volta  # Instalar Volta
-    volta install node@22       # Instalar Node@22
-    volta pin node@22           # Fuerza el uso de Node@22 en este directorio
-    ```
+   ```bash
+   winget install Volta.Volta  # Instalar Volta
+   volta install node@22       # Instalar Node@22
+   volta pin node@22           # Fuerza el uso de Node@22 en este directorio
+   ```
 
 2. Instala NestJS CLI globalmente:
 
-    ```bash
-    volta install @nestjs/cli # Instalación Global
-    ```
+   ```bash
+   volta install @nestjs/cli # Instalación Global
+   ```
 
 3. Instala las dependencias del proyecto:
 
-    ```bash
-    npm install
-    ```
+   ```bash
+   npm install
+   ```
 
 ### 3. Configurar variables de entorno
 
 1. Copia el archivo `_.env` y renómbralo a `.env` en la raíz del proyecto:
-
-    - `_.env` → `.env`
+   - `_.env` → `.env`
 
 2. Edita los valores según tu entorno MySQL:
 
-``` bash
+```bash
 DB_HOST=localhost
 DB_PORT=3306
 DB_USER=root
@@ -64,9 +63,9 @@ El backend está preparado para escuchar en el puerto **3000** y aceptar peticio
 
 - En modo desarrollo (con recarga automática):
 
-    ```bash
-    npm run dev
-    ```
+  ```bash
+  npm run dev
+  ```
 
 Si necesitas cambiar la IP local permitida, edita el array `allowedOrigins` en el archivo `src/main.ts`:
 
@@ -115,6 +114,20 @@ BackEnd_Circulo_Lectura/
 ├── package.json               # Dependencias y scripts npm
 ├── tsconfig.json              # Configuración TypeScript
 └── README.md                  # Este archivo
+```
+
+## Estructura del arranque - funcionamiento
+
+```bash
+main.ts                                         # Ejecuta la verificación de variables e inicia el servidor
+  └── server/index.ts                               # Exporta la instancia final
+        └── server/express.ts                       # Crea y configura el servidor
+              ├── cors.ts                           # Exporta la configuración de acceso CORS
+              └── routes/conexionBD.routes.ts       # Exporta las rutas y asocia a un metodo de controlador
+                    ├── controladores
+                    │      └── servicios
+                    │             └── ConexionBD
+                    └── middlewares                 # Intercepta las rutas y verifica accesos
 ```
 
 ## Notas adicionales

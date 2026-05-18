@@ -1,18 +1,18 @@
 import { Router } from 'express';
-import { obtenerAutores } from '../Controllers/autores.controller.js';
+import { obtenerAutores } from '../controllers/autores.controller.js';
 import {
   crearComentarioLista,
   obtenerComentariosLista,
   actualizarComentarioLista,
   borrarComentarioLista,
-} from '../Controllers/comentariosLista.controller.js';
+} from '../controllers/comentariosLista.controller.js';
 import {
   crearCritica,
   obtenerCriticasLibro,
   actualizarCritica,
   borrarCritica,
-} from '../Controllers/criticas.controller.js';
-import { obtenerGeneros } from '../Controllers/generos.controller.js';
+} from '../controllers/criticas.controller.js';
+import { obtenerGeneros } from '../controllers/generos.controller.js';
 import {
   crearLibro,
   obtenerLibroId,
@@ -20,12 +20,12 @@ import {
   obtenerLibrosTotal,
   actualizarLibro,
   borrarLibro,
-} from '../Controllers/libros.controller.js';
+} from '../controllers/libros.controller.js';
 import {
   agregarLibroALista,
   obtenerLibrosDeLista,
   eliminarLibroDeLista,
-} from '../Controllers/librosLista.controller.js';
+} from '../controllers/librosLista.controller.js';
 import {
   crearLista,
   obtenerListaId,
@@ -33,8 +33,8 @@ import {
   obtenerListasTotal,
   actualizarLista,
   borrarLista,
-} from '../Controllers/listas.controller.js';
-import { resetearAPI } from '../Controllers/resetAPI.controller.js';
+} from '../controllers/listas.controller.js';
+import { resetearAPI } from '../controllers/resetAPI.controller.js';
 import {
   crearUsuario,
   obtenerUsuarios,
@@ -49,9 +49,9 @@ import {
   obtenerListasCreadasUsuario,
   obtenerEventosCreadosUsuario,
   obtenerNombreUsuario,
-} from '../Controllers/usuarios.controller.js';
-import { obtenerYears } from '../Controllers/years.controller.js';
-import { respuestaError } from '../Utils/validationMessages.utils.js';
+} from '../controllers/usuarios.controller.js';
+import { obtenerYears } from '../controllers/years.controller.js';
+import { respuestaError } from '../utils/validationMessages.utils.js';
 import {
   obtenerAsistentesEvento,
   obtenerComentariosEvento,
@@ -59,12 +59,14 @@ import {
   obtenerLibrosEvento,
   obtenerEventos,
   obtenerTotalEventos,
-} from '../Controllers/eventos.controller.js';
+} from '../controllers/eventos.controller.js';
+import { loginController } from '../controllers/auth.controller.js';
 
 // Creación del router Express para manejar las rutas de la API
 const conexionRouter = Router();
 
 conexionRouter.get('/resetAPI', resetearAPI);
+conexionRouter.post('/auth/login', loginController);
 
 // Definicion de las rutas para libros
 conexionRouter.post('/libro', crearLibro);

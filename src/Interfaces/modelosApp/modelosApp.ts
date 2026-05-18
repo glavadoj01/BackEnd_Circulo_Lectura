@@ -6,7 +6,7 @@ import {
   LibroCritica,
   ListaComentarios,
   UsuarioBD,
-} from './../modelosBD/modelosBD.js';
+} from '../modelosBD/modelosBD.js';
 
 /****************** INTERFACES DE LA CAPA DE APLICACIÓN ******************/
 

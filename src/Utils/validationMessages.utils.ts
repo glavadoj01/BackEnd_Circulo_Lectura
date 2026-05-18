@@ -1,6 +1,7 @@
 import { Response } from 'express';
 
 const VALIDACION_MENSAJES = {
+  LOGIN_EXITOSO: 'Login exitoso',
   API_RESETEADA_OK: 'API reseteada exitosamente',
   AUTORES_OBTENIDOS_OK: 'Autores obtenidos exitosamente',
   ASISTENTES_EVENTO_OK: 'Asistentes del evento obtenidos exitosamente',
@@ -50,6 +51,10 @@ const VALIDACION_MENSAJES = {
 } as const;
 
 const ERROR_MENSAJES = {
+  ERROR_LOGIN_EMAIL_INVALIDO: 'Email de login inválido',
+  ERROR_LOGIN_PASSWORD_INVALIDA: 'Password de login inválida',
+  ERROR_INTERNO: 'Error interno del servidor',
+
   ERROR_ACTUALIZAR_COMENTARIO_LISTA: 'Error al actualizar comentario de la lista',
   ERROR_ACTUALIZAR_CRITICA: 'Error al actualizar crítica',
   ERROR_ACTUALIZAR_LIBRO: 'Error al actualizar libro',
