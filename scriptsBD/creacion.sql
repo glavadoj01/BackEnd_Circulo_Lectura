@@ -9,6 +9,7 @@ CREATE TABLE usuario (
 	id_usuario 		INT PRIMARY KEY AUTO_INCREMENT,
     nombre_usuario 	VARCHAR(50) UNIQUE NOT NULL,
     email_usuario 	VARCHAR(100) UNIQUE NOT NULL,
+    password_hash VARCHAR(255) NOT NULL,
     nombre_real 	VARCHAR(50) NOT NULL,
     apellido_usuario VARCHAR(50),
     fecha_registro_usuario DATETIME NOT NULL DEFAULT now(), -- YYYY-MM-DD:HH:MM:SS
@@ -348,4 +349,15 @@ CREATE TABLE evento_contenido (
         REFERENCES libro(id_libro)
         ON UPDATE CASCADE
         ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_spanish_ci;
+
+-- Tabla I: Sesiones
+CREATE TABLE sesiones (
+  token VARCHAR(255) PRIMARY KEY,
+  id_usuario INT NOT NULL,
+  expira DATETIME NOT NULL,
+  fecha_inicio_sesion DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+  INDEX (id_usuario),
+  FOREIGN KEY (id_usuario) REFERENCES usuario(id_usuario)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_spanish_ci;

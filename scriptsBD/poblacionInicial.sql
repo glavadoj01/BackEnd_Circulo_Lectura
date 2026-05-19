@@ -2,24 +2,25 @@
    USUARIO ID 0 (para SET DEFAULT en FK)
    ============================ */
 SET SESSION sql_mode = 'NO_AUTO_VALUE_ON_ZERO';
-INSERT INTO usuario (id_usuario, nombre_usuario, nombre_real, apellido_usuario) VALUES (0, 'usuario0', 'Usuario Cero', 'Reservado');
+SET @password_hash_demo := '$2b$10$bEn5ReIUXGVkHfl5/R8dA.ORiBLqTebLeK.OsNzcyDXa44I4Y.a.S';
+INSERT INTO usuario (id_usuario, nombre_usuario, nombre_real, apellido_usuario, email_usuario, password_hash, fecha_registro_usuario, esAdministrador) VALUES (0, 'usuario0', 'Usuario Cero', 'Reservado', 'usuario0@example.com', @password_hash_demo, NOW(), 0);
 SET SESSION sql_mode = '';
 
 /* ============================
    USUARIOS
    ============================ */
-INSERT INTO usuario (nombre_usuario, nombre_real, apellido_usuario, email_usuario, fecha_registro_usuario, esAdministrador) VALUES
-('usuario1', 'Usuario1', 'Apellido Uno', 'usuario1@example.com', NOW(), 2),
-('usuario2', 'Usuario2', 'Apellido Dos', 'usuario2@example.com', NOW(), 0),
-('usuario3', 'Usuario3', 'Apellido Tres', 'usuario3@example.com', NOW(), 0),
-('usuario4', 'Usuario4', 'Apellido Cuatro', 'usuario4@example.com', NOW(), 0),
-('usuario5', 'Usuario5', 'Apellido Cinco', 'usuario5@example.com', NOW(), 0),
-('usuario6', 'Usuario6', 'Apellido Seis', 'usuario6@example.com', NOW(), 0),
-('usuario7', 'Usuario7', 'Apellido Siete', 'usuario7@example.com', NOW(), 0),
-('usuario8', 'Usuario8', 'Apellido Ocho', 'usuario8@example.com', NOW(), 0),
-('usuario9', 'Usuario9', 'Apellido Nueve', 'usuario9@example.com', NOW(), 0),
-('usuario10', 'Usuario10', 'Apellido Diez', 'usuario10@example.com', NOW(), 0),
-('Autor', 'Autor', 'Sin nada', 'autor@example.com', NOW(), 1); -- Usuario que también es autor y moderador (1)
+INSERT INTO usuario (nombre_usuario, nombre_real, apellido_usuario, email_usuario, password_hash, fecha_registro_usuario, esAdministrador) VALUES
+('usuario1', 'Usuario1', 'Apellido Uno', 'usuario1@example.com', @password_hash_demo, NOW(), 2),
+('usuario2', 'Usuario2', 'Apellido Dos', 'usuario2@example.com', @password_hash_demo, NOW(), 0),
+('usuario3', 'Usuario3', 'Apellido Tres', 'usuario3@example.com', @password_hash_demo, NOW(), 0),
+('usuario4', 'Usuario4', 'Apellido Cuatro', 'usuario4@example.com', @password_hash_demo, NOW(), 0),
+('usuario5', 'Usuario5', 'Apellido Cinco', 'usuario5@example.com', @password_hash_demo, NOW(), 0),
+('usuario6', 'Usuario6', 'Apellido Seis', 'usuario6@example.com', @password_hash_demo, NOW(), 0),
+('usuario7', 'Usuario7', 'Apellido Siete', 'usuario7@example.com', @password_hash_demo, NOW(), 0),
+('usuario8', 'Usuario8', 'Apellido Ocho', 'usuario8@example.com', @password_hash_demo, NOW(), 0),
+('usuario9', 'Usuario9', 'Apellido Nueve', 'usuario9@example.com', @password_hash_demo, NOW(), 0),
+('usuario10', 'Usuario10', 'Apellido Diez', 'usuario10@example.com', @password_hash_demo, NOW(), 0),
+('Autor', 'Autor', 'Sin nada', 'autor@example.com', @password_hash_demo, NOW(), 1); -- Usuario que también es autor y moderador (1)
 
 /* ============================
    CATEGORÍAS DE LISTAS
@@ -755,3 +756,17 @@ INSERT INTO evento_contenido VALUES
 (15, 30, TRUE), (15, 32, FALSE), (15, 35, FALSE),
 (16, 3, TRUE), (16, 4, FALSE), (16, 37, FALSE),
 (17, 1, TRUE), (17, 14, FALSE), (17, 23, FALSE);
+
+/* ============================
+   SESIONES
+   ============================ */
+SET @ahora := NOW();
+INSERT INTO sesiones (token, id_usuario, expira, fecha_inicio_sesion) VALUES
+('seed-session-expirada-1', 1, DATE_SUB(@ahora, INTERVAL 10 DAY), DATE_SUB(DATE_SUB(@ahora, INTERVAL 10 DAY), INTERVAL 30 DAY)),
+('seed-session-expirada-2', 2, DATE_SUB(@ahora, INTERVAL 2 DAY), DATE_SUB(DATE_SUB(@ahora, INTERVAL 2 DAY), INTERVAL 30 DAY)),
+('seed-session-5m-1', 3, DATE_ADD(@ahora, INTERVAL 5 MINUTE), DATE_SUB(DATE_ADD(@ahora, INTERVAL 5 MINUTE), INTERVAL 30 DAY)),
+('seed-session-5m-2', 4, DATE_ADD(@ahora, INTERVAL 5 MINUTE), DATE_SUB(DATE_ADD(@ahora, INTERVAL 5 MINUTE), INTERVAL 30 DAY)),
+('seed-session-10m-1', 5, DATE_ADD(@ahora, INTERVAL 10 MINUTE), DATE_SUB(DATE_ADD(@ahora, INTERVAL 10 MINUTE), INTERVAL 30 DAY)),
+('seed-session-10m-2', 6, DATE_ADD(@ahora, INTERVAL 10 MINUTE), DATE_SUB(DATE_ADD(@ahora, INTERVAL 10 MINUTE), INTERVAL 30 DAY)),
+('seed-session-semana-1', 7, DATE_ADD(@ahora, INTERVAL 7 DAY), DATE_SUB(DATE_ADD(@ahora, INTERVAL 7 DAY), INTERVAL 30 DAY)),
+('seed-session-semana-2', 8, DATE_ADD(@ahora, INTERVAL 8 DAY), DATE_SUB(DATE_ADD(@ahora, INTERVAL 8 DAY), INTERVAL 30 DAY));

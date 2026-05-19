@@ -5,7 +5,11 @@ export class LoginService extends ConexionBD {
   async login(email: string, password: string) {
     try {
       const [rows]: any = await this.pool.query(
-        'SELECT id_usuario, password_hash FROM usuarios WHERE email = ? LIMIT 1',
+        `SELECT id_usuario, password_hash 
+          FROM usuario
+          WHERE email_usuario = ?
+          LIMIT 1
+        `,
         [email],
       );
 
@@ -28,8 +32,8 @@ export class LoginService extends ConexionBD {
 
       // Guardar token en BD con expiración
       await this.pool.query(
-        'INSERT INTO sesiones (id_usuario, token, expira) VALUES (?, ?, DATE_ADD(NOW(), INTERVAL 30 DAY))',
-        [usuario.id_usuario, token],
+        'INSERT INTO sesiones (token, id_usuario, expira) VALUES (?, ?, DATE_ADD(NOW(), INTERVAL 30 DAY))',
+        [token, usuario.id_usuario],
       );
 
       return {

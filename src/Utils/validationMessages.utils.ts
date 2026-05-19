@@ -117,6 +117,15 @@ const ERROR_MENSAJES = {
   ERROR_USUARIO_PARAMETROS_PAGINACION_INVALIDOS: 'Parámetros de paginación inválidos',
   ERROR_USUARIO_EMAIL_YA_EXISTE: 'El email de usuario ya existe',
   ERROR_USUARIO_NOMBRE_USUARIO_YA_EXISTE: 'El nombre de usuario ya existe',
+
+  ERROR_USUARIO_NOMBRE_OBLIGATORIO: 'El nombre de usuario es obligatorio',
+  ERROR_USUARIO_EMAIL_OBLIGATORIO: 'El email de usuario es obligatorio',
+  ERROR_USUARIO_NOMBRE_REAL_OBLIGATORIO: 'El nombre real de usuario es obligatorio',
+  ERROR_USUARIO_PASSWORD_OBLIGATORIA: 'La contraseña de usuario es obligatoria',
+  ERROR_USUARIO_CONTRASEÑA_DEBIL:
+    'La contraseña de usuario es demasiado débil (Longitud mínima 10 | Al menos 1 minúscula | Al menos 1 mayúscula | Al menos 1 dígito| Al menos 1 carácter especial)',
+  ERROR_USUARIO_APELLIDO_INVALIDO: 'El apellido de usuario es inválido',
+  ERROR_USUARIO_ESADMINISTRADOR_INVALIDO: 'El campo esAdministrador es inválido',
 } as const;
 
 const CATALOGO_MENSAJES = {
@@ -146,12 +155,6 @@ const CATALOGO_MENSAJES = {
   RUTA_NO_ENCONTRADA: 'Ruta no encontrada',
   PARAMETROS_PAGINACION_INVALIDOS: 'Parámetros de paginación inválidos',
   DATOS_INVALIDOS: 'Datos inválidos',
-
-  ERROR_USUARIO_NOMBRE_OBLIGATORIO: 'El nombre de usuario es obligatorio',
-  ERROR_USUARIO_EMAIL_OBLIGATORIO: 'El email de usuario es obligatorio',
-  ERROR_USUARIO_NOMBRE_REAL_OBLIGATORIO: 'El nombre real de usuario es obligatorio',
-  ERROR_USUARIO_APELLIDO_INVALIDO: 'El apellido de usuario es inválido',
-  ERROR_USUARIO_ESADMINISTRADOR_INVALIDO: 'El campo esAdministrador es inválido',
 } as const;
 
 const MENSAJES_ESTANDARIZADOS = {

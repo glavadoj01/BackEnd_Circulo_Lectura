@@ -132,3 +132,10 @@ export interface EventoContieneLibro {
   id_libro: number; // FK
   libroPr: boolean; // true = libro principal/destacado
 }
+
+export interface SesionBD {
+  token: string;
+  id_usuario: number; // FK a Usuario
+  expira: Date | string;
+  fecha_inicio_sesion: Date | string;
+}

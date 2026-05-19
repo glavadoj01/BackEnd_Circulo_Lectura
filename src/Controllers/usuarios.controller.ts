@@ -3,58 +3,122 @@ import { ConexionBD } from '../services/conexionBD.service.js';
 import { parsePositiveInt } from '../utils/validation.utils.js';
 import { CodigoRespuesta, respuestaError, respuestaOk } from '../utils/validationMessages.utils.js';
 import { ConexionUsuarios } from '../services/conexionUsuarios.service.js';
+import bcrypt from 'bcrypt';
+import { LoginService } from '../services/login.service.js';
+
+const REGEX_EMAIL = /^[\w\-\.]+@([\w-]+\.)+[\w-]{2,}$/;
+const REGEX_PASSWORD = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,15}$/;
+
+const esCadenaValida = (v: any, min = 1) => typeof v === 'string' && v.trim().length >= min;
 
 /**
  * Valida los datos de un usuario según el modelo de la BD.
  * @param usuario Objeto usuario a validar.
- * @param esActualizacion Si es true, permite campos opcionales.
  * @returns {CodigoRespuesta | null} null si es válido, mensaje de error si no.
  */
-function validarUsuario(usuario: any, esActualizacion = false): CodigoRespuesta | null {
+const validarUsuario = (usuario: any): CodigoRespuesta | null => {
   if (!usuario || typeof usuario !== 'object') return 'DATOS_INVALIDOS';
-  if (!esActualizacion) {
-    if (typeof usuario.nombre_usuario !== 'string' || usuario.nombre_usuario.trim().length < 2) {
-      return 'ERROR_USUARIO_NOMBRE_OBLIGATORIO';
-    }
-    if (typeof usuario.email_usuario !== 'string' || usuario.email_usuario.trim().length < 5) {
-      return 'ERROR_USUARIO_EMAIL_OBLIGATORIO';
-    }
-    if (typeof usuario.nombre_real !== 'string' || usuario.nombre_real.trim().length < 2) {
-      return 'ERROR_USUARIO_NOMBRE_REAL_OBLIGATORIO';
-    }
-  }
-  if (usuario.apellido_usuario !== undefined && typeof usuario.apellido_usuario !== 'string')
+
+  if (!esCadenaValida(usuario.nombre_usuario, 2)) return 'ERROR_USUARIO_NOMBRE_OBLIGATORIO';
+  if (!REGEX_EMAIL.test(usuario.email_usuario)) return 'ERROR_USUARIO_EMAIL_OBLIGATORIO';
+  if (!esCadenaValida(usuario.nombre_real, 2)) return 'ERROR_USUARIO_NOMBRE_REAL_OBLIGATORIO';
+
+  if (usuario.apellido_usuario !== undefined && !esCadenaValida(usuario.apellido_usuario, 2)) {
     return 'ERROR_USUARIO_APELLIDO_INVALIDO';
-  if (usuario.esAdministrador !== undefined && ![0, 1, 2].includes(usuario.esAdministrador))
-    return 'ERROR_USUARIO_ESADMINISTRADOR_INVALIDO';
+  }
+
+  if (usuario.password !== undefined && !REGEX_PASSWORD.test(String(usuario.password).trim())) {
+    return 'ERROR_USUARIO_CONTRASEÑA_DEBIL';
+  }
+
   return null;
-}
+};
 
 /**
- * Construye el objeto de datos para la BD a partir del body.
+ * Construye el objeto de datos para la BD a partir del body (alta).
  * @param body Body de la request.
- * @param esActualizacion Si es true, solo incluye campos presentes.
  * @returns Objeto listo para la BD.
  */
-function construirDatosUsuario(body: any, esActualizacion = false): Record<string, any> {
+const construirDatosUsuario = (body: any): Record<string, any> => {
   const datos: Record<string, any> = {};
-  if (!esActualizacion || body.nombre_usuario !== undefined) {
+
+  datos.nombre_usuario = String(body.nombre_usuario).trim();
+  datos.email_usuario = String(body.email_usuario).trim();
+  datos.password = String(body.password ?? body.password_nueva).trim();
+  datos.nombre_real = String(body.nombre_real).trim();
+
+  if (body.apellido_usuario !== undefined) {
+    datos.apellido_usuario = String(body.apellido_usuario).trim();
+  }
+
+  return datos;
+};
+
+/**
+ * Construye el objeto de datos parcial para actualización.
+ * Solo incluye los campos presentes en el body.
+ * @param body Body normalizado.
+ */
+const construirDatosUsuarioParcial = (body: any): Record<string, any> => {
+  const datos: Record<string, any> = {};
+
+  if (body.nombre_usuario !== undefined) {
     datos.nombre_usuario = String(body.nombre_usuario).trim();
   }
-  if (!esActualizacion || body.email_usuario !== undefined) {
+  if (body.email_usuario !== undefined) {
     datos.email_usuario = String(body.email_usuario).trim();
   }
-  if (!esActualizacion || body.nombre_real !== undefined) {
+  if (body.nombre_real !== undefined) {
     datos.nombre_real = String(body.nombre_real).trim();
   }
   if (body.apellido_usuario !== undefined) {
     datos.apellido_usuario = String(body.apellido_usuario).trim();
   }
-  if (body.esAdministrador !== undefined) {
-    datos.esAdministrador = Number(body.esAdministrador);
-  }
+
   return datos;
-}
+};
+
+/**
+ * Busca si ya existe un usuario con el email dado.
+ * @param email Email a buscar.
+ * @param conexion Evita tener que abrir una nueva conexión a la BD, se pasa como parámetro.
+ * @returns Boolean indicando si ya existe un usuario con ese email.
+ */
+const buscarEmailExistente = async (
+  email: string,
+  conexion: ConexionBD,
+  excluirId?: number,
+): Promise<boolean> => {
+  const condiciones: Record<string, any> = { email_usuario: email };
+  if (excluirId !== undefined) {
+    condiciones.id_usuario = { operador: '!=', valor: excluirId };
+  }
+
+  const resultado = await conexion.listarRegistros('usuario', condiciones, '', 1, 'id_usuario');
+  return !!(resultado.datos && resultado.datos[0]);
+};
+
+/**
+ * Busca si ya existe un usuario con el nombre de usuario dado.
+ * Permite excluir un id_usuario (para actualización).
+ * @param nombre_usuario Nombre de usuario a buscar.
+ * @param conexion Instancia de ConexionBD.
+ * @param excluirId Id de usuario a excluir de la búsqueda (opcional).
+ * @returns Boolean indicando si ya existe un usuario con ese nombre.
+ */
+const buscarNombreUsuarioExistente = async (
+  nombre_usuario: string,
+  conexion: ConexionBD,
+  excluirId?: number,
+): Promise<boolean> => {
+  const condiciones: Record<string, any> = { nombre_usuario };
+  if (excluirId !== undefined) {
+    condiciones.id_usuario = { operador: '!=', valor: excluirId };
+  }
+
+  const resultado = await conexion.listarRegistros('usuario', condiciones, '', 1, 'id_usuario');
+  return !!(resultado.datos && resultado.datos[0]);
+};
 
 /**
  * Crear un nuevo usuario.
@@ -71,33 +135,32 @@ async function crearUsuario(req: Request, res: Response) {
       return respuestaError(res, 400, errorValidacion);
     }
     const datosBD = construirDatosUsuario(body);
+
+    // Generar hash de la contraseña antes de guardar en BD
+    const hash = await bcrypt.hash(datosBD.password, 10);
+    // Guardo el campo password_hash
+    datosBD.password_hash = hash;
+    // Elimino el campo password que no existe en la BD y no quiero guardar
+    delete datosBD.password;
+
     conexionAbierta = new ConexionBD();
     // Validar unicidad de nombre_usuario y email_usuario
-    const usuarioExistente = (
-      await conexionAbierta.listarRegistros(
-        'usuario',
-        { nombre_usuario: datosBD.nombre_usuario },
-        '',
-        1,
-        'id_usuario',
-      )
-    ).datos[0];
-    if (usuarioExistente) {
+    if (await buscarNombreUsuarioExistente(datosBD.nombre_usuario, conexionAbierta)) {
       return respuestaError(res, 409, 'ERROR_USUARIO_NOMBRE_USUARIO_YA_EXISTE');
     }
-    const emailExistente = (
-      await conexionAbierta.listarRegistros(
-        'usuario',
-        { email_usuario: datosBD.email_usuario },
-        '',
-        1,
-        'id_usuario',
-      )
-    ).datos[0];
-    if (emailExistente) {
+    if (await buscarEmailExistente(datosBD.email_usuario, conexionAbierta)) {
       return respuestaError(res, 409, 'ERROR_USUARIO_EMAIL_YA_EXISTE');
     }
-    const insertId = (await conexionAbierta.insertarRegistro('usuario', datosBD)).datos.insertId;
+
+    datosBD.esAdministrador = 0; // Por defecto Usuario -> Administrador tiene ruta para actualizarlo
+    const rowsData = await conexionAbierta.insertarRegistro('usuario', datosBD);
+    if (!rowsData.exito) {
+      return respuestaError(res, 500, 'ERROR_USUARIO_CREAR_USUARIO');
+    }
+
+    const insertId = rowsData.datos;
+    //! POSTAMAN: COMENTAR ESTA LÍNEA SI SE USA POSTAM Y SE QUIERE VER EL HASH -> RECORODAR DESCOMENTARLA DE NUEVO!!!!!
+    delete datosBD.password_hash; // No devuelvo el hash en la respuesta al FRONT
     return respuestaOk(res, 201, 'USUARIO_CREADO_OK', { id_usuario: insertId, ...datosBD });
   } catch (error: any) {
     return respuestaError(res, 500, 'ERROR_USUARIO_CREAR_USUARIO', error.message);
@@ -120,7 +183,13 @@ async function obtenerUsuarios(req: Request, res: Response) {
     const filtros = construirFiltros(req.query);
 
     conexionAbierta = new ConexionBD();
-    const usuarios = await conexionAbierta.listarRegistros('usuario', filtros, '', limit, '*');
+    const usuarios = await conexionAbierta.listarRegistros(
+      'usuario',
+      filtros,
+      '',
+      limit,
+      'id_usuario, nombre_usuario, email_usuario, nombre_real, apellido_usuario, esAdministrador',
+    );
     return respuestaOk(res, 200, 'USUARIOS_OBTENIDOS_OK', usuarios.datos);
   } catch (error: any) {
     return respuestaError(res, 500, 'ERROR_USUARIO_OBTENER_USUARIOS', error.message);
@@ -129,7 +198,7 @@ async function obtenerUsuarios(req: Request, res: Response) {
   }
 }
 
-function validarPaginacion(q: any) {
+const validarPaginacion = (q: any) => {
   // const page = q.page ? Math.max(Number(q.page), 1) : 1;
   const limit = q.limit ? Math.min(Number(q.limit), 50) : 50;
 
@@ -139,9 +208,9 @@ function validarPaginacion(q: any) {
   }
 
   return limit;
-}
+};
 
-function construirFiltros(q: any): Record<string, any> {
+const construirFiltros = (q: any): Record<string, any> => {
   const filtros: Record<string, any> = {};
 
   if (q.filtros) {
@@ -163,14 +232,14 @@ function construirFiltros(q: any): Record<string, any> {
   }
 
   return filtros;
-}
+};
 
-function asignarFiltroSimple(
+const asignarFiltroSimple = (
   q: any,
   filtros: Record<string, any>,
   campo: string,
   esNumero = false,
-) {
+) => {
   const valor = q[campo];
   if (valor === undefined) return;
 
@@ -180,7 +249,7 @@ function asignarFiltroSimple(
   } else if (typeof valor === 'string') {
     filtros[campo] = valor;
   }
-}
+};
 
 /**
  * Obtener un usuario por ID.
@@ -201,7 +270,7 @@ async function obtenerUsuario(req: Request, res: Response) {
       { id_usuario: id },
       '',
       1,
-      '*',
+      'id_usuario, nombre_usuario, email_usuario, nombre_real, apellido_usuario, esAdministrador',
     );
     if (!resultado.datos || resultado.datos.length === 0) {
       return respuestaError(res, 404, 'NO_ENCONTRADO_USUARIO');
@@ -222,56 +291,88 @@ async function obtenerUsuario(req: Request, res: Response) {
  */
 async function actualizarUsuario(req: Request, res: Response) {
   let conexionAbierta: ConexionBD | null = null;
+  let loginSrv: LoginService | null = null;
   try {
-    const idRaw = req.params.id ?? req.body.id_usuario;
-    const id = parsePositiveInt(idRaw);
+    const id = parsePositiveInt(req.params.id ?? req.body.id_usuario ?? Number.NaN);
     if (Number.isNaN(id)) {
       return respuestaError(res, 400, 'ID_USUARIO_INVALIDO');
     }
-    const errorValidacion = validarUsuario(req.body, true);
+
+    const body = req.body;
+
+    // 1) Obtener usuario actual por ID para conocer su email real
+    conexionAbierta = new ConexionBD();
+    const resultadoUsuarioActual = await conexionAbierta.listarRegistros(
+      'usuario',
+      { id_usuario: id },
+      '',
+      1,
+      'id_usuario, email_usuario',
+    );
+    if (!resultadoUsuarioActual.datos || resultadoUsuarioActual.datos.length === 0) {
+      return respuestaError(res, 404, 'NO_ENCONTRADO_USUARIO');
+    }
+    const usuarioActual = resultadoUsuarioActual.datos[0];
+
+    // 2) Validar password_actual contra el email actual del usuario (no contra el posible email nuevo)
+    loginSrv = new LoginService();
+    const resultadoLogin = await loginSrv.login(usuarioActual.email_usuario, body.password_actual);
+    if (!resultadoLogin.ok) {
+      return respuestaError(res, 400, 'ERROR_LOGIN_PASSWORD_INVALIDA');
+    }
+
+    // 3) Normalizar body para validación (solo campos que realmente se quieren cambiar)
+    const bodyNorm: any = {};
+    if (body.nombre_usuario !== undefined) bodyNorm.nombre_usuario = body.nombre_usuario;
+    if (body.email_usuario !== undefined) bodyNorm.email_usuario = body.email_usuario;
+    if (body.nombre_real !== undefined) bodyNorm.nombre_real = body.nombre_real;
+    if (body.apellido_usuario !== undefined) bodyNorm.apellido_usuario = body.apellido_usuario;
+
+    if (body.password_nueva) {
+      bodyNorm.password = body.password_nueva;
+    }
+
+    const errorValidacion = validarUsuario(bodyNorm);
     if (errorValidacion) {
       return respuestaError(res, 400, errorValidacion);
     }
-    const datosBD = construirDatosUsuario(req.body, true);
-    if (Object.keys(datosBD).length === 0) {
-      return respuestaError(res, 400, 'NO_HAY_CAMPOS_ACTUALIZAR');
+
+    // 4) Construir datos parciales para BD
+    const datosBD = construirDatosUsuarioParcial(bodyNorm);
+
+    if (body.password_nueva) {
+      const hashNuevo = await bcrypt.hash(String(body.password_nueva).trim(), 10);
+      datosBD.password_hash = hashNuevo;
     }
-    conexionAbierta = new ConexionBD();
-    // Validar unicidad si se actualiza nombre_usuario o email_usuario
+
+    // 5) Validar unicidad si se actualiza nombre_usuario o email_usuario (excluyendo el propio id)
     if (datosBD.nombre_usuario) {
-      const usuarioExistente = (
-        await conexionAbierta.listarRegistros(
-          'usuario',
-          { nombre_usuario: datosBD.nombre_usuario },
-          '',
-          1,
-          'id_usuario',
-        )
-      ).datos[0];
-      if (usuarioExistente && usuarioExistente.id_usuario !== id) {
+      const usuarioExistente = await buscarNombreUsuarioExistente(
+        datosBD.nombre_usuario,
+        conexionAbierta,
+        id,
+      );
+      if (usuarioExistente) {
         return respuestaError(res, 409, 'ERROR_USUARIO_NOMBRE_USUARIO_YA_EXISTE');
       }
     }
     if (datosBD.email_usuario) {
-      const emailExistente = (
-        await conexionAbierta.listarRegistros(
-          'usuario',
-          { email_usuario: datosBD.email_usuario },
-          '',
-          1,
-          'id_usuario',
-        )
-      ).datos[0];
-      if (emailExistente && emailExistente.id_usuario !== id) {
+      const emailExistente = await buscarEmailExistente(datosBD.email_usuario, conexionAbierta, id);
+      if (emailExistente) {
         return respuestaError(res, 409, 'ERROR_USUARIO_EMAIL_YA_EXISTE');
       }
     }
-    const afectados = (
-      await conexionAbierta.actualizarRegistro('usuario', datosBD, { id_usuario: id })
-    ).datos.affectedRows;
+
+    // 6) Ejecutar actualización
+    const resultadoUpdate = await conexionAbierta.actualizarRegistro('usuario', datosBD, {
+      id_usuario: id,
+    });
+    const afectados = resultadoUpdate.datos;
+
     if (afectados === 0) {
       return respuestaError(res, 404, 'NO_ENCONTRADO_USUARIO');
     }
+
     return respuestaOk(res, 200, 'USUARIO_ACTUALIZADO_OK', { actualizado: true, afectados });
   } catch (error: any) {
     return respuestaError(res, 500, 'ERROR_USUARIO_ACTUALIZAR_USUARIO', error.message);
