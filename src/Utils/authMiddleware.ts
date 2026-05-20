@@ -1,12 +1,19 @@
 import { Request, Response, NextFunction } from 'express';
 import { ConexionBD } from '../services/conexionBD.service.js';
+import { respuestaError } from './validationMessages.utils.js';
 
 export async function authMiddleware(req: Request, res: Response, next: NextFunction) {
   try {
-    const token = req.headers['authorization'];
+    const auth = req.header('Authorization');
+    if (!auth || !auth.startsWith('Bearer ')) {
+      req.user = null;
+      return next(); // público sin usuario
+    }
 
-    if (!token || typeof token !== 'string') {
-      return res.status(401).json({ error: 'TOKEN_REQUERIDO' });
+    const token = auth.substring('Bearer '.length).trim();
+    if (!token) {
+      req.user = null;
+      return next();
     }
 
     const conexion = new ConexionBD();
@@ -22,12 +29,40 @@ export async function authMiddleware(req: Request, res: Response, next: NextFunc
     );
 
     if (!rows.exito || !rows.datos || rows.datos.length === 0) {
-      return res.status(401).json({ error: 'TOKEN_INVALIDO' });
+      return respuestaError(res, 401, 'ERROR_LOGIN_TOKEN_INVALIDO');
     }
+
+    const [rowsUsuario]: any = await conexion.listarRegistros(
+      'usuario',
+      { id_usuario: rows.datos[0].id_usuario },
+      '',
+      1,
+      'nombre_usuario, email_usuario, nombre_real, apellido_usuario, esAdministrador',
+    );
+
+    if (!rowsUsuario.exito || !rowsUsuario.datos || rowsUsuario.datos.length === 0) {
+      return respuestaError(res, 401, 'ERROR_USUARIO_OBTENER_USUARIO');
+    }
+
+    const sesion = rows.datos[0];
+    const usuario = rowsUsuario.datos[0];
+
+    const datosUsuario: Record<string, any> = {};
+    datosUsuario.id_usuario = sesion.id_usuario;
+    if (usuario.nombre_usuario) datosUsuario.nombre_usuario = usuario.nombre_usuario;
+    if (usuario.email_usuario) datosUsuario.email_usuario = usuario.email_usuario;
+    if (usuario.nombre_real) datosUsuario.nombre_real = usuario.nombre_real;
+    if (usuario.apellido_usuario) datosUsuario.apellido_usuario = usuario.apellido_usuario;
+    if (usuario.esAdministrador !== undefined && usuario.esAdministrador > 0)
+      datosUsuario.esAdministrador = usuario.esAdministrador;
+
+    req.user = {
+      datosUsuario,
+    };
 
     next();
   } catch (error) {
     console.error('[AUTH] Error en authMiddleware:', error);
-    return res.status(500).json({ error: 'ERROR_INTERNO' });
+    return respuestaError(res, 500, 'ERROR_INTERNO');
   }
 }

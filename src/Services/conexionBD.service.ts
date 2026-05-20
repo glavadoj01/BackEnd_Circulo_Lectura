@@ -103,7 +103,7 @@ export class ConexionBD {
    */
   async borrarRegistro(
     tabla: string,
-    condiciones: Record<string, string | number>,
+    condiciones: Record<string, string | number | WhereCondition>,
   ): Promise<{ exito: boolean; datos: any; mensaje: string }> {
     try {
       this.validarTablaYColumnas(tabla, condiciones);
@@ -127,7 +127,7 @@ export class ConexionBD {
   async actualizarRegistro(
     tabla: string,
     datos: Record<string, string | number | boolean | Date>,
-    condiciones: Record<string, string | number>,
+    condiciones: Record<string, string | number | WhereCondition>,
   ): Promise<{ exito: boolean; datos: any; mensaje: string }> {
     try {
       this.validarTablaYColumnas(tabla, { ...datos, ...condiciones });

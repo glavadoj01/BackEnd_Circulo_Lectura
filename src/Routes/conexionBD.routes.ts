@@ -60,13 +60,14 @@ import {
   obtenerEventos,
   obtenerTotalEventos,
 } from '../controllers/eventos.controller.js';
-import { loginAction } from '../controllers/auth.controller.js';
+import { loginAction, logoutAction } from '../controllers/auth.controller.js';
 
 // Creación del router Express para manejar las rutas de la API
 const conexionRouter = Router();
 
 conexionRouter.get('/resetAPI', resetearAPI);
 conexionRouter.post('/auth/login', loginAction);
+conexionRouter.post('/auth/logout', logoutAction);
 
 // Definicion de las rutas para libros
 conexionRouter.post('/libro', crearLibro);

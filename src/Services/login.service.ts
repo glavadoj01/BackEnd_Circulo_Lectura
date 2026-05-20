@@ -41,9 +41,28 @@ export class LoginService extends ConexionBD {
         token,
         id_usuario: usuario.id_usuario,
       };
-    } catch (error) {
-      console.error('[SRV]Error en login:', error);
-      return { ok: false, error: 'INTERNO' };
+    } catch (err: any) {
+      console.error('[SRV]Error en login:', err);
+      return { ok: false, error: `INTERNO ${err.message}` };
+    }
+  }
+
+  async cerrarSesion(token: string) {
+    try {
+      const row = await this.borrarRegistro('sesiones', {
+        token: token,
+        expira: { operador: '>=', valor: Date.now() },
+      });
+      if (!row.exito) {
+        return { exito: false, datos: null, mensaje: row.mensaje };
+      }
+      if (row.datos.affectedRows === 0) {
+        return { exito: false, datos: null, mensaje: 'TOKEN_INVALIDO_O_EXPIRADO' };
+      }
+      return { exito: true, datos: null, mensaje: 'SESION_CERRADA' };
+    } catch (err: any) {
+      console.error('[SRV]Error en cerrarSesion:', err);
+      return { exito: false, datos: null, mensaje: err.message };
     }
   }
 }

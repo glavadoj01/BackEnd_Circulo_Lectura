@@ -2,6 +2,7 @@ import { Response } from 'express';
 
 const VALIDACION_MENSAJES = {
   LOGIN_EXITOSO: 'Login exitoso',
+  LOGOUT_EXITOSO: 'Logout exitoso',
   API_RESETEADA_OK: 'API reseteada exitosamente',
   AUTORES_OBTENIDOS_OK: 'Autores obtenidos exitosamente',
   ASISTENTES_EVENTO_OK: 'Asistentes del evento obtenidos exitosamente',
@@ -53,6 +54,8 @@ const VALIDACION_MENSAJES = {
 const ERROR_MENSAJES = {
   ERROR_LOGIN_EMAIL_INVALIDO: 'Email de login inválido',
   ERROR_LOGIN_PASSWORD_INVALIDA: 'Password de login inválida',
+  ERROR_LOGIN_TOKEN_FALTANTE: 'Token de autenticación faltante o mal formado',
+  ERROR_LOGIN_TOKEN_INVALIDO: 'Token de autenticación inválido o expirado',
   ERROR_INTERNO: 'Error interno del servidor',
 
   ERROR_ACTUALIZAR_COMENTARIO_LISTA: 'Error al actualizar comentario de la lista',
@@ -126,6 +129,8 @@ const ERROR_MENSAJES = {
     'La contraseña de usuario es demasiado débil (Longitud mínima 10 | Al menos 1 minúscula | Al menos 1 mayúscula | Al menos 1 dígito| Al menos 1 carácter especial)',
   ERROR_USUARIO_APELLIDO_INVALIDO: 'El apellido de usuario es inválido',
   ERROR_USUARIO_ESADMINISTRADOR_INVALIDO: 'El campo esAdministrador es inválido',
+  ERROR_USUARIO_NO_AUTENTICADO: 'El usuario no está autenticado',
+  ERROR_USUARIO_NO_AUTORIZADO: 'El usuario no tiene permisos para realizar esta acción',
 } as const;
 
 const CATALOGO_MENSAJES = {

@@ -5,6 +5,7 @@ import {
   LibroBD,
   LibroCritica,
   ListaComentarios,
+  SesionBD,
   UsuarioBD,
 } from '../modelosBD/modelosBD.js';
 
@@ -136,4 +137,9 @@ export interface DetalleEventoCompleto {
   libros: LibroResumen[];
   comentarios: EventoComentario[];
   errorComentarios: boolean;
+}
+
+export interface SesionApp {
+  usuario: Partial<UsuarioBD>;
+  sesion: Partial<SesionBD>;
 }

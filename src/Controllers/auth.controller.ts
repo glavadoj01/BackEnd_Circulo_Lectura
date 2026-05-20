@@ -32,3 +32,18 @@ export async function loginAction(req: Request, res: Response) {
     return respuestaError(res, 500, 'ERROR_INTERNO');
   }
 }
+
+export async function logoutAction(req: Request, res: Response) {
+  const auth = req.header('Authorization');
+  if (!auth?.startsWith('Bearer ')) {
+    return respuestaError(res, 400, 'ERROR_LOGIN_TOKEN_FALTANTE');
+  }
+  const token = auth.substring('Bearer '.length).trim();
+  const conexion = new LoginService();
+  try {
+    await conexion.cerrarSesion(token);
+    return respuestaOk(res, 200, 'LOGOUT_EXITOSO');
+  } finally {
+    await conexion.close();
+  }
+}

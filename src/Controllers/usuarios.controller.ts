@@ -16,12 +16,15 @@ const esCadenaValida = (v: any, min = 1) => typeof v === 'string' && v.trim().le
  * @param usuario Objeto usuario a validar.
  * @returns {CodigoRespuesta | null} null si es válido, mensaje de error si no.
  */
-const validarUsuario = (usuario: any): CodigoRespuesta | null => {
+const validarUsuario = (usuario: any, esActualizacion: boolean = false): CodigoRespuesta | null => {
   if (!usuario || typeof usuario !== 'object') return 'DATOS_INVALIDOS';
 
-  if (!esCadenaValida(usuario.nombre_usuario, 2)) return 'ERROR_USUARIO_NOMBRE_OBLIGATORIO';
-  if (!REGEX_EMAIL.test(usuario.email_usuario)) return 'ERROR_USUARIO_EMAIL_OBLIGATORIO';
-  if (!esCadenaValida(usuario.nombre_real, 2)) return 'ERROR_USUARIO_NOMBRE_REAL_OBLIGATORIO';
+  if (!esActualizacion && !esCadenaValida(usuario.nombre_usuario, 2))
+    return 'ERROR_USUARIO_NOMBRE_OBLIGATORIO';
+  if (!esActualizacion && !REGEX_EMAIL.test(usuario.email_usuario))
+    return 'ERROR_USUARIO_EMAIL_OBLIGATORIO';
+  if (!esActualizacion && !esCadenaValida(usuario.nombre_real, 2))
+    return 'ERROR_USUARIO_NOMBRE_REAL_OBLIGATORIO';
 
   if (usuario.apellido_usuario !== undefined && !esCadenaValida(usuario.apellido_usuario, 2)) {
     return 'ERROR_USUARIO_APELLIDO_INVALIDO';
@@ -297,9 +300,9 @@ async function actualizarUsuario(req: Request, res: Response) {
     if (Number.isNaN(id)) {
       return respuestaError(res, 400, 'ID_USUARIO_INVALIDO');
     }
-
+    console.log('[PUT User] ID USUARIO A ACTUALIZAR:', id);
     const body = req.body;
-
+    console.log('[PUT User] BODY RECIBIDO:', body);
     // 1) Obtener usuario actual por ID para conocer su email real
     conexionAbierta = new ConexionBD();
     const resultadoUsuarioActual = await conexionAbierta.listarRegistros(
@@ -309,6 +312,7 @@ async function actualizarUsuario(req: Request, res: Response) {
       1,
       'id_usuario, email_usuario',
     );
+    console.log('[PUT User] RESULTADO OBTENER USUARIO ACTUAL:', resultadoUsuarioActual);
     if (!resultadoUsuarioActual.datos || resultadoUsuarioActual.datos.length === 0) {
       return respuestaError(res, 404, 'NO_ENCONTRADO_USUARIO');
     }
@@ -320,7 +324,7 @@ async function actualizarUsuario(req: Request, res: Response) {
     if (!resultadoLogin.ok) {
       return respuestaError(res, 400, 'ERROR_LOGIN_PASSWORD_INVALIDA');
     }
-
+    console.log('[PUT User] RESULTADO LOGIN PASSWORD ACTUAL:', resultadoLogin);
     // 3) Normalizar body para validación (solo campos que realmente se quieren cambiar)
     const bodyNorm: any = {};
     if (body.nombre_usuario !== undefined) bodyNorm.nombre_usuario = body.nombre_usuario;
@@ -331,8 +335,9 @@ async function actualizarUsuario(req: Request, res: Response) {
     if (body.password_nueva) {
       bodyNorm.password = body.password_nueva;
     }
-
-    const errorValidacion = validarUsuario(bodyNorm);
+    console.log('[PUT User] BODY NORMALIZADO PARA VALIDACIÓN:', bodyNorm);
+    const errorValidacion = validarUsuario(bodyNorm, true);
+    console.log('[PUT User] RESULTADO VALIDACIÓN BODY:', errorValidacion);
     if (errorValidacion) {
       return respuestaError(res, 400, errorValidacion);
     }
