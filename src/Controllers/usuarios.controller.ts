@@ -5,6 +5,7 @@ import { CodigoRespuesta, respuestaError, respuestaOk } from '../utils/validatio
 import { ConexionUsuarios } from '../services/conexionUsuarios.service.js';
 import bcrypt from 'bcrypt';
 import { LoginService } from '../services/login.service.js';
+import { AuthRequest } from '../interfaces/modelosApp/modelosApp.js';
 
 const REGEX_EMAIL = /^[\w\-\.]+@([\w-]+\.)+[\w-]{2,}$/;
 const REGEX_PASSWORD = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,15}$/;
@@ -163,7 +164,7 @@ async function crearUsuario(req: Request, res: Response) {
 
     const insertId = rowsData.datos;
     //! POSTAMAN: COMENTAR ESTA LÍNEA SI SE USA POSTAM Y SE QUIERE VER EL HASH -> RECORODAR DESCOMENTARLA DE NUEVO!!!!!
-    delete datosBD.password_hash; // No devuelvo el hash en la respuesta al FRONT
+    // delete datosBD.password_hash; // No devuelvo el hash en la respuesta al FRONT
     return respuestaOk(res, 201, 'USUARIO_CREADO_OK', { id_usuario: insertId, ...datosBD });
   } catch (error: any) {
     return respuestaError(res, 500, 'ERROR_USUARIO_CREAR_USUARIO', error.message);
@@ -452,8 +453,12 @@ async function obtenerLibrosPendientesUsuario(req: Request, res: Response) {
   }
 }
 
-async function obtenerListasCreadasUsuario(req: Request, res: Response) {
+async function obtenerListasCreadasUsuario(req: AuthRequest, res: Response) {
   let conexionAbierta: ConexionUsuarios | null = null;
+  console.log('[GET Listas Creadas Usuario] ID USUARIO:', req.params.id);
+  console.log('[GET Listas Creadas Usuario] req Recibida:', req.user);
+  console.log('[GET Listas Creadas Usuario] Authorization Header:', req.headers['authorization']);
+
   try {
     const id = Number(req.params.id);
     if (!Number.isFinite(id)) {

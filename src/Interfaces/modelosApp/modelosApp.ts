@@ -8,7 +8,7 @@ import {
   SesionBD,
   UsuarioBD,
 } from '../modelosBD/modelosBD.js';
-
+import { Request } from 'express';
 /****************** INTERFACES DE LA CAPA DE APLICACIÓN ******************/
 
 /**
@@ -142,4 +142,8 @@ export interface DetalleEventoCompleto {
 export interface SesionApp {
   usuario: Partial<UsuarioBD>;
   sesion: Partial<SesionBD>;
+}
+
+export interface AuthRequest extends Request {
+  user?: SesionApp | null;
 }

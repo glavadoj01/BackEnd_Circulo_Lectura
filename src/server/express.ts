@@ -14,10 +14,10 @@ export function crearServidor(): express.Express {
   app.use(express.json());
   // Habilitar CORS con la configuración personalizada
   app.use(corsConfig);
-  // Registrar las rutas del router de conexión a la base de datos
-  app.use(conexionRouter);
   // Middleware de autenticación para proteger rutas
   app.use(authMiddleware);
+  // Registrar las rutas del router de conexión a la base de datos
+  app.use(conexionRouter);
   // Retornar la instancia de la aplicación Express configurada
   return app;
 }

@@ -42,6 +42,7 @@ try {
     console.log(`- SERVER_PORT: ${srvPort}`);
     console.log(`- DB_CHARSET: ${dbCharset}`);
     console.log(`- DB_COLLATION: ${dbCollation}`);
+    console.log(`==================================\n\n\n\n`);
   });
 } catch (error) {
   console.error('[ENV] Error de configuración:', error instanceof Error ? error.message : error);

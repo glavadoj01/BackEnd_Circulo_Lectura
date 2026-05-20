@@ -1,8 +1,11 @@
 /* ============================
    USUARIO ID 0 (para SET DEFAULT en FK)
    ============================ */
-SET SESSION sql_mode = 'NO_AUTO_VALUE_ON_ZERO';
 SET @password_hash_demo := '$2b$10$bEn5ReIUXGVkHfl5/R8dA.ORiBLqTebLeK.OsNzcyDXa44I4Y.a.S';
+/* password: 1Ab@3456789 */
+SET @password_hash_admin := '$2b$10$d28RpeX3GT1A9i/IRVnMDuoBKZvvu94Tz6pFdCeJqrHpN4E5FkYca';
+
+SET SESSION sql_mode = 'NO_AUTO_VALUE_ON_ZERO';
 INSERT INTO usuario (id_usuario, nombre_usuario, nombre_real, apellido_usuario, email_usuario, password_hash, fecha_registro_usuario, esAdministrador) VALUES (0, 'usuario0', 'Usuario Cero', 'Reservado', 'usuario0@example.com', @password_hash_demo, NOW(), 0);
 SET SESSION sql_mode = '';
 
@@ -10,7 +13,7 @@ SET SESSION sql_mode = '';
    USUARIOS
    ============================ */
 INSERT INTO usuario (nombre_usuario, nombre_real, apellido_usuario, email_usuario, password_hash, fecha_registro_usuario, esAdministrador) VALUES
-('usuario1', 'Usuario1', 'Apellido Uno', 'usuario1@example.com', @password_hash_demo, NOW(), 2),
+('usuario1', 'Usuario1', 'Apellido Uno', 'usuario1@example.com', @password_hash_admin, NOW(), 2),
 ('usuario2', 'Usuario2', 'Apellido Dos', 'usuario2@example.com', @password_hash_demo, NOW(), 0),
 ('usuario3', 'Usuario3', 'Apellido Tres', 'usuario3@example.com', @password_hash_demo, NOW(), 0),
 ('usuario4', 'Usuario4', 'Apellido Cuatro', 'usuario4@example.com', @password_hash_demo, NOW(), 0),
@@ -762,11 +765,11 @@ INSERT INTO evento_contenido VALUES
    ============================ */
 SET @ahora := NOW();
 INSERT INTO sesiones (token, id_usuario, expira, fecha_inicio_sesion) VALUES
-('seed-session-expirada-1', 1, DATE_SUB(@ahora, INTERVAL 10 DAY), DATE_SUB(DATE_SUB(@ahora, INTERVAL 10 DAY), INTERVAL 30 DAY)),
+('seed-session-expirada-1', 7, DATE_SUB(@ahora, INTERVAL 10 DAY), DATE_SUB(DATE_SUB(@ahora, INTERVAL 10 DAY), INTERVAL 30 DAY)),
 ('seed-session-expirada-2', 2, DATE_SUB(@ahora, INTERVAL 2 DAY), DATE_SUB(DATE_SUB(@ahora, INTERVAL 2 DAY), INTERVAL 30 DAY)),
 ('seed-session-5m-1', 3, DATE_ADD(@ahora, INTERVAL 5 MINUTE), DATE_SUB(DATE_ADD(@ahora, INTERVAL 5 MINUTE), INTERVAL 30 DAY)),
 ('seed-session-5m-2', 4, DATE_ADD(@ahora, INTERVAL 5 MINUTE), DATE_SUB(DATE_ADD(@ahora, INTERVAL 5 MINUTE), INTERVAL 30 DAY)),
 ('seed-session-10m-1', 5, DATE_ADD(@ahora, INTERVAL 10 MINUTE), DATE_SUB(DATE_ADD(@ahora, INTERVAL 10 MINUTE), INTERVAL 30 DAY)),
 ('seed-session-10m-2', 6, DATE_ADD(@ahora, INTERVAL 10 MINUTE), DATE_SUB(DATE_ADD(@ahora, INTERVAL 10 MINUTE), INTERVAL 30 DAY)),
-('seed-session-semana-1', 7, DATE_ADD(@ahora, INTERVAL 7 DAY), DATE_SUB(DATE_ADD(@ahora, INTERVAL 7 DAY), INTERVAL 30 DAY)),
+('seed-session-semana-1', 1, DATE_ADD(@ahora, INTERVAL 7 DAY), DATE_SUB(DATE_ADD(@ahora, INTERVAL 7 DAY), INTERVAL 30 DAY)),
 ('seed-session-semana-2', 8, DATE_ADD(@ahora, INTERVAL 8 DAY), DATE_SUB(DATE_ADD(@ahora, INTERVAL 8 DAY), INTERVAL 30 DAY));
