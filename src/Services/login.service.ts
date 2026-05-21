@@ -30,6 +30,11 @@ export class LoginService extends ConexionBD {
         .update(usuario.id_usuario + Date.now().toString())
         .digest('hex');
 
+      // Eliminar sesiones anteriores del usuario
+      await this.borrarRegistro('sesiones', {
+        id_usuario: usuario.id_usuario,
+      });
+
       // Guardar token en BD con expiración
       await this.pool.query(
         'INSERT INTO sesiones (token, id_usuario, expira) VALUES (?, ?, DATE_ADD(NOW(), INTERVAL 30 DAY))',

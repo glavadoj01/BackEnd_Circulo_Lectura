@@ -56,6 +56,7 @@ const ERROR_MENSAJES = {
   ERROR_LOGIN_PASSWORD_INVALIDA: 'Password de login inválida',
   ERROR_LOGIN_TOKEN_FALTANTE: 'Token de autenticación faltante o mal formado',
   ERROR_LOGIN_TOKEN_INVALIDO: 'Token de autenticación inválido o expirado',
+  ERROR_LOGIN_TOKEN_NO_CORRESPONDE: 'El token de autenticación no corresponde al usuario indicado',
   ERROR_INTERNO: 'Error interno del servidor',
 
   ERROR_ACTUALIZAR_COMENTARIO_LISTA: 'Error al actualizar comentario de la lista',

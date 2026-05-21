@@ -5,12 +5,18 @@ import { AuthRequest } from '../interfaces/modelosApp/modelosApp.js';
 
 export async function authMiddleware(req: AuthRequest, res: Response, next: NextFunction) {
   try {
+    console.log('================================');
+    console.log('[AUTH] authMiddleware - INICIO');
+    // console.log('[AUTH] authMiddleware - req recibida: ', req);
     const auth = req.header('Authorization');
     console.log('[AUTH] authMiddleware - Authorization Header:', auth);
     if (!auth || !auth.startsWith('Bearer ')) {
       req.user = null;
       return next(); // público sin usuario
     }
+
+    const idIn = procesarIdUsuario(req.originalUrl);
+    console.log('[AUTH] authMiddleware - ID usuario procesado de URL:', idIn);
 
     const token = auth.substring('Bearer '.length).trim();
     console.log('[AUTH] authMiddleware - Token extraído:', token);
@@ -35,6 +41,13 @@ export async function authMiddleware(req: AuthRequest, res: Response, next: Next
       return respuestaError(res, 401, 'ERROR_LOGIN_TOKEN_INVALIDO');
     }
     console.log('[AUTH] authMiddleware - Resultado consulta sesiones:', rows);
+
+    const idSesion = rows.datos[0].id_usuario;
+    console.log('[AUTH] authMiddleware - ID sesión encontrada:', idSesion);
+    if (idIn !== null && idSesion !== idIn) {
+      console.log('[AUTH] authMiddleware - ID sesión no coincide con ID en URL');
+      return respuestaError(res, 403, 'ERROR_LOGIN_TOKEN_NO_CORRESPONDE');
+    }
 
     const rowsUsuario: any = await conexion.listarRegistros(
       'usuario',
@@ -65,7 +78,8 @@ export async function authMiddleware(req: AuthRequest, res: Response, next: Next
     req.user = {
       usuario: datosUsuario,
       sesion: {
-        id_usuario: sesion.id_sesion,
+        id_usuario: idSesion,
+        token: sesion.token,
       },
     };
 
@@ -73,5 +87,20 @@ export async function authMiddleware(req: AuthRequest, res: Response, next: Next
   } catch (error) {
     console.error('[AUTH] Error en authMiddleware:', error);
     return respuestaError(res, 500, 'ERROR_INTERNO');
+  } finally {
+    console.log('[AUTH] authMiddleware - FIN');
+    console.log('================================');
   }
+}
+
+const regexNumero = /^\d+$/;
+
+function procesarIdUsuario(url: string): number | null {
+  const partes = url.split('/');
+  const idIn = partes[partes.length - 1];
+  if (regexNumero.test(idIn)) {
+    return parseInt(idIn, 10);
+  }
+
+  return null;
 }
