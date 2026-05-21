@@ -1,8 +1,8 @@
 import { Request, Response } from 'express';
-import { LibroCritica } from '../interfaces/modelosBD/modelosBD.js';
-import { ConexionBD } from '../services/conexionBD.service.js';
-import { parseCalificacion, parsePositiveInt } from '../utils/validation.utils.js';
-import { respuestaError, respuestaOk } from '../utils/validationMessages.utils.js';
+import { LibroCritica } from '../../interfaces/modelosBD/modelosBD.js';
+import { ConexionBD } from '../../services/conexionBD.service.js';
+import { parseCalificacion, parsePositiveInt } from '../../utils/validation.utils.js';
+import { respuestaError, respuestaOk } from '../../utils/validationMessages.utils.js';
 
 /**
  * Valida los datos de una crítica.
@@ -10,7 +10,7 @@ import { respuestaError, respuestaOk } from '../utils/validationMessages.utils.j
  * @param esActualizacion Si es true, permite campos opcionales.
  * @returns {boolean} true si es válido, false si no.
  */
-function validarCritica(critica: any, esActualizacion = false): boolean {
+const validarCritica = (critica: any, esActualizacion = false): boolean => {
   if (!critica || typeof critica !== 'object') return false;
   if (!esActualizacion) {
     if (
@@ -33,7 +33,7 @@ function validarCritica(critica: any, esActualizacion = false): boolean {
   )
     return false;
   return true;
-}
+};
 
 /**
  * Construye el objeto de datos para la BD a partir del body.
@@ -41,7 +41,7 @@ function validarCritica(critica: any, esActualizacion = false): boolean {
  * @param esActualizacion Si es true, solo incluye campos presentes.
  * @returns Objeto listo para la BD.
  */
-function construirDatosCritica(body: any, esActualizacion = false): Partial<LibroCritica> {
+const construirDatosCritica = (body: any, esActualizacion = false): Partial<LibroCritica> => {
   const datos: Partial<LibroCritica> = {};
   if (!esActualizacion || body.id_libro !== undefined) {
     datos.id_libro = parsePositiveInt(body.id_libro);
@@ -59,7 +59,7 @@ function construirDatosCritica(body: any, esActualizacion = false): Partial<Libr
     datos.calificacion_comentario = parseCalificacion(body.calificacion_comentario);
   }
   return datos;
-}
+};
 
 /**
  * Crear nueva crítica para un libro.
@@ -67,7 +67,7 @@ function construirDatosCritica(body: any, esActualizacion = false): Partial<Libr
  * @param res Objeto de respuesta de Express.
  * @returns JSON con la crítica creada o un error si ocurrió algún problema.
  */
-async function crearCritica(req: Request, res: Response) {
+export async function crearCritica(req: Request, res: Response) {
   let conexionAbierta: ConexionBD | null = null;
   try {
     const datos = construirDatosCritica(req.body);
@@ -91,56 +91,12 @@ async function crearCritica(req: Request, res: Response) {
 }
 
 /**
- * Obtener críticas de un libro.
- * @param req Objeto de solicitud de Express, con el id_libro en req.params.id.
- * @param res Objeto de respuesta de Express.
- * @returns JSON con las críticas y frecuencias, o un error si ocurrió algún problema.
- */
-async function obtenerCriticasLibro(req: Request, res: Response) {
-  let conexionAbierta: ConexionBD | null = null;
-  try {
-    const idLibro = parsePositiveInt(req.params.id);
-    if (Number.isNaN(idLibro)) {
-      return respuestaError(res, 400, 'ID_LIBRO_INVALIDO');
-    }
-    conexionAbierta = new ConexionBD();
-    const resultado = await conexionAbierta.listarRegistros('libro_critica', { id_libro: idLibro });
-    const criticas: LibroCritica[] = resultado.datos
-      .map((critica: any) => ({
-        ...critica,
-        calificacion_comentario: Number(critica.calificacion_comentario),
-      }))
-      .sort((a: any, b: any) => {
-        const fechaA = new Date(a.fecha_comentario).getTime();
-        const fechaB = new Date(b.fecha_comentario).getTime();
-        return fechaA - fechaB;
-      });
-
-    // Calcular frecuencias de notas (calificacion_comentario)
-    const maxNota = 5;
-    const frecuencias: number[] = new Array(maxNota).fill(0);
-    for (const critica of criticas) {
-      const nota = Number(critica.calificacion_comentario);
-      if (!Number.isNaN(nota) && nota >= 1 && nota <= maxNota) {
-        frecuencias[nota - 1]++;
-      }
-    }
-
-    return respuestaOk(res, 200, 'CRITICAS_OBTENIDAS_OK', { criticas, frecuencias });
-  } catch (error: any) {
-    return respuestaError(res, 500, 'ERROR_OBTENER_CRITICAS', error.message);
-  } finally {
-    if (conexionAbierta) await conexionAbierta.close();
-  }
-}
-
-/**
  * Actualizar crítica de un libro.
  * @param req Objeto de solicitud de Express, con el id_libro en req.params.id, id_usuario en req.params.usuarioId y datos a actualizar en req.body.
  * @param res Objeto de respuesta de Express.
  * @returns JSON indicando si la crítica fue actualizada, o un error si ocurrió algún problema.
  */
-async function actualizarCritica(req: Request, res: Response) {
+export async function actualizarCritica(req: Request, res: Response) {
   let conexionAbierta: ConexionBD | null = null;
   try {
     const idLibro = parsePositiveInt(req.params.id);
@@ -180,7 +136,7 @@ async function actualizarCritica(req: Request, res: Response) {
  * @param res Objeto de respuesta de Express.
  * @returns JSON indicando si la crítica fue borrada, o un error si ocurrió algún problema.
  */
-async function borrarCritica(req: Request, res: Response) {
+export async function borrarCritica(req: Request, res: Response) {
   let conexionAbierta: ConexionBD | null = null;
   try {
     const idLibro = parsePositiveInt(req.params.id);
@@ -206,5 +162,3 @@ async function borrarCritica(req: Request, res: Response) {
     if (conexionAbierta) await conexionAbierta.close();
   }
 }
-
-export { crearCritica, obtenerCriticasLibro, actualizarCritica, borrarCritica };

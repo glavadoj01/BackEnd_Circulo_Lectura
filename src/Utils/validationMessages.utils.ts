@@ -10,6 +10,9 @@ const VALIDACION_MENSAJES = {
   CRITICAS_OBTENIDAS_OK: 'Críticas obtenidas exitosamente',
   CRITICA_ACTUALIZADA_OK: 'Crítica actualizada exitosamente',
   CRITICA_BORRADA_OK: 'Crítica borrada exitosamente',
+  EVENTO_CREADO_OK: 'Evento creado exitosamente',
+  EVENTO_ACTUALIZADO_OK: 'Evento actualizado exitosamente',
+  EVENTO_BORRADO_OK: 'Evento borrado exitosamente',
   LISTA_CREADA_OK: 'Lista creada exitosamente',
   LISTAS_OBTENIDAS_OK: 'Listas obtenidas exitosamente',
   LISTA_OBTENIDA_OK: 'Lista obtenida exitosamente',
@@ -61,12 +64,14 @@ const ERROR_MENSAJES = {
 
   ERROR_ACTUALIZAR_COMENTARIO_LISTA: 'Error al actualizar comentario de la lista',
   ERROR_ACTUALIZAR_CRITICA: 'Error al actualizar crítica',
+  ERROR_ACTUALIZAR_EVENTO: 'Error al actualizar evento',
   ERROR_ACTUALIZAR_LIBRO: 'Error al actualizar libro',
   ERROR_ACTUALIZAR_LISTA: 'Error al actualizar lista',
   ERROR_ACTUALIZAR_USUARIO: 'Error al actualizar usuario',
 
   ERROR_CREAR_COMENTARIO_LISTA: 'Error al crear comentario de la lista',
   ERROR_CREAR_CRITICA: 'Error al crear crítica',
+  ERROR_CREAR_EVENTO: 'Error al crear evento',
   ERROR_CREAR_LIBRO: 'Error al crear libro',
   ERROR_CREAR_LISTA: 'Error al crear lista',
   ERROR_CREAR_USUARIO: 'Error al crear usuario',
@@ -100,6 +105,7 @@ const ERROR_MENSAJES = {
 
   ERROR_BORRAR_CRITICA: 'Error al borrar crítica',
   ERROR_BORRAR_COMENTARIO_LISTA: 'Error al borrar comentario de la lista',
+  ERROR_BORRAR_EVENTO: 'Error al borrar evento',
   ERROR_BORRAR_LIBRO: 'Error al borrar libro',
   ERROR_BORRAR_LIBRO_LISTA: 'Error al eliminar libro de la lista',
   ERROR_BORRAR_LISTA: 'Error al borrar lista',

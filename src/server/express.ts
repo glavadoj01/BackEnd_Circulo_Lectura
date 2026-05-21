@@ -1,7 +1,9 @@
 import express from 'express';
 import { corsConfig } from '../config/cors.js';
 import { authMiddleware } from '../utils/authMiddleware.js';
-import rutasConexionBD from '../routes/conexionBD.routes.js';
+import rutasConexionBD from '../routes/rutasConexionBD.routes.js';
+import rutaDefault from '../routes/rutaDefault.routes.js';
+import rutasPrivadas from '../routes/rutasPrivadas.routes.js';
 
 /**
  * Crea y configura una instancia de servidor Express con middleware para CORS y rutas definidas.
@@ -19,6 +21,9 @@ export function crearServidor(): express.Express {
   // Middleware de autenticación para proteger rutas
   app.use(authMiddleware);
   // Registrar las rutas protegidas del router de conexión a la base de datos
+  app.use(rutasPrivadas);
+  // Registrar el router para rutas no definidas (ruta por defecto)
+  app.use(rutaDefault);
   // Retornar la instancia de la aplicación Express configurada
   return app;
 }

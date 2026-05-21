@@ -1,5 +1,5 @@
-import { ConexionBD } from '../services/conexionBD.service.js';
-import { respuestaError, respuestaOk } from '../utils/validationMessages.utils.js';
+import { ConexionBD } from '../../services/conexionBD.service.js';
+import { respuestaError, respuestaOk } from '../../utils/validationMessages.utils.js';
 
 export async function resetearAPI(_req: any, res: any) {
   let conexionAbierta = null as ConexionBD | null;

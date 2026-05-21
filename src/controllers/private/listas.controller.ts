@@ -1,8 +1,8 @@
 import { Request, Response } from 'express';
-import { ConexionBD } from '../services/conexionBD.service.js';
-import { ListaBD } from '../interfaces/modelosBD/modelosBD.js';
-import { respuestaOk, respuestaError } from '../utils/validationMessages.utils.js';
-import { ConexionListas } from '../services/conexionListas.service.js';
+import { ConexionBD } from '../../services/conexionBD.service.js';
+import { ListaBD } from '../../interfaces/modelosBD/modelosBD.js';
+import { respuestaOk, respuestaError } from '../../utils/validationMessages.utils.js';
+import { ConexionListas } from '../../services/conexionListas.service.js';
 
 // Crear una nueva lista
 export async function crearLista(req: Request, res: Response) {

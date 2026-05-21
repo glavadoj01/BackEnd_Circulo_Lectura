@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
-import { LoginService } from '../services/login.service.js';
-import { respuestaError, respuestaOk } from '../utils/validationMessages.utils.js';
+import { LoginService } from '../../services/login.service.js';
+import { respuestaError, respuestaOk } from '../../utils/validationMessages.utils.js';
 
 export async function loginAction(req: Request, res: Response) {
   const { email, password } = req.body;

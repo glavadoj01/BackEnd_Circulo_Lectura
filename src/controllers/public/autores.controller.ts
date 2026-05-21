@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
-import { ConexionBD } from '../services/conexionBD.service.js';
-import { respuestaOk, respuestaError } from '../utils/validationMessages.utils.js';
+import { ConexionBD } from '../../services/conexionBD.service.js';
+import { respuestaOk, respuestaError } from '../../utils/validationMessages.utils.js';
 
 export async function obtenerAutores(_req: Request, res: Response) {
   let conexion: ConexionBD | null = null;

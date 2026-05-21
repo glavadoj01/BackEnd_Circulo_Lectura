@@ -3,6 +3,18 @@ import { ConexionBD } from '../services/conexionBD.service.js';
 import { respuestaError } from './validationMessages.utils.js';
 import { AuthRequest } from '../interfaces/modelosApp/modelosApp.js';
 
+const regexNumero = /^\d+$/;
+
+const procesarIdUsuario = (url: string): number | null => {
+  const partes = url.split('/');
+  const idIn = partes[partes.length - 1];
+  if (regexNumero.test(idIn)) {
+    return parseInt(idIn, 10);
+  }
+
+  return null;
+};
+
 export async function authMiddleware(req: AuthRequest, res: Response, next: NextFunction) {
   try {
     console.log('================================');
@@ -91,16 +103,4 @@ export async function authMiddleware(req: AuthRequest, res: Response, next: Next
     console.log('[AUTH] authMiddleware - FIN');
     console.log('================================');
   }
-}
-
-const regexNumero = /^\d+$/;
-
-function procesarIdUsuario(url: string): number | null {
-  const partes = url.split('/');
-  const idIn = partes[partes.length - 1];
-  if (regexNumero.test(idIn)) {
-    return parseInt(idIn, 10);
-  }
-
-  return null;
 }
