@@ -32,7 +32,6 @@ import {
 import {
   obtenerUsuarios,
   obtenerUsuario,
-  crearUsuario,
   actualizarUsuario,
   borrarUsuario,
   obtenerLibrosLeidosUsuario,
@@ -48,7 +47,7 @@ import { requireAdmin, requireAuth } from '../utils/requireAuth.js';
 const rutasPrivadas = Router();
 
 // Rutas de autenticación
-rutasPrivadas.post('/auth/login', requireAuth, loginAction);
+rutasPrivadas.post('/auth/login', loginAction);
 rutasPrivadas.post('/auth/logout', requireAuth, logoutAction);
 rutasPrivadas.post('/admin/panel', requireAdmin);
 
@@ -74,10 +73,9 @@ rutasPrivadas.post('/lista/:id/libro', requireAuth, agregarLibroALista);
 rutasPrivadas.delete('/lista/:id/libro/:libroId', requireAuth, eliminarLibroDeLista);
 
 // Rutas Usuarios
-rutasPrivadas.get('/usuarios', requireAuth, obtenerUsuarios);
+rutasPrivadas.get('/usuarios', requireAdmin, obtenerUsuarios);
 rutasPrivadas.get('/usuario/:id', requireAuth, obtenerUsuario);
 
-rutasPrivadas.post('/usuario', requireAuth, crearUsuario);
 rutasPrivadas.put('/usuario/:id', requireAuth, actualizarUsuario);
 rutasPrivadas.delete('/usuario/:id', requireAuth, borrarUsuario);
 

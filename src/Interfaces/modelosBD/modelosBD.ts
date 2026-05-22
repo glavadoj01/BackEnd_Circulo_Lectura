@@ -10,7 +10,7 @@ export interface UsuarioBD {
   nombre_real: string;
   apellido_usuario?: string;
   fecha_registro_usuario: Date | string;
-  esAdministrador: boolean; // 0: No, 1: Mod, 2: Admin
+  esAdministrador: 0 | 1 | 2; // 0: No, 1: Mod, 2: Admin
 }
 
 export interface GeneroBD {

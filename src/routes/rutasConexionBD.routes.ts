@@ -15,7 +15,7 @@ import {
   obtenerListasTotal,
 } from '../controllers/public/listas.controller.js';
 import { resetearAPI } from '../controllers/public/resetAPI.controller.js';
-import { obtenerNombreUsuario } from '../controllers/public/usuarios.controller.js';
+import { crearUsuario, obtenerNombreUsuario } from '../controllers/public/usuarios.controller.js';
 import { obtenerYears } from '../controllers/public/years.controller.js';
 import {
   obtenerAsistentesEvento,
@@ -29,6 +29,8 @@ import {
 // Creación del router Express para manejar las rutas de la API
 const rutasConexionBD = Router();
 rutasConexionBD.get('/resetAPI', resetearAPI);
+
+rutasConexionBD.post('/usuario', crearUsuario);
 
 // Definicion de las rutas para libros
 rutasConexionBD.get('/libros', obtenerLibros);

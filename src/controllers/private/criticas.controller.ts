@@ -1,8 +1,10 @@
-import { Request, Response } from 'express';
+import { Response } from 'express';
+import type { AuthRequest } from '../../interfaces/modelosApp/modelosApp.js';
 import { LibroCritica } from '../../interfaces/modelosBD/modelosBD.js';
 import { ConexionBD } from '../../services/conexionBD.service.js';
 import { parseCalificacion, parsePositiveInt } from '../../utils/validation.utils.js';
 import { respuestaError, respuestaOk } from '../../utils/validationMessages.utils.js';
+import { asegurarPropietarioAdmin, getSesionID } from '../../utils/authorization.utils.js';
 
 /**
  * Valida los datos de una crítica.
@@ -67,13 +69,16 @@ const construirDatosCritica = (body: any, esActualizacion = false): Partial<Libr
  * @param res Objeto de respuesta de Express.
  * @returns JSON con la crítica creada o un error si ocurrió algún problema.
  */
-export async function crearCritica(req: Request, res: Response) {
+export async function crearCritica(req: AuthRequest, res: Response) {
   let conexionAbierta: ConexionBD | null = null;
   try {
     const datos = construirDatosCritica(req.body);
     if (!validarCritica(datos)) {
       return respuestaError(res, 400, 'CAMPOS_OBLIGATORIOS');
     }
+    const idUsuarioSesion = getSesionID(req);
+    if (idUsuarioSesion === null) return respuestaError(res, 401, 'ERROR_USUARIO_NO_AUTENTICADO');
+    datos.id_usuario = idUsuarioSesion;
     conexionAbierta = new ConexionBD();
     const resultado = await conexionAbierta.insertarRegistro('libro_critica', datos, false);
     if (resultado.datos.affectedRows > 0 || resultado.datos.insertId) {
@@ -96,17 +101,18 @@ export async function crearCritica(req: Request, res: Response) {
  * @param res Objeto de respuesta de Express.
  * @returns JSON indicando si la crítica fue actualizada, o un error si ocurrió algún problema.
  */
-export async function actualizarCritica(req: Request, res: Response) {
+export async function actualizarCritica(req: AuthRequest, res: Response) {
   let conexionAbierta: ConexionBD | null = null;
   try {
     const idLibro = parsePositiveInt(req.params.id);
-    const idUsuario = parsePositiveInt(req.params.usuarioId);
+    const idUsuario = getSesionID(req);
     if (Number.isNaN(idLibro)) {
       return respuestaError(res, 400, 'ID_LIBRO_INVALIDO');
     }
-    if (Number.isNaN(idUsuario)) {
+    if (!idUsuario) {
       return respuestaError(res, 400, 'ID_USUARIO_INVALIDO');
     }
+    if (!asegurarPropietarioAdmin(req, res, idUsuario, 1)) return null;
     const datos = construirDatosCritica(req.body, true);
     if (!validarCritica({ ...datos, id_libro: idLibro, id_usuario: idUsuario }, true)) {
       return respuestaError(res, 400, 'NO_HAY_CAMPOS_ACTUALIZAR');
@@ -136,17 +142,18 @@ export async function actualizarCritica(req: Request, res: Response) {
  * @param res Objeto de respuesta de Express.
  * @returns JSON indicando si la crítica fue borrada, o un error si ocurrió algún problema.
  */
-export async function borrarCritica(req: Request, res: Response) {
+export async function borrarCritica(req: AuthRequest, res: Response) {
   let conexionAbierta: ConexionBD | null = null;
   try {
     const idLibro = parsePositiveInt(req.params.id);
-    const idUsuario = parsePositiveInt(req.params.usuarioId);
+    const idUsuario = getSesionID(req);
     if (Number.isNaN(idLibro)) {
       return respuestaError(res, 400, 'ID_LIBRO_INVALIDO');
     }
-    if (Number.isNaN(idUsuario)) {
+    if (!idUsuario) {
       return respuestaError(res, 400, 'ID_USUARIO_INVALIDO');
     }
+    if (!asegurarPropietarioAdmin(req, res, idUsuario, 1)) return null;
     conexionAbierta = new ConexionBD();
     const resultado = await conexionAbierta.borrarRegistro('libro_critica', {
       id_libro: idLibro,

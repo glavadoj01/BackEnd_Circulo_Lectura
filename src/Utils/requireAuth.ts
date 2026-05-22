@@ -10,7 +10,7 @@ export function requireAuth(req: AuthRequest, res: Response, next: NextFunction)
 }
 
 export function requireAdmin(req: AuthRequest, res: Response, next: NextFunction) {
-  if (!req.user || !req.user.usuario.esAdministrador) {
+  if (req.user?.usuario?.esAdministrador !== 2) {
     return respuestaError(res, 403, 'ERROR_USUARIO_NO_AUTORIZADO');
   }
   next();

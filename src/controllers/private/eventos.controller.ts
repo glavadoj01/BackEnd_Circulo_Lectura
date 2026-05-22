@@ -1,8 +1,11 @@
-import { Request, Response } from 'express';
+import { Response } from 'express';
+import type { AuthRequest } from '../../interfaces/modelosApp/modelosApp.js';
 import { EventoBD } from '../../interfaces/modelosBD/modelosBD.js';
 import { ConexionBD } from '../../services/conexionBD.service.js';
 import { parsePositiveInt } from '../../utils/validation.utils.js';
 import { respuestaOk, respuestaError } from '../../utils/validationMessages.utils.js';
+import { asegurarPropietarioAdmin, getSesionID } from '../../utils/authorization.utils.js';
+import { ConexionEventos } from '../../services/conexionEventos.service.js';
 
 const esFechaValida = (valor: unknown): boolean => {
   if (valor === undefined || valor === null || valor === '') return false;
@@ -74,7 +77,7 @@ const validarEvento = (evento: Partial<EventoBD>, esActualizacion = false): bool
   return true;
 };
 
-export async function crearEvento(req: Request, res: Response) {
+export async function crearEvento(req: AuthRequest, res: Response) {
   let conexion: ConexionBD | null = null;
   try {
     const body =
@@ -83,6 +86,12 @@ export async function crearEvento(req: Request, res: Response) {
     if (!validarEvento(datos)) {
       return respuestaError(res, 400, 'CAMPOS_OBLIGATORIOS');
     }
+
+    const idUsuarioSesion = getSesionID(req);
+    if (idUsuarioSesion === null) {
+      return respuestaError(res, 401, 'ERROR_USUARIO_NO_AUTENTICADO');
+    }
+    datos.id_usuarioCrd = idUsuarioSesion;
 
     conexion = new ConexionBD();
     const resultado = await conexion.insertarRegistro('evento', datos as Record<string, any>);
@@ -98,8 +107,8 @@ export async function crearEvento(req: Request, res: Response) {
   }
 }
 
-export async function actualizarEvento(req: Request, res: Response) {
-  let conexion: ConexionBD | null = null;
+export async function actualizarEvento(req: AuthRequest, res: Response) {
+  let conexion: ConexionEventos | null = null;
   try {
     const idEvento = parsePositiveInt(req.params.id ?? req.body.id_evento);
     if (Number.isNaN(idEvento)) {
@@ -113,7 +122,23 @@ export async function actualizarEvento(req: Request, res: Response) {
       return respuestaError(res, 400, 'NO_HAY_CAMPOS_ACTUALIZAR');
     }
 
-    conexion = new ConexionBD();
+    conexion = new ConexionEventos();
+    const evento = await conexion.listarRegistros(
+      'evento',
+      { id_evento: idEvento },
+      '',
+      1,
+      'id_usuarioCrd',
+    );
+    const idCrd =
+      evento.exito && Array.isArray(evento.datos) && evento.datos.length > 0
+        ? evento.datos[0].id_usuarioCrd
+        : null;
+    if (!evento) {
+      return respuestaError(res, 404, 'NO_ENCONTRADO_EVENTO');
+    }
+    if (!asegurarPropietarioAdmin(req, res, Number(idCrd), 1)) return null;
+
     const resultado = await conexion.actualizarRegistro('evento', datos as Record<string, any>, {
       id_evento: idEvento,
     });
@@ -133,15 +158,29 @@ export async function actualizarEvento(req: Request, res: Response) {
   }
 }
 
-export async function borrarEvento(req: Request, res: Response) {
-  let conexion: ConexionBD | null = null;
+export async function borrarEvento(req: AuthRequest, res: Response) {
+  let conexion: ConexionEventos | null = null;
   try {
     const idEvento = parsePositiveInt(req.params.id ?? req.body.id_evento);
     if (Number.isNaN(idEvento)) {
       return respuestaError(res, 400, 'ID_EVENTO_INVALIDO');
     }
 
-    conexion = new ConexionBD();
+    conexion = new ConexionEventos();
+    const evento = await conexion.listarRegistros(
+      'evento',
+      { id_evento: idEvento },
+      '',
+      1,
+      'id_usuarioCrd',
+    );
+
+    if (!evento) {
+      return respuestaError(res, 404, 'NO_ENCONTRADO_EVENTO');
+    }
+    const idCrd = evento.exito && Array.isArray(evento.datos) ? evento.datos[0] : null;
+    if (!asegurarPropietarioAdmin(req, res, Number(idCrd), 1)) return null;
+
     const resultado = await conexion.borrarRegistro('evento', { id_evento: idEvento });
 
     if (resultado.datos.affectedRows === 0) {

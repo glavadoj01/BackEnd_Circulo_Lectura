@@ -1,8 +1,10 @@
-import { Request, Response } from 'express';
+import { Response } from 'express';
+import type { AuthRequest } from '../../interfaces/modelosApp/modelosApp.js';
 import { ConexionBD } from '../../services/conexionBD.service.js';
 import { LibroBD } from '../../interfaces/modelosBD/modelosBD.js';
 import { parsePositiveInt } from '../../utils/validation.utils.js';
 import { respuestaOk, respuestaError } from '../../utils/validationMessages.utils.js';
+import { asegurarRol } from '../../utils/authorization.utils.js';
 
 /**
  * Valida los datos de un autor.
@@ -154,9 +156,10 @@ const sincronizarGeneros = async (conexion: ConexionBD, idLibro: number, generos
  * @param res Objeto de respuesta de Express, se enviará un JSON con el resultado de la operación.
  * @returns JSON con el ID del libro creado y los datos ingresados, o un error si ocurrió algún problema.
  */
-export async function crearLibro(req: Request, res: Response) {
+export async function crearLibro(req: AuthRequest, res: Response) {
   let conexionAbierta: ConexionBD | null = null;
   try {
+    if (!asegurarRol(req, res, 2)) return null;
     const datos: Partial<LibroBD> = req.body.libro ? req.body.libro : req.body;
     if (
       !datos.titulo_libro ||
@@ -210,9 +213,10 @@ export async function crearLibro(req: Request, res: Response) {
  * @param res Objeto de respuesta de Express, se enviará un JSON con el resultado de la operación.
  * @returns JSON indicando si el libro fue actualizado y cuántos registros fueron afectados, o un error si ocurrió algún problema o si el libro no fue encontrado.
  */
-export async function actualizarLibro(req: Request, res: Response) {
+export async function actualizarLibro(req: AuthRequest, res: Response) {
   let conexionAbierta: ConexionBD | null = null;
   try {
+    if (!asegurarRol(req, res, 2)) return null;
     const idRaw = req.params.id ?? req.body.id_libro;
     const id = parsePositiveInt(idRaw);
     const datos: Partial<LibroBD> =
@@ -256,9 +260,11 @@ export async function actualizarLibro(req: Request, res: Response) {
  * @param res Objeto de respuesta de Express, se enviará un JSON con el resultado de la operación.
  * @returns JSON indicando si el libro fue borrado y cuántos registros fueron afectados, o un error si ocurrió algún problema.
  */
-export async function borrarLibro(req: Request, res: Response) {
+export async function borrarLibro(req: AuthRequest, res: Response) {
   let conexionAbierta: ConexionBD | null = null;
   try {
+    if (!asegurarRol(req, res, 2)) return null;
+
     const idRaw = req.params.id ?? req.body.id_libro;
     const id = parsePositiveInt(idRaw);
     if (Number.isNaN(id)) {
