@@ -1,53 +1,53 @@
 {
-  "name": "backend_circulo_lectura",
-  "version": "0.3.6",
-  "description": "Backend para proyecto educativo - TFC",
-  "homepage": "https://github.com/glavadoj01/BackEnd_Circulo_Lectura#readme",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/glavadoj01/BackEnd_Circulo_Lectura.git"
-  },
-  "bugs": {
-    "url": "https://github.com/glavadoj01/BackEnd_Circulo_Lectura/issues"
-  },
-  "license": "GNU General Public License v3.0",
-  "author": "Gonzalo Lavado",
-  "type": "module",
-  "main": "src/main.ts",
-  "volta": {
-    "node": "22.22.2",
-    "npm": "11.6.4"
-  },
-  "scripts": {
-    "reinstall": "rm -rf node_modules package-lock.json && npm install",
-    "kill3000": "powershell -Command \"try { Get-NetTCPConnection -LocalPort 3000 -State Listen -ErrorAction Stop | Select-Object -ExpandProperty OwningProcess | ForEach-Object { Stop-Process -Id $_ -Force } } catch {}\"",
-    "build": "tsc",
-    "dev": "clear && tsx watch src/main.ts",
-    "start": "clear && build && node dist/main.js",
-    "run": "clear && npm run reinstall && clear && npm run dev"
-  },
-  "prettier": {
-    "useTabs": true,
-    "tabWidth": 2,
-    "printWidth": 120,
-    "singleQuote": false,
-    "singleAttributePerLine": false,
-    "arrowParens": "avoid"
-  },
-  "private": true,
-  "dependencies": {
-    "bcrypt": "^6.0.0",
-    "cors": "^2.8.6",
-    "dotenv": "^17.2.4",
-    "express": "^5.2.1",
-    "mysql2": "^3.16.3"
-  },
-  "devDependencies": {
-    "@types/bcrypt": "^6.0.0",
-    "@types/cors": "^2.8.19",
-    "@types/express": "^5.0.6",
-    "@types/node": "^25.2.1",
-    "tsx": "^4.21.0",
-    "typescript": "^5.9.3"
-  }
+	"name": "backend_circulo_lectura",
+	"version": "0.3.6",
+	"description": "Backend para proyecto educativo - TFC",
+	"homepage": "https://github.com/glavadoj01/BackEnd_Circulo_Lectura#readme",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/glavadoj01/BackEnd_Circulo_Lectura.git"
+	},
+	"bugs": {
+		"url": "https://github.com/glavadoj01/BackEnd_Circulo_Lectura/issues"
+	},
+	"license": "GNU General Public License v3.0",
+	"author": "Gonzalo Lavado",
+	"type": "module",
+	"main": "src/main.ts",
+	"volta": {
+		"node": "22.22.2",
+		"npm": "11.6.4"
+	},
+	"scripts": {
+		"reinstall": "rm -rf node_modules package-lock.json && npm install",
+		"kill3000": "powershell -Command \"try { Get-NetTCPConnection -LocalPort 3000 -State Listen -ErrorAction Stop | Select-Object -ExpandProperty OwningProcess | ForEach-Object { Stop-Process -Id $_ -Force } } catch {}\"",
+		"build": "tsc",
+		"dev": "clear && tsx watch src/main.ts",
+		"start": "clear && build && node dist/main.js",
+		"run": "clear && npm run reinstall && clear && npm run dev"
+	},
+	"prettier": {
+		"useTabs": true,
+		"tabWidth": 2,
+		"printWidth": 120,
+		"singleQuote": false,
+		"singleAttributePerLine": false,
+		"arrowParens": "avoid"
+	},
+	"private": true,
+	"dependencies": {
+		"bcrypt": "^6.0.0",
+		"cors": "^2.8.6",
+		"dotenv": "^17.2.4",
+		"express": "^5.2.1",
+		"mysql2": "^3.16.3"
+	},
+	"devDependencies": {
+		"@types/bcrypt": "^6.0.0",
+		"@types/cors": "^2.8.19",
+		"@types/express": "^5.0.6",
+		"@types/node": "^25.2.1",
+		"tsx": "^4.21.0",
+		"typescript": "^5.9.3"
+	}
 }

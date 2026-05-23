@@ -1,4 +1,4 @@
-import * as dotenv from 'dotenv';
+import * as dotenv from "dotenv";
 
 dotenv.config();
 
@@ -12,24 +12,24 @@ dotenv.config();
  * @returns
  */
 export function obtenerEnv(
-  nombre: string,
-  opciones?: { requerido?: boolean; defaultValue?: string; permitirVacio?: boolean },
+	nombre: string,
+	opciones?: { requerido?: boolean; defaultValue?: string; permitirVacio?: boolean },
 ): string {
-  const valor = process.env[nombre];
-  const requerido = opciones?.requerido ?? false;
-  const permitirVacio = opciones?.permitirVacio ?? false;
+	const valor = process.env[nombre];
+	const requerido = opciones?.requerido ?? false;
+	const permitirVacio = opciones?.permitirVacio ?? false;
 
-  if (valor === undefined) {
-    if (opciones?.defaultValue !== undefined) return opciones.defaultValue;
-    if (requerido) throw new Error(`[ENV] Falta variable requerida: ${nombre}`);
-    return '';
-  }
+	if (valor === undefined) {
+		if (opciones?.defaultValue !== undefined) return opciones.defaultValue;
+		if (requerido) throw new Error(`[ENV] Falta variable requerida: ${nombre}`);
+		return "";
+	}
 
-  const limpio = valor.trim();
-  if (!permitirVacio && limpio.length === 0) {
-    if (opciones?.defaultValue !== undefined) return opciones.defaultValue;
-    if (requerido) throw new Error(`[ENV] Variable vacía no permitida: ${nombre}`);
-  }
+	const limpio = valor.trim();
+	if (!permitirVacio && limpio.length === 0) {
+		if (opciones?.defaultValue !== undefined) return opciones.defaultValue;
+		if (requerido) throw new Error(`[ENV] Variable vacía no permitida: ${nombre}`);
+	}
 
-  return limpio;
+	return limpio;
 }

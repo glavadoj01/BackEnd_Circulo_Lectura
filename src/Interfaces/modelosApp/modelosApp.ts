@@ -1,14 +1,14 @@
 import {
-  EventoBD,
-  EventoComentario,
-  EventoUsuario,
-  LibroBD,
-  LibroCritica,
-  ListaComentarios,
-  SesionBD,
-  UsuarioBD,
-} from '../modelosBD/modelosBD.js';
-import { Request } from 'express';
+	EventoBD,
+	EventoComentario,
+	EventoUsuario,
+	LibroBD,
+	LibroCritica,
+	ListaComentarios,
+	SesionBD,
+	UsuarioBD,
+} from "../modelosBD/modelosBD.js";
+import { Request } from "express";
 /****************** INTERFACES DE LA CAPA DE APLICACIÓN ******************/
 
 /**
@@ -27,11 +27,11 @@ import { Request } from 'express';
  * - nombre_idioma_original: nombre del idioma original del libro (opcional).
  */
 export interface LibroApp extends LibroBD {
-  autores?: Array<{ nombre_autor: string; apellido_autor: string; id_autor: number }>; // Lista de autores del libro
-  generos?: Array<{ nombre_genero: string }>; // Lista de géneros del libro
-  totalResenas?: number; // Total de reseñas del libro
-  calificacionPromedio?: number; // Calificación promedio del libro
-  nombre_idioma_original?: string;
+	autores?: Array<{ nombre_autor: string; apellido_autor: string; id_autor: number }>; // Lista de autores del libro
+	generos?: Array<{ nombre_genero: string }>; // Lista de géneros del libro
+	totalResenas?: number; // Total de reseñas del libro
+	calificacionPromedio?: number; // Calificación promedio del libro
+	nombre_idioma_original?: string;
 }
 
 /**
@@ -40,8 +40,8 @@ export interface LibroApp extends LibroBD {
  * - frecuencias: array de números que representan la cantidad de críticas para cada nota (1 a 5 estrellas), donde el índice 0 corresponde a 0 estrellas, el índice 1 a 1 estrella, y así sucesivamente hasta el índice 5 que corresponde a 5 estrellas.
  */
 export interface RespuestaCriticas {
-  criticas: LibroCritica[];
-  frecuencias: [number, number, number, number, number];
+	criticas: LibroCritica[];
+	frecuencias: [number, number, number, number, number];
 }
 
 /**
@@ -52,10 +52,10 @@ export interface RespuestaCriticas {
  * - errorCriticas: booleano que indica si hubo un error al obtener las críticas (true si hubo error, false si se obtuvieron correctamente).
  */
 export interface DetalleLibroCompleto {
-  libro: LibroApp;
-  criticas: LibroCritica[];
-  notasDistribucion: { nota: number; cantidad: number; frecuencia: number }[];
-  errorCriticas: boolean;
+	libro: LibroApp;
+	criticas: LibroCritica[];
+	notasDistribucion: { nota: number; cantidad: number; frecuencia: number }[];
+	errorCriticas: boolean;
 }
 
 /**
@@ -63,10 +63,10 @@ export interface DetalleLibroCompleto {
  * Incluye solo los campos necesarios para la tarjeta.
  */
 export interface LibroResumen {
-  id_libro: number;
-  titulo_libro: string;
-  autores: Array<{ nombre_autor: string; apellido_autor: string }>;
-  calificacionPromedio?: number;
+	id_libro: number;
+	titulo_libro: string;
+	autores: Array<{ nombre_autor: string; apellido_autor: string }>;
+	calificacionPromedio?: number;
 }
 
 /**
@@ -82,15 +82,15 @@ export interface LibroResumen {
  * Solo los campos necesarios para el recuadro del catálogo.
  */
 export interface ListaApp {
-  id_lista: number;
-  id_usuarioCreador: number;
-  nombre_lista: string;
-  nombreCreador: string;
-  categorias: string[];
-  librosPortada: number[]; // Solo los 2-3 ids para portada
-  totalLibros: number;
-  totalMeGusta: number;
-  descripcion_lista?: string;
+	id_lista: number;
+	id_usuarioCreador: number;
+	nombre_lista: string;
+	nombreCreador: string;
+	categorias: string[];
+	librosPortada: number[]; // Solo los 2-3 ids para portada
+	totalLibros: number;
+	totalMeGusta: number;
+	descripcion_lista?: string;
 }
 
 /**
@@ -101,49 +101,49 @@ export interface ListaApp {
  * - errorComentarios: booleano que indica si hubo un error al obtener los comentarios (true si hubo error, false si se obtuvieron correctamente).
  */
 export interface DetalleListaCompleta {
-  lista: ListaApp;
-  libros: LibroResumen[];
-  comentarios: ListaComentarios[];
-  errorComentarios: boolean;
+	lista: ListaApp;
+	libros: LibroResumen[];
+	comentarios: ListaComentarios[];
+	errorComentarios: boolean;
 }
 
 export interface EventoApp extends EventoBD {
-  nombreCreador: string;
+	nombreCreador: string;
 }
 
 export interface EventoResumen extends EventoApp {
-  totalAsistentes: number;
-  categorias?: string[];
+	totalAsistentes: number;
+	categorias?: string[];
 }
 
 export interface UsuarioCompleto extends UsuarioBD {
-  librosLeidos: LibroResumen[];
-  librosPendientes: LibroResumen[];
-  listasCreadas: ListaApp[];
-  listasSeguidas: ListaApp[];
-  eventosCreados: EventoResumen[];
-  eventosAsistidos: EventoResumen[];
-  criticas: CriticaConTitulo[];
-  avatarUrl?: string;
+	librosLeidos: LibroResumen[];
+	librosPendientes: LibroResumen[];
+	listasCreadas: ListaApp[];
+	listasSeguidas: ListaApp[];
+	eventosCreados: EventoResumen[];
+	eventosAsistidos: EventoResumen[];
+	criticas: CriticaConTitulo[];
+	avatarUrl?: string;
 }
 
 export interface CriticaConTitulo extends LibroCritica {
-  titulo_libro: string;
+	titulo_libro: string;
 }
 
 export interface DetalleEventoCompleto {
-  evento: EventoResumen;
-  asistentes: EventoUsuario[];
-  libros: LibroResumen[];
-  comentarios: EventoComentario[];
-  errorComentarios: boolean;
+	evento: EventoResumen;
+	asistentes: EventoUsuario[];
+	libros: LibroResumen[];
+	comentarios: EventoComentario[];
+	errorComentarios: boolean;
 }
 
 export interface SesionApp {
-  usuario: Partial<UsuarioBD>;
-  sesion: Partial<SesionBD>;
+	usuario: Partial<UsuarioBD>;
+	sesion: Partial<SesionBD>;
 }
 
 export interface AuthRequest extends Request {
-  user?: SesionApp | null;
+	user?: SesionApp | null;
 }
