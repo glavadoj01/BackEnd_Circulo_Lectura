@@ -27,15 +27,15 @@ export async function authMiddleware(req: AuthRequest, res: Response, next: Next
 			return next(); // público sin usuario
 		}
 
-		const idIn = procesarIdUsuario(req.originalUrl);
-		console.log("[AUTH] authMiddleware - ID usuario procesado de URL:", idIn);
-
 		const token = auth.substring("Bearer ".length).trim();
 		console.log("[AUTH] authMiddleware - Token extraído:", token);
 		if (!token) {
 			req.user = null;
 			return next();
 		}
+
+		const idIn = procesarIdUsuario(req.originalUrl);
+		console.log("[AUTH] authMiddleware - ID usuario procesado de URL:", idIn);
 
 		const conexion = new ConexionBD();
 		const rows: any = await conexion.listarRegistros(
@@ -56,10 +56,6 @@ export async function authMiddleware(req: AuthRequest, res: Response, next: Next
 
 		const idSesion = rows.datos[0].id_usuario;
 		console.log("[AUTH] authMiddleware - ID sesión encontrada:", idSesion);
-		if (idIn !== null && idSesion !== idIn) {
-			console.log("[AUTH] authMiddleware - ID sesión no coincide con ID en URL");
-			return respuestaError(res, 403, "ERROR_LOGIN_TOKEN_NO_CORRESPONDE");
-		}
 
 		const rowsUsuario: any = await conexion.listarRegistros(
 			"usuario",
@@ -68,11 +64,20 @@ export async function authMiddleware(req: AuthRequest, res: Response, next: Next
 			1,
 			"nombre_usuario, email_usuario, nombre_real, apellido_usuario, esAdministrador",
 		);
+		console.log("[AUTH] authMiddleware - Resultado consulta usuario:", rowsUsuario);
+
+		if (idSesion !== idIn) {
+			console.log("[AUTH] authMiddleware - ID sesión no coincide con ID en URL");
+			if (rowsUsuario.datos[0].esAdministrador !== 2) {
+				return respuestaError(res, 403, "ERROR_LOGIN_TOKEN_NO_CORRESPONDE");
+			}
+			console.log("[AUTH] authMiddleware - Usuario es administrador, se permite acceso a ID diferente en URL");
+		}
+
 		if (!rowsUsuario.exito || !rowsUsuario.datos || rowsUsuario.datos.length === 0) {
 			console.log("[AUTH] authMiddleware - Usuario no encontrado");
 			return respuestaError(res, 401, "ERROR_USUARIO_OBTENER_USUARIO");
 		}
-		console.log("[AUTH] authMiddleware - Resultado consulta usuario:", rowsUsuario);
 
 		const sesion = rows.datos[0];
 		const usuario = rowsUsuario.datos[0];
