@@ -20,14 +20,19 @@
   },
   "scripts": {
     "reinstall": "rm -rf node_modules package-lock.json && npm install",
-    "build": "tsc",
     "kill3000": "powershell -Command \"try { Get-NetTCPConnection -LocalPort 3000 -State Listen -ErrorAction Stop | Select-Object -ExpandProperty OwningProcess | ForEach-Object { Stop-Process -Id $_ -Force } } catch {}\"",
+    "build": "tsc",
     "dev": "clear && tsx watch src/main.ts",
-    "start": "clear && node dist/main.js"
+    "start": "clear && build && node dist/main.js",
+    "run": "clear && npm run reinstall && clear && npm run dev"
   },
   "prettier": {
-    "printWidth": 100,
-    "singleQuote": true
+    "useTabs": true,
+    "tabWidth": 2,
+    "printWidth": 120,
+    "singleQuote": false,
+    "singleAttributePerLine": false,
+    "arrowParens": "avoid"
   },
   "private": true,
   "dependencies": {
