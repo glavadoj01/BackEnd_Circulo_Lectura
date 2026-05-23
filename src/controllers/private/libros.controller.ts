@@ -1,10 +1,10 @@
-import { Response } from 'express';
-import type { AuthRequest } from '../../interfaces/modelosApp/modelosApp.js';
-import { ConexionBD } from '../../services/conexionBD.service.js';
-import { LibroBD } from '../../interfaces/modelosBD/modelosBD.js';
-import { parsePositiveInt } from '../../utils/validation.utils.js';
-import { respuestaOk, respuestaError } from '../../utils/validationMessages.utils.js';
-import { asegurarRol } from '../../utils/authorization.utils.js';
+import { Response } from "express";
+import type { AuthRequest } from "../../interfaces/modelosApp/modelosApp.js";
+import { ConexionBD } from "../../services/conexionBD.service.js";
+import { LibroBD } from "../../interfaces/modelosBD/modelosBD.js";
+import { parsePositiveInt } from "../../utils/validation.utils.js";
+import { respuestaOk, respuestaError } from "../../utils/validationMessages.utils.js";
+import { asegurarRol } from "../../utils/authorization.utils.js";
 
 /**
  * Valida los datos de un autor.
@@ -12,13 +12,13 @@ import { asegurarRol } from '../../utils/authorization.utils.js';
  * @returns {boolean} true si es válido, false si no.
  */
 const validarAutor = (autor: any): boolean => {
-  return (
-    autor &&
-    typeof autor.nombre_autor === 'string' &&
-    autor.nombre_autor.trim().length > 1 &&
-    typeof autor.apellido_autor === 'string' &&
-    autor.apellido_autor.trim().length > 1
-  );
+	return (
+		autor &&
+		typeof autor.nombre_autor === "string" &&
+		autor.nombre_autor.trim().length > 1 &&
+		typeof autor.apellido_autor === "string" &&
+		autor.apellido_autor.trim().length > 1
+	);
 };
 
 /**
@@ -27,9 +27,7 @@ const validarAutor = (autor: any): boolean => {
  * @returns {boolean} true si es válido, false si no.
  */
 const validarGenero = (genero: any): boolean => {
-  return (
-    genero && typeof genero.nombre_genero === 'string' && genero.nombre_genero.trim().length > 1
-  );
+	return genero && typeof genero.nombre_genero === "string" && genero.nombre_genero.trim().length > 1;
 };
 
 /**
@@ -39,28 +37,27 @@ const validarGenero = (genero: any): boolean => {
  * @returns Promise<number[]> Array de ids de autores.
  */
 const procesarAutores = async (conexion: ConexionBD, autores: any[]): Promise<number[]> => {
-  const ids: number[] = [];
-  for (const autor of autores) {
-    if (!validarAutor(autor)) throw new Error('AUTOR_DATOS_INVALIDOS');
-    const { nombre_autor, apellido_autor, pais_autor } = autor;
-    let encontrado = (
-      await conexion.listarRegistros('autor', { nombre_autor, apellido_autor }, '', 1, 'id_autor')
-    ).datos[0];
-    if (encontrado === undefined) {
-      const idAutor = (
-        await conexion.insertarRegistro('autor', {
-          nombre_autor,
-          apellido_autor,
-          pais_autor: pais_autor || '',
-          esUsuario: false,
-        })
-      ).datos.insertId;
-      ids.push(idAutor);
-    } else {
-      ids.push(encontrado.id_autor);
-    }
-  }
-  return ids;
+	const ids: number[] = [];
+	for (const autor of autores) {
+		if (!validarAutor(autor)) throw new Error("AUTOR_DATOS_INVALIDOS");
+		const { nombre_autor, apellido_autor, pais_autor } = autor;
+		let encontrado = (await conexion.listarRegistros("autor", { nombre_autor, apellido_autor }, "", 1, "id_autor"))
+			.datos[0];
+		if (encontrado === undefined) {
+			const idAutor = (
+				await conexion.insertarRegistro("autor", {
+					nombre_autor,
+					apellido_autor,
+					pais_autor: pais_autor || "",
+					esUsuario: false,
+				})
+			).datos.insertId;
+			ids.push(idAutor);
+		} else {
+			ids.push(encontrado.id_autor);
+		}
+	}
+	return ids;
 };
 
 /**
@@ -70,25 +67,23 @@ const procesarAutores = async (conexion: ConexionBD, autores: any[]): Promise<nu
  * @returns Promise<number[]> Array de ids de géneros.
  */
 const procesarGeneros = async (conexion: ConexionBD, generos: any[]): Promise<number[]> => {
-  const ids: number[] = [];
-  for (const genero of generos) {
-    if (!validarGenero(genero)) throw new Error('GENERO_DATOS_INVALIDOS');
-    const { nombre_genero } = genero;
-    let encontrado = (
-      await conexion.listarRegistros('genero', { nombre_genero }, '', 1, 'id_genero')
-    ).datos[0];
-    if (encontrado === undefined) {
-      const idGenero = (
-        await conexion.insertarRegistro('genero', {
-          nombre_genero,
-        })
-      ).datos.insertId;
-      ids.push(idGenero);
-    } else {
-      ids.push(encontrado.id_genero);
-    }
-  }
-  return ids;
+	const ids: number[] = [];
+	for (const genero of generos) {
+		if (!validarGenero(genero)) throw new Error("GENERO_DATOS_INVALIDOS");
+		const { nombre_genero } = genero;
+		let encontrado = (await conexion.listarRegistros("genero", { nombre_genero }, "", 1, "id_genero")).datos[0];
+		if (encontrado === undefined) {
+			const idGenero = (
+				await conexion.insertarRegistro("genero", {
+					nombre_genero,
+				})
+			).datos.insertId;
+			ids.push(idGenero);
+		} else {
+			ids.push(encontrado.id_genero);
+		}
+	}
+	return ids;
 };
 
 /**
@@ -98,27 +93,45 @@ const procesarGeneros = async (conexion: ConexionBD, generos: any[]): Promise<nu
  * @param autoresIds Array de IDs de autores a sincronizar.
  */
 const sincronizarAutores = async (conexion: ConexionBD, idLibro: number, autoresIds: number[]) => {
-  const actuales = (await conexion.listarRegistros('libro_autor', { id_libro: idLibro })).datos;
-  const actualesIds = actuales.map((rel: any) => rel.id_autor);
+	const autoresDeseados = [...new Set(autoresIds)];
+	const actuales = (await conexion.listarRegistros("libro_autor", { id_libro: idLibro })).datos;
+	const actualesPorId = new Map<number, any>(actuales.map((rel: any) => [rel.id_autor, rel]));
 
-  for (const idAutor of autoresIds) {
-    if (!actualesIds.includes(idAutor)) {
-      await conexion.insertarRegistro('libro_autor', {
-        id_libro: idLibro,
-        id_autor: idAutor,
-        autorPr: false,
-      });
-    }
-  }
+	for (const [indice, idAutor] of autoresDeseados.entries()) {
+		const autorPrDeseado = indice === 0;
+		const relacionActual = actualesPorId.get(idAutor);
 
-  for (const idActual of actualesIds) {
-    if (!autoresIds.includes(idActual)) {
-      await conexion.borrarRegistro('libro_autor', {
-        id_libro: idLibro,
-        id_autor: idActual,
-      });
-    }
-  }
+		if (!relacionActual) {
+			await conexion.insertarRegistro("libro_autor", {
+				id_libro: idLibro,
+				id_autor: idAutor,
+				autorPr: autorPrDeseado,
+			});
+			continue;
+		}
+
+		if (Boolean(relacionActual.autorPr) !== autorPrDeseado) {
+			await conexion.actualizarRegistro(
+				"libro_autor",
+				{
+					autorPr: autorPrDeseado,
+				},
+				{
+					id_libro: idLibro,
+					id_autor: idAutor,
+				},
+			);
+		}
+	}
+
+	for (const relacionActual of actuales) {
+		if (!autoresDeseados.includes(relacionActual.id_autor)) {
+			await conexion.borrarRegistro("libro_autor", {
+				id_libro: idLibro,
+				id_autor: relacionActual.id_autor,
+			});
+		}
+	}
 };
 
 /**
@@ -128,26 +141,26 @@ const sincronizarAutores = async (conexion: ConexionBD, idLibro: number, autores
  * @param generosIds Array de IDs de géneros a sincronizar.
  */
 const sincronizarGeneros = async (conexion: ConexionBD, idLibro: number, generosIds: number[]) => {
-  const actuales = (await conexion.listarRegistros('libro_genero', { id_libro: idLibro })).datos;
-  const actualesIds = actuales.map((rel: any) => rel.id_genero);
+	const actuales = (await conexion.listarRegistros("libro_genero", { id_libro: idLibro })).datos;
+	const actualesIds = actuales.map((rel: any) => rel.id_genero);
 
-  for (const idGenero of generosIds) {
-    if (!actualesIds.includes(idGenero)) {
-      await conexion.insertarRegistro('libro_genero', {
-        id_libro: idLibro,
-        id_genero: idGenero,
-      });
-    }
-  }
+	for (const idGenero of generosIds) {
+		if (!actualesIds.includes(idGenero)) {
+			await conexion.insertarRegistro("libro_genero", {
+				id_libro: idLibro,
+				id_genero: idGenero,
+			});
+		}
+	}
 
-  for (const idActual of actualesIds) {
-    if (!generosIds.includes(idActual)) {
-      await conexion.borrarRegistro('libro_genero', {
-        id_libro: idLibro,
-        id_genero: idActual,
-      });
-    }
-  }
+	for (const idActual of actualesIds) {
+		if (!generosIds.includes(idActual)) {
+			await conexion.borrarRegistro("libro_genero", {
+				id_libro: idLibro,
+				id_genero: idActual,
+			});
+		}
+	}
 };
 
 /**
@@ -157,54 +170,54 @@ const sincronizarGeneros = async (conexion: ConexionBD, idLibro: number, generos
  * @returns JSON con el ID del libro creado y los datos ingresados, o un error si ocurrió algún problema.
  */
 export async function crearLibro(req: AuthRequest, res: Response) {
-  let conexionAbierta: ConexionBD | null = null;
-  try {
-    if (!asegurarRol(req, res, 2)) return null;
-    const datos: Partial<LibroBD> = req.body.libro ? req.body.libro : req.body;
-    if (
-      !datos.titulo_libro ||
-      typeof datos.titulo_libro !== 'string' ||
-      datos.titulo_libro.trim().length < 2 ||
-      !datos.id_idioma_original
-    ) {
-      return respuestaError(res, 400, 'CAMPOS_OBLIGATORIOS');
-    }
+	let conexionAbierta: ConexionBD | null = null;
+	try {
+		if (!asegurarRol(req, res, 2)) return null;
+		const datos: Partial<LibroBD> = req.body.libro ? req.body.libro : req.body;
+		if (
+			!datos.titulo_libro ||
+			typeof datos.titulo_libro !== "string" ||
+			datos.titulo_libro.trim().length < 2 ||
+			!datos.id_idioma_original
+		) {
+			return respuestaError(res, 400, "CAMPOS_OBLIGATORIOS");
+		}
 
-    const autores = Array.isArray(req.body.autores) ? req.body.autores : [];
-    const generos = Array.isArray(req.body.generos) ? req.body.generos : [];
+		const autores = Array.isArray(req.body.autores) ? req.body.autores : [];
+		const generos = Array.isArray(req.body.generos) ? req.body.generos : [];
 
-    conexionAbierta = new ConexionBD();
+		conexionAbierta = new ConexionBD();
 
-    const autoresIds = await procesarAutores(conexionAbierta, autores);
-    const generosIds = await procesarGeneros(conexionAbierta, generos);
+		const autoresIds = await procesarAutores(conexionAbierta, autores);
+		const generosIds = await procesarGeneros(conexionAbierta, generos);
 
-    const insertId = (await conexionAbierta.insertarRegistro('libro', datos)).datos.insertId;
+		const insertId = (await conexionAbierta.insertarRegistro("libro", datos)).datos.insertId;
 
-    for (const idAutor of autoresIds) {
-      await conexionAbierta.insertarRegistro('libro_autor', {
-        id_libro: insertId,
-        id_autor: idAutor,
-        autorPr: false,
-      });
-    }
-    for (const idGenero of generosIds) {
-      await conexionAbierta.insertarRegistro('libro_genero', {
-        id_libro: insertId,
-        id_genero: idGenero,
-      });
-    }
+		for (const [indice, idAutor] of autoresIds.entries()) {
+			await conexionAbierta.insertarRegistro("libro_autor", {
+				id_libro: insertId,
+				id_autor: idAutor,
+				autorPr: indice === 0,
+			});
+		}
+		for (const idGenero of generosIds) {
+			await conexionAbierta.insertarRegistro("libro_genero", {
+				id_libro: insertId,
+				id_genero: idGenero,
+			});
+		}
 
-    return respuestaOk(res, 201, 'LIBRO_CREADO_OK', {
-      id_libro: insertId,
-      ...datos,
-      autores: autoresIds,
-      generos: generosIds,
-    });
-  } catch (error: any) {
-    return respuestaError(res, 500, 'ERROR_CREAR_LIBRO', error.message);
-  } finally {
-    if (conexionAbierta) await conexionAbierta.close();
-  }
+		return respuestaOk(res, 201, "LIBRO_CREADO_OK", {
+			id_libro: insertId,
+			...datos,
+			autores: autoresIds,
+			generos: generosIds,
+		});
+	} catch (error: any) {
+		return respuestaError(res, 500, "ERROR_CREAR_LIBRO", error.message);
+	} finally {
+		if (conexionAbierta) await conexionAbierta.close();
+	}
 }
 
 /**
@@ -214,44 +227,44 @@ export async function crearLibro(req: AuthRequest, res: Response) {
  * @returns JSON indicando si el libro fue actualizado y cuántos registros fueron afectados, o un error si ocurrió algún problema o si el libro no fue encontrado.
  */
 export async function actualizarLibro(req: AuthRequest, res: Response) {
-  let conexionAbierta: ConexionBD | null = null;
-  try {
-    if (!asegurarRol(req, res, 2)) return null;
-    const idRaw = req.params.id ?? req.body.id_libro;
-    const id = parsePositiveInt(idRaw);
-    const datos: Partial<LibroBD> =
-      typeof req.body.libro === 'object' && req.body.libro !== null ? req.body.libro : req.body;
-    if (Number.isNaN(id)) {
-      return respuestaError(res, 400, 'ID_LIBRO_INVALIDO');
-    }
+	let conexionAbierta: ConexionBD | null = null;
+	try {
+		if (!asegurarRol(req, res, 2)) return null;
+		const idRaw = req.params.id ?? req.body.id_libro;
+		const id = parsePositiveInt(idRaw);
+		const datos: Partial<LibroBD> =
+			typeof req.body.libro === "object" && req.body.libro !== null ? req.body.libro : req.body;
+		if (Number.isNaN(id)) {
+			return respuestaError(res, 400, "ID_LIBRO_INVALIDO");
+		}
 
-    conexionAbierta = new ConexionBD();
-    const afectados = (await conexionAbierta.actualizarRegistro('libro', datos, { id_libro: id }))
-      .datos.affectedRows;
-    if (afectados === 0) {
-      return respuestaError(res, 404, 'ERROR_OBTENER_LIBRO');
-    }
+		const tieneAutores = Object.prototype.hasOwnProperty.call(req.body, "autores");
+		const tieneGeneros = Object.prototype.hasOwnProperty.call(req.body, "generos");
 
-    const autores = Array.isArray(req.body.autores) ? req.body.autores : [];
-    const generos = Array.isArray(req.body.generos) ? req.body.generos : [];
+		conexionAbierta = new ConexionBD();
+		const afectados = (await conexionAbierta.actualizarRegistro("libro", datos, { id_libro: id })).datos.affectedRows;
+		if (afectados === 0) {
+			return respuestaError(res, 404, "ERROR_OBTENER_LIBRO");
+		}
 
-    const autoresIds = await procesarAutores(conexionAbierta, autores);
-    const generosIds = await procesarGeneros(conexionAbierta, generos);
+		if (tieneAutores) {
+			const autores = Array.isArray(req.body.autores) ? req.body.autores : [];
+			const autoresIds = await procesarAutores(conexionAbierta, autores);
+			await sincronizarAutores(conexionAbierta, id, autoresIds);
+		}
 
-    if (autoresIds.length > 0) {
-      await sincronizarAutores(conexionAbierta, id, autoresIds);
-    }
+		if (tieneGeneros) {
+			const generos = Array.isArray(req.body.generos) ? req.body.generos : [];
+			const generosIds = await procesarGeneros(conexionAbierta, generos);
+			await sincronizarGeneros(conexionAbierta, id, generosIds);
+		}
 
-    if (generosIds.length > 0) {
-      await sincronizarGeneros(conexionAbierta, id, generosIds);
-    }
-
-    return respuestaOk(res, 200, 'LIBRO_ACTUALIZADO_OK', { actualizado: true, afectados });
-  } catch (error: any) {
-    return respuestaError(res, 500, 'ERROR_ACTUALIZAR_LIBRO', error.message);
-  } finally {
-    if (conexionAbierta) await conexionAbierta.close();
-  }
+		return respuestaOk(res, 200, "LIBRO_ACTUALIZADO_OK", { actualizado: true, afectados });
+	} catch (error: any) {
+		return respuestaError(res, 500, "ERROR_ACTUALIZAR_LIBRO", error.message);
+	} finally {
+		if (conexionAbierta) await conexionAbierta.close();
+	}
 }
 
 /**
@@ -261,26 +274,25 @@ export async function actualizarLibro(req: AuthRequest, res: Response) {
  * @returns JSON indicando si el libro fue borrado y cuántos registros fueron afectados, o un error si ocurrió algún problema.
  */
 export async function borrarLibro(req: AuthRequest, res: Response) {
-  let conexionAbierta: ConexionBD | null = null;
-  try {
-    if (!asegurarRol(req, res, 2)) return null;
+	let conexionAbierta: ConexionBD | null = null;
+	try {
+		if (!asegurarRol(req, res, 2)) return null;
 
-    const idRaw = req.params.id ?? req.body.id_libro;
-    const id = parsePositiveInt(idRaw);
-    if (Number.isNaN(id)) {
-      return respuestaError(res, 400, 'ID_LIBRO_INVALIDO');
-    }
+		const idRaw = req.params.id ?? req.body.id_libro;
+		const id = parsePositiveInt(idRaw);
+		if (Number.isNaN(id)) {
+			return respuestaError(res, 400, "ID_LIBRO_INVALIDO");
+		}
 
-    conexionAbierta = new ConexionBD();
-    const afectados = (await conexionAbierta.borrarRegistro('libro', { id_libro: id })).datos
-      .affectedRows;
-    if (afectados === 0) {
-      return respuestaError(res, 404, 'ERROR_OBTENER_LIBRO');
-    }
-    return respuestaOk(res, 200, 'LIBRO_BORRADO_OK', { borrado: true, afectados });
-  } catch (error: any) {
-    return respuestaError(res, 500, 'ERROR_BORRAR_LIBRO', error.message);
-  } finally {
-    if (conexionAbierta) await conexionAbierta.close();
-  }
+		conexionAbierta = new ConexionBD();
+		const afectados = (await conexionAbierta.borrarRegistro("libro", { id_libro: id })).datos.affectedRows;
+		if (afectados === 0) {
+			return respuestaError(res, 404, "ERROR_OBTENER_LIBRO");
+		}
+		return respuestaOk(res, 200, "LIBRO_BORRADO_OK", { borrado: true, afectados });
+	} catch (error: any) {
+		return respuestaError(res, 500, "ERROR_BORRAR_LIBRO", error.message);
+	} finally {
+		if (conexionAbierta) await conexionAbierta.close();
+	}
 }
