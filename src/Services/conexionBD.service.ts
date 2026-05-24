@@ -61,6 +61,15 @@ export class ConexionBD {
 		await this.pool.end();
 	}
 
+	/**
+	 * Probar la conexión a la base de datos obteniendo una conexión del pool.
+	 * Si no se puede obtener una conexión, se lanzará un error.
+	 */
+	async probarConexion(): Promise<void> {
+		const conn = await this.pool.getConnection();
+		conn.release();
+	}
+
 	/* ===========================================================================================================
     Métodos básicos de acceso a datos (CRUD) para 1 sola tabla
     =========================================================================================================== */

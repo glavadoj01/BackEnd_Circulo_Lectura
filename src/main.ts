@@ -1,3 +1,4 @@
+import { pruebaCon } from "./config/pruebaCon.js";
 import { obtenerEnv } from "./config/env.js";
 import { app } from "./server/index.js";
 
@@ -29,22 +30,27 @@ try {
 		console.error("[ENV] DB_PORT debe ser un entero positivo.");
 		process.exit(1);
 	}
-
 	console.log("[ENV] Configuración cargada correctamente.");
+	console.log("=============================================");
+
+	console.log(`[SRV] Configuración de entorno:
+	- DB_HOST: ${dbHost}
+	- DB_PORT: ${dbPort}
+	- DB_USER: ${dbUser}
+	- DB_NAME: ${dbName}
+	- SERVER_PORT: ${srvPort}
+	- DB_CHARSET: ${dbCharset}
+	- DB_COLLATION: ${dbCollation}
+=============================================`);
+
+	await pruebaCon();
 
 	app.listen(srvPort, "0.0.0.0", () => {
 		console.log(`[SRV] Servidor escuchando en el puerto ${srvPort}`);
-		console.log("[SRV] Configuración de entorno:");
-		console.log(`- DB_HOST: ${dbHost}`);
-		console.log(`- DB_PORT: ${dbPort}`);
-		console.log(`- DB_USER: ${dbUser}`);
-		console.log(`- DB_NAME: ${dbName}`);
-		console.log(`- SERVER_PORT: ${srvPort}`);
-		console.log(`- DB_CHARSET: ${dbCharset}`);
-		console.log(`- DB_COLLATION: ${dbCollation}`);
-		console.log(`==================================\n\n\n\n`);
+		console.log("=============================================\n");
 	});
-} catch (error) {
-	console.error("[ENV] Error de configuración:", error instanceof Error ? error.message : error);
+} catch (error: any) {
+	console.error("[ENV] Error de configuración:\n", error.message || error.errors[0] || error);
+	console.log("=============================================\n");
 	process.exit(1);
 }
