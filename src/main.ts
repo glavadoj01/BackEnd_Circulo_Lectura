@@ -34,19 +34,20 @@ try {
 	console.log("=============================================");
 
 	console.log(`[SRV] Configuración de entorno:
+	- SERVER_HOST: localhost
+	- SERVER_PORT: ${srvPort}
 	- DB_HOST: ${dbHost}
 	- DB_PORT: ${dbPort}
 	- DB_USER: ${dbUser}
 	- DB_NAME: ${dbName}
-	- SERVER_PORT: ${srvPort}
 	- DB_CHARSET: ${dbCharset}
 	- DB_COLLATION: ${dbCollation}
 =============================================`);
 
 	await pruebaCon();
 
-	app.listen(srvPort, "0.0.0.0", () => {
-		console.log(`[SRV] Servidor escuchando en el puerto ${srvPort}`);
+	app.listen(srvPort, `localhost:${srvPort}`, () => {
+		console.log(`[SRV] Servidor escuchando en: localhost:${srvPort}`);
 		console.log("=============================================\n");
 	});
 } catch (error: any) {

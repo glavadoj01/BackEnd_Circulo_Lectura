@@ -88,6 +88,7 @@ export async function authMiddleware(req: AuthRequest, res: Response, next: Next
 		if (usuario.email_usuario) datosUsuario.email_usuario = usuario.email_usuario;
 		if (usuario.nombre_real) datosUsuario.nombre_real = usuario.nombre_real;
 		if (usuario.apellido_usuario) datosUsuario.apellido_usuario = usuario.apellido_usuario;
+		if (usuario.fecha_registro) datosUsuario.fecha_registro = usuario.fecha_registro;
 		if (usuario.esAdministrador !== undefined && usuario.esAdministrador > 0) {
 			datosUsuario.esAdministrador = usuario.esAdministrador;
 		}

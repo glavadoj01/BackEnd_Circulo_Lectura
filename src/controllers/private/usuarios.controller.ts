@@ -35,7 +35,7 @@ export async function obtenerUsuarios(req: AuthRequest, res: Response) {
 			filtros,
 			"",
 			limit,
-			"id_usuario, nombre_usuario, email_usuario, nombre_real, apellido_usuario, esAdministrador",
+			"id_usuario, nombre_usuario, email_usuario, nombre_real, apellido_usuario, fecha_registro_usuario, esAdministrador",
 		);
 		return respuestaOk(res, 200, "USUARIOS_OBTENIDOS_OK", usuarios.datos);
 	} catch (error: any) {
@@ -67,7 +67,7 @@ export async function obtenerUsuario(req: AuthRequest, res: Response) {
 			{ id_usuario: id },
 			"",
 			1,
-			"id_usuario, nombre_usuario, email_usuario, nombre_real, apellido_usuario, esAdministrador",
+			"id_usuario, nombre_usuario, email_usuario, nombre_real, apellido_usuario, fecha_registro_usuario, esAdministrador",
 		);
 		if (!resultado.datos || resultado.datos.length === 0) {
 			return respuestaError(res, 404, "NO_ENCONTRADO_USUARIO");
