@@ -328,14 +328,14 @@ export class ConexionBD {
 		const operador = valor.operador.toString().toUpperCase();
 
 		if (operador === "IS NULL" || operador === "IS NOT NULL") {
-			clausulas.push(`\`${prefijo}${campo}\` ${operador}`);
+			clausulas.push(`${prefijo}\`${campo}\` ${operador}`);
 			return { clausulas, valores };
 		}
 
 		if ((operador === "IN" || operador === "NOT IN") && Array.isArray(valor.valor)) {
 			if (valor.valor.length === 0) throw new Error(`El array para IN/NOT IN en '${campo}' está vacío.`);
 			const placeholders = valor.valor.map(() => "?").join(", ");
-			clausulas.push(`\`${prefijo}${campo}\` ${operador} (${placeholders})`);
+			clausulas.push(`${prefijo}\`${campo}\` ${operador} (${placeholders})`);
 			valores.push(...valor.valor);
 			return { clausulas, valores };
 		}
@@ -345,7 +345,7 @@ export class ConexionBD {
 			Array.isArray(valor.valor) &&
 			valor.valor.length === 2
 		) {
-			clausulas.push(`\`${prefijo}${campo}\` ${operador} ? AND ?`);
+			clausulas.push(`${prefijo}\`${campo}\` ${operador} ? AND ?`);
 			valores.push(valor.valor[0], valor.valor[1]);
 			return { clausulas, valores };
 		}
@@ -354,7 +354,7 @@ export class ConexionBD {
 			((operador === "LIKE" || operador === "NOT LIKE") && typeof valor.valor === "string") ||
 			["!=", "<>", "<", ">", "<=", ">="].includes(operador)
 		) {
-			clausulas.push(`\`${prefijo}${campo}\` ${operador} ?`);
+			clausulas.push(`${prefijo}\`${campo}\` ${operador} ?`);
 			valores.push(valor.valor);
 			return { clausulas, valores };
 		}
@@ -385,7 +385,7 @@ export class ConexionBD {
 				clausulas.push(...res.clausulas);
 				valores.push(...res.valores);
 			} else {
-				clausulas.push(`\`${prefijo}${campo}\` = ?`);
+				clausulas.push(`${prefijo}\`${campo}\` = ?`);
 				valores.push(valor);
 			}
 		}
