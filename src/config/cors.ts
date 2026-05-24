@@ -3,8 +3,8 @@ import cors from "cors";
 const allowedOrigins = [
 	"http://localhost:4200",
 	"https://localhost:4200",
-	"http://192.168.0.19:4200",
-	"https://192.168.0.19:4200",
+	"http://192.168.0.14:4200",
+	"https://192.168.0.14:4200",
 ];
 
 /**

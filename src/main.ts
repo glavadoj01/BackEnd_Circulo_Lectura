@@ -46,7 +46,7 @@ try {
 
 	await pruebaCon();
 
-	app.listen(srvPort, `localhost:${srvPort}`, () => {
+	app.listen(srvPort, `0.0.0.0`, () => {
 		console.log(`[SRV] Servidor escuchando en: localhost:${srvPort}`);
 		console.log("=============================================\n");
 	});

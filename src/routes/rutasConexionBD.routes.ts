@@ -17,11 +17,12 @@ import {
 	obtenerEventos,
 	obtenerTotalEventos,
 } from "../controllers/public/eventos.controller.js";
+import { loginAction } from "../controllers/private/auth.controller.js";
 
 // Creación del router Express para manejar las rutas de la API
 const rutasConexionBD = Router();
 rutasConexionBD.get("/resetAPI", resetearAPI);
-
+rutasConexionBD.post("/auth/login", loginAction);
 rutasConexionBD.post("/usuario", crearUsuario);
 
 // Definicion de las rutas para libros

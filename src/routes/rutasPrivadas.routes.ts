@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { loginAction, logoutAction } from "../controllers/private/auth.controller.js";
+import { logoutAction } from "../controllers/private/auth.controller.js";
 import {
 	crearComentarioLista,
 	actualizarComentarioLista,
@@ -28,7 +28,6 @@ import { requireAdmin, requireAuth } from "../utils/requireAuth.js";
 const rutasPrivadas = Router();
 
 // Rutas de autenticación
-rutasPrivadas.post("/auth/login", loginAction);
 rutasPrivadas.post("/auth/logout", requireAuth, logoutAction);
 rutasPrivadas.post("/admin/panel", requireAdmin);
 
