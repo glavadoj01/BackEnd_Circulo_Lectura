@@ -6,7 +6,7 @@ import {
 	borrarComentarioLista,
 } from "../controllers/private/comentariosLista.controller.js";
 import { crearCritica, actualizarCritica, borrarCritica } from "../controllers/private/criticas.controller.js";
-import { crearLibro, actualizarLibro, borrarLibro } from "../controllers/private/libros.controller.js";
+import { crearLibro, actualizarLibro, borrarLibro, marcarMeGustaLibro, quitarMeGustaLibro, obtenerEstadoLibroUsuario } from "../controllers/private/libros.controller.js";
 import { agregarLibroALista, eliminarLibroDeLista } from "../controllers/private/librosLista.controller.js";
 import {
 	crearLista,
@@ -48,6 +48,11 @@ rutasPrivadas.delete("/libro/:id", requireAuth, borrarLibro);
 rutasPrivadas.post("/libro/:id/critica", requireAuth, crearCritica);
 rutasPrivadas.put("/libro/:id/critica/usuario/:usuarioId", requireAuth, actualizarCritica);
 rutasPrivadas.delete("/libro/:id/critica/usuario/:usuarioId", requireAuth, borrarCritica);
+
+// Me gusta libro
+rutasPrivadas.post("/libro/:id/me-gusta/usuario/:usuarioId", requireAuth, marcarMeGustaLibro);
+rutasPrivadas.delete("/libro/:id/me-gusta/usuario/:usuarioId", requireAuth, quitarMeGustaLibro);
+rutasPrivadas.get("/libro/:id/estado/usuario/:usuarioId", requireAuth, obtenerEstadoLibroUsuario);
 
 // Rutas Listas
 rutasPrivadas.post("/lista", requireAuth, crearLista);

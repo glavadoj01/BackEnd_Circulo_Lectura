@@ -70,18 +70,6 @@ export interface LibroResumen {
 	calificacionPromedio?: number;
 }
 
-/**
- * Interfaz que representa una lista en la capa de aplicación, extendiendo la información básica de la lista con detalles adicionales si se requiere.
- * - id_lista: número identificador único de la lista.
- * - id_usuarioCrd: id del usuario creador.
- * - nombre_lista: nombre de la lista.
- * - descripcion_lista: descripción de la lista (opcional).
- * - nombreCreador: nombre del usuario creador de la lista.
- */
-/**
- * Interfaz resumen para el catálogo de listas.
- * Solo los campos necesarios para el recuadro del catálogo.
- */
 export interface ListaApp {
 	id_lista: number;
 	id_usuarioCreador: number;

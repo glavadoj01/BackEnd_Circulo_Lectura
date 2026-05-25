@@ -163,9 +163,7 @@ export class ConexionListas extends ConexionBD {
 		const totalCalificaciones = Number(resumen.totalCalificaciones ?? 0);
 		const puntuacionPromedioRaw = resumen.puntuacionPromedio;
 		const puntuacionPromedio =
-			puntuacionPromedioRaw === null || puntuacionPromedioRaw === undefined
-				? null
-				: Number(puntuacionPromedioRaw);
+			puntuacionPromedioRaw === null || puntuacionPromedioRaw === undefined ? null : Number(puntuacionPromedioRaw);
 		const distribucion = [5, 4, 3, 2, 1].map(nota => {
 			const cantidad = Number(resumen[`n${nota}`] ?? 0);
 			const frecuencia = totalCalificaciones > 0 ? Number(((cantidad * 100) / totalCalificaciones).toFixed(2)) : 0;
@@ -273,7 +271,7 @@ export class ConexionListas extends ConexionBD {
 			texto_comentario: row.texto_comentario,
 			id_com_respuesta: row.id_com_respuesta ?? null,
 			fecha_comentario: row.fecha_comentario,
-			calificacion_lista: row.calificacion_comentario ?? null,
+			calificacion_comentario: row.calificacion_comentario ?? null,
 		}));
 	}
 }

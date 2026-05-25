@@ -167,6 +167,7 @@ CREATE TABLE libro_autor (
 CREATE TABLE lista_contenido (
     id_lista INT NOT NULL,
     id_libro INT NOT NULL,
+    posicion INT, -- Posición del libro dentro de la lista (opcional, para ordenar)
 
     PRIMARY KEY (id_lista, id_libro),
 
@@ -187,7 +188,8 @@ CREATE TABLE lista_contenido (
 CREATE TABLE libro_usuario (
     id_libro   		INT NOT NULL,
     id_usuario 		INT NOT NULL,
-    estado_lectura  BOOL DEFAULT FALSE NOT NULL, -- FALSE/0: Pendiente  TRUE/1: Leido
+    estado_lectura  BOOL DEFAULT NULL, -- FALSE/0: Pendiente  TRUE/1: Leido
+    me_gusta_libro 	BOOL DEFAULT NULL, -- 0:No  1:Sí
 
     PRIMARY KEY (id_libro, id_usuario),
 
@@ -263,7 +265,7 @@ CREATE TABLE lista_comentario (
 CREATE TABLE lista_usuario (
     id_lista        	INT NOT NULL,
     id_usuario      	INT NOT NULL,
-    me_gusta_lista   	TINYINT UNSIGNED DEFAULT NULL CHECK (me_gusta_lista IN (0,1)), -- 0:No  1:Sí
+    me_gusta_lista   	BOOL DEFAULT NULL, -- 0:No  1:Sí
 
     PRIMARY KEY (id_lista, id_usuario),
 
@@ -285,7 +287,7 @@ CREATE TABLE evento_usuario (
 	id_evento       	INT NOT NULL,
     id_usuario      	INT NOT NULL,
     calificacion_evento	TINYINT UNSIGNED DEFAULT NULL CHECK (calificacion_evento BETWEEN 0 AND 5),
-    asiste          	TINYINT UNSIGNED DEFAULT NULL CHECK (asiste IN (0,1,2)), -- 0:No  1:Sí  2:Quizas
+    asiste          	BOOL DEFAULT NULL, -- 0:No  1:Sí  2:Quizas
 
     PRIMARY KEY (id_evento, id_usuario),
 

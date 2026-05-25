@@ -93,7 +93,6 @@ export class ConexionLibros extends ConexionBD {
 	 * @returns DetalleLibroCompleto con la información del libro, sus críticas y distribución de notas, o null si no se encuentra el libro
 	 */
 	async obtenerDetalleLibro(idLibro: number): Promise<DetalleLibroCompleto | null> {
-		// Consulta principal del libro
 		const sql = `
     SELECT
       l.id_libro,

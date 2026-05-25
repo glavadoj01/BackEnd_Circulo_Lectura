@@ -61,9 +61,24 @@ export interface EventoBD {
 	descripcion_evento: string;
 }
 
+export interface CategoriaBD {
+	id_categoria: number;
+	nombre_categoria: string;
+}
+
+export interface ListaCategoriaBD {
+	id_lista: number; // FK a Lista
+	id_categoria: number; // FK a Categoria
+}
+
 // ============================================
 // TABLAS INTERMEDIAS CON DATOS ADICIONALES
 // ============================================
+
+export interface LibroGenero {
+	id_libro: number; // FK
+	id_genero: number; // FK
+}
 
 // Relación B: Libro-Autor
 export interface LibroAutor {
@@ -72,11 +87,19 @@ export interface LibroAutor {
 	autorPr: boolean; // true = autor principal, false = secundario
 }
 
+// Relación C: Lista-Contenido (Libros que pertenecen a una lista)
+export interface ListaContenido {
+	id_lista: number; // FK
+	id_libro: number; // FK
+	posicion?: number; // Posición del libro dentro de la lista (opcional, para ordenar)
+}
+
 // Relación D: Libro-Usuario (Libro Leído-Seguido)
 export interface LibroUsuario {
 	id_libro: number; // FK
 	id_usuario: number; // FK
-	estado_lectura: boolean; // 0-1
+	estado_lectura?: boolean | null; // 0-1
+	me_gusta_libro?: boolean | null; // 0:No  1:Sí
 }
 
 // Relación E: Libro-Critica (Reseña)
@@ -96,24 +119,24 @@ export interface ListaComentarios {
 	id_usuario: number; // FK
 	titulo_comentario?: string;
 	texto_comentario: string;
+	calificacion_comentario?: number | null; // si el comentario incluye una calificación (0-5)
 	id_com_respuesta?: number | null; // FK recursiva (puede ser null)
 	fecha_comentario: Date | string;
-	calificacion_lista?: number | null; // si el comentario incluye una calificación (0-5)
 }
 
 // Relación G: Lista-Usuario (Calificación de la lista)
 export interface ListaUsuario {
 	id_lista: number; // FK
 	id_usuario: number; // FK
-	me_gusta_lista?: number | null; // 0: No, 1: Sí
+	me_gusta_lista?: boolean | null; // 0: No, 1: Sí
 }
 
 // Relación H: Usuario-Evento (Asistencia y Calificación del evento)
 export interface EventoUsuario {
 	id_evento: number; // FK
 	id_usuario: number; // FK
-	calificacion_evento?: number; // 0-5
-	asiste?: number | null; // 0: No, 1: Si, 2: Quizas
+	calificacion_evento?: number | null; // 0-5
+	asiste?: boolean | null; // 0: No, 1: Si, 2: Quizas
 }
 
 // Relación I: Evento-Comentario

@@ -19,8 +19,19 @@ export async function crearLista(req: AuthRequest, res: Response) {
 		datos.id_usuarioCrd = idCrd;
 
 		conexion = new ConexionBD();
-		const insertId = (await conexion.insertarRegistro("lista", datos)).datos.insertId;
-		return respuestaOk(res, 201, "LISTA_CREADA_OK", { data: { id_lista: insertId, ...datos } });
+		const insert = await conexion.insertarRegistro("lista", datos as Record<string, string | number | boolean | Date>);
+		if (!insert.exito) {
+			const mensaje = String(insert.mensaje || "");
+			if (mensaje.toLowerCase().includes("duplicate entry")) {
+				return respuestaError(res, 409, "ERROR_CREAR_LISTA", "Ya existe una lista con ese nombre");
+			}
+			return respuestaError(res, 500, "ERROR_CREAR_LISTA", mensaje || "No se pudo crear la lista");
+		}
+		const insertId = Number(insert.datos);
+		if (!Number.isFinite(insertId) || insertId <= 0) {
+			return respuestaError(res, 500, "ERROR_CREAR_LISTA", "No se obtuvo un id válido para la lista");
+		}
+		return respuestaOk(res, 201, "LISTA_CREADA_OK", { id_lista: insertId, ...datos });
 	} catch (error: any) {
 		return respuestaError(res, 500, "ERROR_CREAR_LISTA", error.message);
 	} finally {

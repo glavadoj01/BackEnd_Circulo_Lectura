@@ -5,6 +5,7 @@ import { LibroBD } from "../../interfaces/modelosBD/modelosBD.js";
 import { parsePositiveInt } from "../../utils/validation.utils.js";
 import { respuestaOk, respuestaError } from "../../utils/validationMessages.utils.js";
 import { asegurarRol } from "../../utils/authorization.utils.js";
+import { getSesionID } from "../../utils/authorization.utils.js";
 
 /**
  * Valida los datos de un autor.
@@ -264,6 +265,128 @@ export async function actualizarLibro(req: AuthRequest, res: Response) {
 		return respuestaError(res, 500, "ERROR_ACTUALIZAR_LIBRO", error.message);
 	} finally {
 		if (conexionAbierta) await conexionAbierta.close();
+	}
+}
+
+// ================= MÉTODOS: ME GUSTA EN LIBRO =================
+export async function marcarMeGustaLibro(req: AuthRequest, res: Response) {
+	let conexion: ConexionBD | null = null;
+	try {
+		const idLibro = Number(req.params.id ?? req.body.id_libro);
+		const idUsuario = Number(req.params.usuarioId ?? req.body.id_usuario);
+
+		if (Number.isNaN(idLibro)) return respuestaError(res, 400, "ID_LIBRO_INVALIDO");
+		if (Number.isNaN(idUsuario)) return respuestaError(res, 400, "ID_USUARIO_INVALIDO");
+
+		if (getSesionID(req) !== idUsuario) return respuestaError(res, 403, "ERROR_LOGIN_TOKEN_NO_CORRESPONDE");
+
+		conexion = new ConexionBD();
+
+		const libroRows = await conexion.listarRegistros("libro", { id_libro: idLibro }, "", 1, "id_libro");
+		if (!libroRows.exito || !libroRows.datos || libroRows.datos.length === 0) return respuestaError(res, 404, "NO_ENCONTRADO_LIBRO");
+
+		const relacion = await conexion.listarRegistros(
+			"libro_usuario",
+			{ id_libro: idLibro, id_usuario: idUsuario },
+			"",
+			1,
+			"id_libro, id_usuario, me_gusta_libro",
+		);
+
+		if (!relacion.exito) return respuestaError(res, 500, "ERROR_ME_GUSTA_LIBRO", relacion.mensaje);
+
+		if (!relacion.datos || relacion.datos.length === 0) {
+			const insert = await conexion.insertarRegistro("libro_usuario", { id_libro: idLibro, id_usuario: idUsuario, me_gusta_libro: 1 });
+			if (!insert.exito) return respuestaError(res, 500, "ERROR_ME_GUSTA_LIBRO", insert.mensaje);
+		} else {
+			const update = await conexion.actualizarRegistro(
+				"libro_usuario",
+				{ me_gusta_libro: 1 },
+				{ id_libro: idLibro, id_usuario: idUsuario },
+			);
+			if (!update.exito) return respuestaError(res, 500, "ERROR_ME_GUSTA_LIBRO", update.mensaje);
+		}
+
+		return respuestaOk(res, 200, "LIBRO_ME_GUSTA_OK", { id_libro: idLibro, id_usuario: idUsuario, me_gusta: true });
+	} catch (error: any) {
+		return respuestaError(res, 500, "ERROR_ME_GUSTA_LIBRO", error.message);
+	} finally {
+		if (conexion) await conexion.close();
+	}
+}
+
+export async function quitarMeGustaLibro(req: AuthRequest, res: Response) {
+	let conexion: ConexionBD | null = null;
+	try {
+		const idLibro = Number(req.params.id ?? req.body.id_libro);
+		const idUsuario = Number(req.params.usuarioId ?? req.body.id_usuario);
+
+		if (Number.isNaN(idLibro)) return respuestaError(res, 400, "ID_LIBRO_INVALIDO");
+		if (Number.isNaN(idUsuario)) return respuestaError(res, 400, "ID_USUARIO_INVALIDO");
+
+		if (getSesionID(req) !== idUsuario) return respuestaError(res, 403, "ERROR_LOGIN_TOKEN_NO_CORRESPONDE");
+
+		conexion = new ConexionBD();
+
+		const relacion = await conexion.listarRegistros(
+			"libro_usuario",
+			{ id_libro: idLibro, id_usuario: idUsuario },
+			"",
+			1,
+			"id_libro, id_usuario, me_gusta_libro",
+		);
+
+		if (!relacion.exito) return respuestaError(res, 500, "ERROR_QUITAR_ME_GUSTA_LIBRO", relacion.mensaje);
+
+		if (relacion.datos && relacion.datos.length > 0) {
+			const update = await conexion.actualizarRegistro(
+				"libro_usuario",
+				{ me_gusta_libro: 0 },
+				{ id_libro: idLibro, id_usuario: idUsuario },
+			);
+			if (!update.exito) return respuestaError(res, 500, "ERROR_QUITAR_ME_GUSTA_LIBRO", update.mensaje);
+		}
+
+		return respuestaOk(res, 200, "LIBRO_ME_GUSTA_QUITADO_OK", { id_libro: idLibro, id_usuario: idUsuario, me_gusta: false });
+	} catch (error: any) {
+		return respuestaError(res, 500, "ERROR_QUITAR_ME_GUSTA_LIBRO", error.message);
+	} finally {
+		if (conexion) await conexion.close();
+	}
+}
+
+export async function obtenerEstadoLibroUsuario(req: AuthRequest, res: Response) {
+	let conexion: ConexionBD | null = null;
+	try {
+		const idLibro = Number(req.params.id ?? req.body.id_libro);
+		const idUsuario = Number(req.params.usuarioId ?? req.body.id_usuario);
+
+		if (Number.isNaN(idLibro)) return respuestaError(res, 400, "ID_LIBRO_INVALIDO");
+		if (Number.isNaN(idUsuario)) return respuestaError(res, 400, "ID_USUARIO_INVALIDO");
+
+		if (getSesionID(req) !== idUsuario) return respuestaError(res, 403, "ERROR_LOGIN_TOKEN_NO_CORRESPONDE");
+
+		conexion = new ConexionBD();
+
+		const libroRows = await conexion.listarRegistros("libro", { id_libro: idLibro }, "", 1, "id_libro");
+		if (!libroRows.exito || !libroRows.datos || libroRows.datos.length === 0) return respuestaError(res, 404, "NO_ENCONTRADO_LIBRO");
+
+		const relacion = await conexion.listarRegistros(
+			"libro_usuario",
+			{ id_libro: idLibro, id_usuario: idUsuario },
+			"",
+			1,
+			"me_gusta_libro",
+		);
+
+		if (!relacion.exito) return respuestaError(res, 500, "ERROR_OBTENER_ESTADO_LIBRO", relacion.mensaje);
+
+		const meGusta = Boolean(relacion.datos && relacion.datos.length > 0 && relacion.datos[0].me_gusta_libro);
+		return respuestaOk(res, 200, "LIBRO_ESTADO_USUARIO_OK", { data: { meGusta } });
+	} catch (error: any) {
+		return respuestaError(res, 500, "ERROR_OBTENER_ESTADO_LIBRO", error.message);
+	} finally {
+		if (conexion) await conexion.close();
 	}
 }
 

@@ -33,7 +33,6 @@ export class ConexionEventos extends ConexionBD {
 	}
 
 	async obtenerLibrosEvento(idEvento: number): Promise<LibroResumen[]> {
-		// JOIN para obtener datos completos de los libros relacionados, con calificación promedio
 		const sql = `
       SELECT 
         l.id_libro, 
@@ -78,7 +77,6 @@ export class ConexionEventos extends ConexionBD {
 	}
 
 	async obtenerComentariosEvento(idEvento: number): Promise<any[]> {
-		// JOIN para traer la calificación del evento del usuario si existe
 		const sql = `
       SELECT c.*, eu.calificacion_evento
       FROM evento_comentario c
