@@ -297,10 +297,7 @@ export async function obtenerListasSeguidasUsuario(req: AuthRequest, res: Respon
 
 		const idListasSeguidas = await conexionAbierta.listarRegistros(
 			"lista_usuario",
-			{
-				id_usuario: id,
-				me_gusta_lista: 1,
-			},
+			{ id_usuario: id },
 			"",
 			0,
 			"id_lista",

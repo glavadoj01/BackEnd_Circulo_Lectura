@@ -98,6 +98,7 @@ export interface ListaComentarios {
 	texto_comentario: string;
 	id_com_respuesta?: number | null; // FK recursiva (puede ser null)
 	fecha_comentario: Date | string;
+	calificacion_lista?: number | null; // si el comentario incluye una calificación (0-5)
 }
 
 // Relación G: Lista-Usuario (Calificación de la lista)
@@ -105,7 +106,6 @@ export interface ListaUsuario {
 	id_lista: number; // FK
 	id_usuario: number; // FK
 	me_gusta_lista?: number | null; // 0: No, 1: Sí
-	calificacion_lista?: number | null; // 0-5
 }
 
 // Relación H: Usuario-Evento (Asistencia y Calificación del evento)

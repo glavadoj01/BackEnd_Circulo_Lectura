@@ -90,7 +90,11 @@ export interface ListaApp {
 	categorias: string[];
 	librosPortada: number[]; // Solo los 2-3 ids para portada
 	totalLibros: number;
+	totalSeguidores: number;
 	totalMeGusta: number;
+	puntuacionPromedio?: number | null;
+	totalCalificaciones?: number;
+	distribucion?: { nota: number; cantidad: number; frecuencia: number }[];
 	descripcion_lista?: string;
 }
 
@@ -106,6 +110,10 @@ export interface DetalleListaCompleta {
 	libros: LibroResumen[];
 	comentarios: ListaComentarios[];
 	errorComentarios: boolean;
+	estadoUsuario?: {
+		siguiendo: boolean;
+		meGusta: boolean;
+	};
 }
 
 export interface EventoApp extends EventoBD {

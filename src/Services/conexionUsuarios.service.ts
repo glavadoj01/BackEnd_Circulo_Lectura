@@ -82,11 +82,24 @@ export class ConexionUsuarios extends ConexionBD {
 			}
 		});
 
-		// 4. Me gusta
+		// 4. Seguidores
+		const sqlSeguidores = `
+		SELECT id_lista, COUNT(*) AS totalSeguidores
+    FROM lista_usuario
+		WHERE id_lista IN (${listaIds.map(() => "?").join(",")})
+    GROUP BY id_lista
+  `;
+		const [seguidoresRows] = await this.pool.query(sqlSeguidores, listaIds);
+		const totalSeguidoresPorLista: Record<number, number> = {};
+		(seguidoresRows as Array<Record<string, any>>).forEach((row: any) => {
+			totalSeguidoresPorLista[row.id_lista] = row.totalSeguidores;
+		});
+
+		// 5. Me gusta
 		const sqlMeGusta = `
     SELECT id_lista, COUNT(*) AS totalMeGusta
     FROM lista_usuario
-    WHERE me_gusta_lista = 1 AND id_lista IN (${listaIds.map(() => "?").join(",")})
+	    WHERE id_lista IN (${listaIds.map(() => "?").join(",")}) AND me_gusta_lista = 1
     GROUP BY id_lista
   `;
 		const [meGustaRows] = await this.pool.query(sqlMeGusta, listaIds);
@@ -105,6 +118,7 @@ export class ConexionUsuarios extends ConexionBD {
 			categorias: categoriasPorLista[row.id_lista] || [],
 			librosPortada: librosPortadaPorLista[row.id_lista] || [],
 			totalLibros: totalLibrosPorLista[row.id_lista] || 0,
+			totalSeguidores: totalSeguidoresPorLista[row.id_lista] || 0,
 			totalMeGusta: totalMeGustaPorLista[row.id_lista] || 0,
 			descripcion_lista: row.descripcion_lista || undefined,
 		}));

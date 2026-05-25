@@ -235,6 +235,7 @@ CREATE TABLE lista_comentario (
     id_usuario          INT NOT NULL,
     titulo_comentario   VARCHAR(100),
     texto_comentario    TEXT NOT NULL,
+    calificacion_comentario TINYINT UNSIGNED DEFAULT NULL CHECK (calificacion_comentario BETWEEN 0 AND 5),
     id_com_respuesta    INT DEFAULT NULL,
     fecha_comentario	  DATETIME NOT NULL DEFAULT now(), -- YYYY-MM-DD:HH:MM:SS
 
@@ -263,7 +264,6 @@ CREATE TABLE lista_usuario (
     id_lista        	INT NOT NULL,
     id_usuario      	INT NOT NULL,
     me_gusta_lista   	TINYINT UNSIGNED DEFAULT NULL CHECK (me_gusta_lista IN (0,1)), -- 0:No  1:Sí
-    calificacion_lista	TINYINT UNSIGNED DEFAULT NULL CHECK (calificacion_lista BETWEEN 0 AND 5),
 
     PRIMARY KEY (id_lista, id_usuario),
 

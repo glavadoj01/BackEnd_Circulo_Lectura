@@ -68,11 +68,21 @@ export class ConexionListas extends ConexionBD {
 			});
 
 			// 4. Obtener el total de "Me gusta" por lista
+			let totalSeguidoresPorLista: Record<number, number> = {};
+			const sqlSeguidores = `
+			SELECT id_lista, COUNT(*) AS totalSeguidores
+        FROM lista_usuario
+			WHERE id_lista IN (${listaIds.map(() => "?").join(",")}) GROUP BY id_lista`;
+			const [seguidoresRows] = await this.pool.query(sqlSeguidores, listaIds);
+			(seguidoresRows as Array<any>).forEach(row => {
+				totalSeguidoresPorLista[row.id_lista] = row.totalSeguidores;
+			});
+
 			let totalMeGustaPorLista: Record<number, number> = {};
 			const sqlMeGusta = `
         SELECT id_lista, COUNT(*) AS totalMeGusta
         FROM lista_usuario
-        WHERE me_gusta_lista = 1 AND id_lista IN (${listaIds.map(() => "?").join(",")}) GROUP BY id_lista`;
+			WHERE id_lista IN (${listaIds.map(() => "?").join(",")}) AND me_gusta_lista = 1 GROUP BY id_lista`;
 			const [meGustaRows] = await this.pool.query(sqlMeGusta, listaIds);
 			totalMeGustaPorLista = {};
 			(meGustaRows as Array<any>).forEach(row => {
@@ -95,6 +105,7 @@ export class ConexionListas extends ConexionBD {
 					categorias: categoriasPorLista[row.id_lista as number] || [],
 					librosPortada: librosPortadaPorLista[row.id_lista as number] || [],
 					totalLibros: totalLibrosPorLista[lista.id_lista] || 0,
+					totalSeguidores: totalSeguidoresPorLista[lista.id_lista] || 0,
 					totalMeGusta: totalMeGustaPorLista[lista.id_lista] || 0,
 					descripcion_lista: lista.descripcion_lista || undefined,
 				};
@@ -120,13 +131,79 @@ export class ConexionListas extends ConexionBD {
 		const [rows] = await this.pool.query(sql, [idLista]);
 		if (!rows || (rows as any[]).length === 0) return null;
 		const row = (rows as Array<Record<string, unknown>>)[0];
+		const sqlSeguidores = `
+			SELECT COUNT(*) AS totalSeguidores
+			FROM lista_usuario
+			WHERE id_lista = ?
+		`;
+		const [seguidoresRows] = await this.pool.query(sqlSeguidores, [idLista]);
+		const totalSeguidores = Number((seguidoresRows as Array<Record<string, any>>)[0]?.totalSeguidores ?? 0);
+		const sqlMeGusta = `
+			SELECT COUNT(*) AS totalMeGusta
+			FROM lista_usuario
+			WHERE id_lista = ? AND me_gusta_lista = 1
+		`;
+		const [meGustaRows] = await this.pool.query(sqlMeGusta, [idLista]);
+		const totalMeGusta = Number((meGustaRows as Array<Record<string, any>>)[0]?.totalMeGusta ?? 0);
+
+		const sqlResumenPuntuaciones = `
+			SELECT
+				ROUND(AVG(calificacion_comentario), 2) AS puntuacionPromedio,
+				COUNT(calificacion_comentario) AS totalCalificaciones,
+				SUM(CASE WHEN calificacion_comentario = 1 THEN 1 ELSE 0 END) AS n1,
+				SUM(CASE WHEN calificacion_comentario = 2 THEN 1 ELSE 0 END) AS n2,
+				SUM(CASE WHEN calificacion_comentario = 3 THEN 1 ELSE 0 END) AS n3,
+				SUM(CASE WHEN calificacion_comentario = 4 THEN 1 ELSE 0 END) AS n4,
+				SUM(CASE WHEN calificacion_comentario = 5 THEN 1 ELSE 0 END) AS n5
+			FROM lista_comentario
+			WHERE id_lista = ? AND calificacion_comentario IS NOT NULL
+		`;
+		const [resumenRows] = await this.pool.query(sqlResumenPuntuaciones, [idLista]);
+		const resumen = (resumenRows as Array<Record<string, any>>)[0] ?? {};
+		const totalCalificaciones = Number(resumen.totalCalificaciones ?? 0);
+		const puntuacionPromedioRaw = resumen.puntuacionPromedio;
+		const puntuacionPromedio =
+			puntuacionPromedioRaw === null || puntuacionPromedioRaw === undefined
+				? null
+				: Number(puntuacionPromedioRaw);
+		const distribucion = [5, 4, 3, 2, 1].map(nota => {
+			const cantidad = Number(resumen[`n${nota}`] ?? 0);
+			const frecuencia = totalCalificaciones > 0 ? Number(((cantidad * 100) / totalCalificaciones).toFixed(2)) : 0;
+			return { nota, cantidad, frecuencia };
+		});
 		return {
 			id_lista: row.id_lista,
 			id_usuarioCreador: row.id_usuarioCrd,
 			nombre_lista: row.nombre_lista,
 			nombreCreador: row.nombreCreador,
+			totalSeguidores: Number.isFinite(totalSeguidores) ? totalSeguidores : 0,
+			totalMeGusta: Number.isFinite(totalMeGusta) ? totalMeGusta : 0,
+			puntuacionPromedio,
+			totalCalificaciones,
+			distribucion,
 			descripcion_lista: row.descripcion_lista,
 		} as ListaApp;
+	}
+
+	async obtenerEstadoListaUsuario(
+		idLista: number,
+		idUsuario: number,
+	): Promise<{ siguiendo: boolean; meGusta: boolean }> {
+		const sql = `
+			SELECT me_gusta_lista
+			FROM lista_usuario
+			WHERE id_lista = ? AND id_usuario = ?
+			LIMIT 1
+		`;
+		const [rows] = await this.pool.query(sql, [idLista, idUsuario]);
+		const fila = (rows as Array<Record<string, any>>)[0];
+		if (!fila) {
+			return { siguiendo: false, meGusta: false };
+		}
+		return {
+			siguiendo: true,
+			meGusta: Number(fila.me_gusta_lista ?? 0) === 1,
+		};
 	}
 
 	/**
@@ -182,10 +259,8 @@ export class ConexionListas extends ConexionBD {
 	async obtenerComentariosDeLista(idLista: number) {
 		const sql = `
       SELECT c.id_listaComentario, c.id_lista, c.id_usuario, c.titulo_comentario, c.texto_comentario, c.id_com_respuesta, c.fecha_comentario,
-            u.calificacion_lista
+            c.calificacion_comentario
       FROM lista_comentario c
-      LEFT JOIN lista_usuario u
-        ON u.id_lista = c.id_lista AND u.id_usuario = c.id_usuario
       WHERE c.id_lista = ?
       ORDER BY c.fecha_comentario ASC
     `;
@@ -198,7 +273,7 @@ export class ConexionListas extends ConexionBD {
 			texto_comentario: row.texto_comentario,
 			id_com_respuesta: row.id_com_respuesta ?? null,
 			fecha_comentario: row.fecha_comentario,
-			calificacion_lista: row.calificacion_lista ?? null,
+			calificacion_lista: row.calificacion_comentario ?? null,
 		}));
 	}
 }

@@ -1,11 +1,11 @@
 import { Response } from "express";
 import type { AuthRequest } from "../../interfaces/modelosApp/modelosApp.js";
 import { ConexionBD } from "../../services/conexionBD.service.js";
+import { ConexionListas } from "../../services/conexionListas.service.js";
 import { asegurarPropietarioAdmin, getSesionID } from "../../utils/authorization.utils.js";
 import { ListaBD } from "../../interfaces/modelosBD/modelosBD.js";
 import { respuestaOk, respuestaError } from "../../utils/validationMessages.utils.js";
 
-// Crear una nueva lista
 export async function crearLista(req: AuthRequest, res: Response) {
 	let conexion: ConexionBD | null = null;
 	try {
@@ -28,7 +28,6 @@ export async function crearLista(req: AuthRequest, res: Response) {
 	}
 }
 
-// Actualizar una lista
 export async function actualizarLista(req: AuthRequest, res: Response) {
 	let conexion: ConexionBD | null = null;
 	try {
@@ -56,7 +55,6 @@ export async function actualizarLista(req: AuthRequest, res: Response) {
 	}
 }
 
-// Borrar una lista
 export async function borrarLista(req: AuthRequest, res: Response) {
 	let conexion: ConexionBD | null = null;
 	try {
@@ -78,5 +76,258 @@ export async function borrarLista(req: AuthRequest, res: Response) {
 		return respuestaError(res, 500, "ERROR_BORRAR_LISTA", error.message);
 	} finally {
 		if (conexion) await conexion.close();
+	}
+}
+
+export async function seguirLista(req: AuthRequest, res: Response) {
+	let conexion: ConexionBD | null = null;
+	try {
+		const idLista = Number(req.params.id ?? req.body.id_lista);
+		const idUsuario = Number(req.params.usuarioId ?? req.body.id_usuario);
+
+		if (Number.isNaN(idLista)) {
+			return respuestaError(res, 400, "ID_LISTA_INVALIDO");
+		}
+		if (Number.isNaN(idUsuario)) {
+			return respuestaError(res, 400, "ID_USUARIO_INVALIDO");
+		}
+
+		if (getSesionID(req) !== idUsuario) {
+			return respuestaError(res, 403, "ERROR_LOGIN_TOKEN_NO_CORRESPONDE");
+		}
+
+		conexion = new ConexionBD();
+
+		const lista = await conexion.listarRegistros("lista", { id_lista: idLista }, "", 1, "id_lista");
+		if (!lista.exito || !lista.datos || lista.datos.length === 0) {
+			return respuestaError(res, 404, "NO_ENCONTRADA_LISTA");
+		}
+
+		const relacion = await conexion.listarRegistros(
+			"lista_usuario",
+			{ id_lista: idLista, id_usuario: idUsuario },
+			"",
+			1,
+			"id_lista, id_usuario, me_gusta_lista",
+		);
+
+		if (!relacion.exito) {
+			return respuestaError(res, 500, "ERROR_SEGUIR_LISTA", relacion.mensaje);
+		}
+
+		if (!relacion.datos || relacion.datos.length === 0) {
+			const insercion = await conexion.insertarRegistro("lista_usuario", {
+				id_lista: idLista,
+				id_usuario: idUsuario,
+				me_gusta_lista: 0,
+			});
+			if (!insercion.exito) {
+				return respuestaError(res, 500, "ERROR_SEGUIR_LISTA", insercion.mensaje);
+			}
+		}
+
+		return respuestaOk(res, 200, "LISTA_SEGUIDA_OK", {
+			id_lista: idLista,
+			id_usuario: idUsuario,
+			seguida: true,
+		});
+	} catch (error: any) {
+		return respuestaError(res, 500, "ERROR_SEGUIR_LISTA", error.message);
+	} finally {
+		if (conexion) await conexion.close();
+	}
+}
+
+// Dejar de seguir una lista (marca me_gusta_lista = 0)
+export async function dejarSeguirLista(req: AuthRequest, res: Response) {
+	let conexion: ConexionBD | null = null;
+	try {
+		const idLista = Number(req.params.id ?? req.body.id_lista);
+		const idUsuario = Number(req.params.usuarioId ?? req.body.id_usuario);
+
+		if (Number.isNaN(idLista)) {
+			return respuestaError(res, 400, "ID_LISTA_INVALIDO");
+		}
+		if (Number.isNaN(idUsuario)) {
+			return respuestaError(res, 400, "ID_USUARIO_INVALIDO");
+		}
+
+		if (getSesionID(req) !== idUsuario) {
+			return respuestaError(res, 403, "ERROR_LOGIN_TOKEN_NO_CORRESPONDE");
+		}
+
+		conexion = new ConexionBD();
+
+		const lista = await conexion.listarRegistros("lista", { id_lista: idLista }, "", 1, "id_lista");
+		if (!lista.exito || !lista.datos || lista.datos.length === 0) {
+			return respuestaError(res, 404, "NO_ENCONTRADA_LISTA");
+		}
+
+		const relacion = await conexion.listarRegistros(
+			"lista_usuario",
+			{ id_lista: idLista, id_usuario: idUsuario },
+			"",
+			1,
+			"id_lista, id_usuario, me_gusta_lista",
+		);
+
+		if (!relacion.exito) {
+			return respuestaError(res, 500, "ERROR_DEJAR_SEGUIR_LISTA", relacion.mensaje);
+		}
+
+		if (relacion.datos && relacion.datos.length > 0) {
+			const actualizacion = await conexion.actualizarRegistro(
+				"lista_usuario",
+				{ me_gusta_lista: 0 },
+				{ id_lista: idLista, id_usuario: idUsuario },
+			);
+			if (!actualizacion.exito) {
+				return respuestaError(res, 500, "ERROR_DEJAR_SEGUIR_LISTA", actualizacion.mensaje);
+			}
+		}
+
+		return respuestaOk(res, 200, "LISTA_DEJADA_SEGUIR_OK", {
+			id_lista: idLista,
+			id_usuario: idUsuario,
+			seguida: false,
+		});
+	} catch (error: any) {
+		return respuestaError(res, 500, "ERROR_DEJAR_SEGUIR_LISTA", error.message);
+	} finally {
+		if (conexion) await conexion.close();
+	}
+}
+
+export async function marcarMeGustaLista(req: AuthRequest, res: Response) {
+	let conexion: ConexionBD | null = null;
+	try {
+		const idLista = Number(req.params.id ?? req.body.id_lista);
+		const idUsuario = Number(req.params.usuarioId ?? req.body.id_usuario);
+
+		if (Number.isNaN(idLista)) {
+			return respuestaError(res, 400, "ID_LISTA_INVALIDO");
+		}
+		if (Number.isNaN(idUsuario)) {
+			return respuestaError(res, 400, "ID_USUARIO_INVALIDO");
+		}
+
+		if (getSesionID(req) !== idUsuario) {
+			return respuestaError(res, 403, "ERROR_LOGIN_TOKEN_NO_CORRESPONDE");
+		}
+
+		conexion = new ConexionBD();
+		const relacion = await conexion.listarRegistros(
+			"lista_usuario",
+			{ id_lista: idLista, id_usuario: idUsuario },
+			"",
+			1,
+			"id_lista, id_usuario, me_gusta_lista",
+		);
+
+		if (!relacion.exito || !relacion.datos || relacion.datos.length === 0) {
+			return respuestaError(res, 409, "ERROR_SEGUIR_LISTA", "El usuario debe seguir la lista antes de marcar me gusta");
+		}
+
+		const actualizacion = await conexion.actualizarRegistro(
+			"lista_usuario",
+			{ me_gusta_lista: 1 },
+			{ id_lista: idLista, id_usuario: idUsuario },
+		);
+		if (!actualizacion.exito) {
+			return respuestaError(res, 500, "ERROR_ME_GUSTA_LISTA", actualizacion.mensaje);
+		}
+
+		return respuestaOk(res, 200, "LISTA_ME_GUSTA_OK", {
+			id_lista: idLista,
+			id_usuario: idUsuario,
+			me_gusta: true,
+		});
+	} catch (error: any) {
+		return respuestaError(res, 500, "ERROR_ME_GUSTA_LISTA", error.message);
+	} finally {
+		if (conexion) await conexion.close();
+	}
+}
+
+export async function quitarMeGustaLista(req: AuthRequest, res: Response) {
+	let conexion: ConexionBD | null = null;
+	try {
+		const idLista = Number(req.params.id ?? req.body.id_lista);
+		const idUsuario = Number(req.params.usuarioId ?? req.body.id_usuario);
+
+		if (Number.isNaN(idLista)) {
+			return respuestaError(res, 400, "ID_LISTA_INVALIDO");
+		}
+		if (Number.isNaN(idUsuario)) {
+			return respuestaError(res, 400, "ID_USUARIO_INVALIDO");
+		}
+
+		if (getSesionID(req) !== idUsuario) {
+			return respuestaError(res, 403, "ERROR_LOGIN_TOKEN_NO_CORRESPONDE");
+		}
+
+		conexion = new ConexionBD();
+		const relacion = await conexion.listarRegistros(
+			"lista_usuario",
+			{ id_lista: idLista, id_usuario: idUsuario },
+			"",
+			1,
+			"id_lista, id_usuario, me_gusta_lista",
+		);
+
+		if (!relacion.exito || !relacion.datos || relacion.datos.length === 0) {
+			return respuestaError(res, 404, "NO_ENCONTRADA_LISTA");
+		}
+
+		const actualizacion = await conexion.actualizarRegistro(
+			"lista_usuario",
+			{ me_gusta_lista: 0 },
+			{ id_lista: idLista, id_usuario: idUsuario },
+		);
+		if (!actualizacion.exito) {
+			return respuestaError(res, 500, "ERROR_QUITAR_ME_GUSTA_LISTA", actualizacion.mensaje);
+		}
+
+		return respuestaOk(res, 200, "LISTA_ME_GUSTA_QUITADO_OK", {
+			id_lista: idLista,
+			id_usuario: idUsuario,
+			me_gusta: false,
+		});
+	} catch (error: any) {
+		return respuestaError(res, 500, "ERROR_QUITAR_ME_GUSTA_LISTA", error.message);
+	} finally {
+		if (conexion) await conexion.close();
+	}
+}
+
+export async function obtenerEstadoListaUsuario(req: AuthRequest, res: Response) {
+	let conexionListas: ConexionListas | null = null;
+	try {
+		const idLista = Number(req.params.id ?? req.body.id_lista);
+		const idUsuario = Number(req.params.usuarioId ?? req.body.id_usuario);
+
+		if (Number.isNaN(idLista)) {
+			return respuestaError(res, 400, "ID_LISTA_INVALIDO");
+		}
+		if (Number.isNaN(idUsuario)) {
+			return respuestaError(res, 400, "ID_USUARIO_INVALIDO");
+		}
+
+		if (getSesionID(req) !== idUsuario) {
+			return respuestaError(res, 403, "ERROR_LOGIN_TOKEN_NO_CORRESPONDE");
+		}
+
+		conexionListas = new ConexionListas();
+		const lista = await conexionListas.listarRegistros("lista", { id_lista: idLista }, "", 1, "id_lista");
+		if (!lista.exito || !lista.datos || lista.datos.length === 0) {
+			return respuestaError(res, 404, "NO_ENCONTRADA_LISTA");
+		}
+
+		const detalle = await conexionListas.obtenerEstadoListaUsuario(idLista, idUsuario);
+		return respuestaOk(res, 200, "LISTA_ESTADO_USUARIO_OK", detalle);
+	} catch (error: any) {
+		return respuestaError(res, 500, "ERROR_OBTENER_LISTA", error.message);
+	} finally {
+		if (conexionListas) await conexionListas.close();
 	}
 }
