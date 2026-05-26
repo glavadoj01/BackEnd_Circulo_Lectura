@@ -46,7 +46,8 @@ export async function crearAutor(req: AuthRequest, res: Response) {
 		});
 		if (!insert.exito) return respuestaError(res, 500, "ERROR_CREAR_LIBRO", insert.mensaje);
 
-		const id = insert.datos.insertId;
+		// `insertarRegistro` devuelve el id directamente en `insert.datos` cuando `devolverId` es true
+		const id = insert.datos;
 		return respuestaOk(res, 201, "AUTORES_OBTENIDOS_OK", { id_autor: id, nombre_autor: nombre, apellido_autor: apellido });
 	} catch (error: any) {
 		return respuestaError(res, 500, "ERROR_OBTENER_AUTORES", error.message);
