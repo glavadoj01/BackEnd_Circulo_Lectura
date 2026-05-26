@@ -6,7 +6,14 @@ import {
 	borrarComentarioLista,
 } from "../controllers/private/comentariosLista.controller.js";
 import { crearCritica, actualizarCritica, borrarCritica } from "../controllers/private/criticas.controller.js";
-import { crearLibro, actualizarLibro, borrarLibro, marcarMeGustaLibro, quitarMeGustaLibro, obtenerEstadoLibroUsuario } from "../controllers/private/libros.controller.js";
+import {
+	crearLibro,
+	actualizarLibro,
+	borrarLibro,
+	marcarMeGustaLibro,
+	quitarMeGustaLibro,
+	obtenerEstadoLibroUsuario,
+} from "../controllers/private/libros.controller.js";
 import { agregarLibroALista, eliminarLibroDeLista } from "../controllers/private/librosLista.controller.js";
 import {
 	crearLista,
@@ -42,6 +49,7 @@ import {
 	obtenerCriticasUsuario,
 } from "../controllers/private/usuarios.controller.js";
 import { requireAdmin, requireAuth } from "../utils/requireAuth.js";
+import { crearAutor } from "../controllers/public/autores.controller.js";
 
 const rutasPrivadas = Router();
 
@@ -53,6 +61,8 @@ rutasPrivadas.post("/admin/panel", requireAdmin);
 rutasPrivadas.post("/libro", requireAuth, crearLibro);
 rutasPrivadas.put("/libro/:id", requireAuth, actualizarLibro);
 rutasPrivadas.delete("/libro/:id", requireAuth, borrarLibro);
+
+rutasPrivadas.post("/autores", requireAuth, crearAutor);
 
 rutasPrivadas.post("/libro/:id/critica", requireAuth, crearCritica);
 rutasPrivadas.put("/libro/:id/critica/usuario/:usuarioId", requireAuth, actualizarCritica);
