@@ -22,11 +22,18 @@ export async function loginAction(req: Request, res: Response) {
 			}
 			return respuestaError(res, 500, "ERROR_INTERNO");
 		}
-
-		return respuestaOk(res, 200, "LOGIN_EXITOSO", {
-			token: result.token,
-			id_usuario: result.id_usuario,
-		});
+		if (!result.esAdministrador) {
+			return respuestaOk(res, 200, "LOGIN_EXITOSO", {
+				token: result.token,
+				id_usuario: result.id_usuario,
+			});
+		} else {
+			return respuestaOk(res, 200, "LOGIN_EXITOSO_ADMIN", {
+				token: result.token,
+				id_usuario: result.id_usuario,
+				esAdministrador: result.esAdministrador,
+			});
+		}
 	} catch (error) {
 		console.error("[CTRL]Error en loginAction:", error);
 		return respuestaError(res, 500, "ERROR_INTERNO");

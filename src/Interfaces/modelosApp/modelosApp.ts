@@ -28,7 +28,7 @@ import { Request } from "express";
  * - nombre_idioma_original: nombre del idioma original del libro (opcional).
  */
 export interface LibroApp extends LibroBD {
-	autores?: Array<{ nombre_autor: string; apellido_autor: string; id_autor: number }>; // Lista de autores del libro
+	autores?: Array<{ nombre_autor: string; apellido_autor: string; id_autor: number; id_usuario?: number }>; // Lista de autores del libro
 	generos?: Array<{ nombre_genero: string }>; // Lista de géneros del libro
 	totalResenas?: number; // Total de reseñas del libro
 	calificacionPromedio?: number; // Calificación promedio del libro

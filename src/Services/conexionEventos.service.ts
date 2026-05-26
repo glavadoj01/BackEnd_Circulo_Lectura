@@ -16,7 +16,7 @@ export class ConexionEventos extends ConexionBD {
 		const row = (rows as Array<any>)[0];
 		return {
 			id_evento: row.id_evento,
-			id_usuarioCrd: row.id_usuario,
+			id_usuarioCrd: row.id_usuarioCrd,
 			nombreCreador: row.nombreCreador,
 			nombre_evento: row.nombre_evento,
 			fecha_evento: row.fecha_evento,
@@ -27,9 +27,108 @@ export class ConexionEventos extends ConexionBD {
 	}
 
 	async obtenerAsistentesEvento(idEvento: number): Promise<EventoUsuario[]> {
-		const sql = "SELECT * FROM evento_usuario WHERE id_evento = ?";
+		const sql = "SELECT * FROM evento_usuario WHERE id_evento = ? AND asiste = 1";
 		const [rows] = await this.pool.query(sql, [idEvento]);
 		return Array.isArray(rows) ? (rows as EventoUsuario[]) : [];
+	}
+
+	async obtenerEstadoEventoUsuario(idEvento: number, idUsuario: number): Promise<{ siguiendo: boolean; meGusta: boolean }> {
+		const sql = "SELECT asiste, me_gusta_evento FROM evento_usuario WHERE id_evento = ? AND id_usuario = ? LIMIT 1";
+		const [rows] = await this.pool.query(sql, [idEvento, idUsuario]);
+		const fila = Array.isArray(rows) && rows.length > 0 ? (rows as any[])[0] : null;
+		return {
+			siguiendo: Number(fila?.asiste ?? 0) === 1,
+			meGusta: Number(fila?.me_gusta_evento ?? 0) === 1,
+		};
+	}
+
+	async seguirEvento(idEvento: number, idUsuario: number): Promise<boolean> {
+		const relacion = await this.listarRegistros(
+			"evento_usuario",
+			{ id_evento: idEvento, id_usuario: idUsuario },
+			"",
+			1,
+			"id_evento, id_usuario, asiste, me_gusta_evento",
+		);
+		if (!relacion.exito) throw new Error(relacion.mensaje || "No se pudo leer la relación del evento");
+		if (!relacion.datos || relacion.datos.length === 0) {
+			const insercion = await this.insertarRegistro("evento_usuario", {
+				id_evento: idEvento,
+				id_usuario: idUsuario,
+				asiste: 1,
+				me_gusta_evento: 0,
+			});
+			if (!insercion.exito) throw new Error(insercion.mensaje || "No se pudo seguir el evento");
+		} else {
+			const actualizacion = await this.actualizarRegistro(
+				"evento_usuario",
+				{ asiste: 1 },
+				{ id_evento: idEvento, id_usuario: idUsuario },
+			);
+			if (!actualizacion.exito) throw new Error(actualizacion.mensaje || "No se pudo seguir el evento");
+		}
+		return true;
+	}
+
+	async dejarSeguirEvento(idEvento: number, idUsuario: number): Promise<boolean> {
+		const relacion = await this.listarRegistros(
+			"evento_usuario",
+			{ id_evento: idEvento, id_usuario: idUsuario },
+			"",
+			1,
+			"id_evento, id_usuario, asiste, me_gusta_evento",
+		);
+		if (!relacion.exito) throw new Error(relacion.mensaje || "No se pudo leer la relación del evento");
+		if (relacion.datos && relacion.datos.length > 0) {
+			const actualizacion = await this.actualizarRegistro(
+				"evento_usuario",
+				{ asiste: 0, me_gusta_evento: 0 },
+				{ id_evento: idEvento, id_usuario: idUsuario },
+			);
+			if (!actualizacion.exito) throw new Error(actualizacion.mensaje || "No se pudo dejar de seguir el evento");
+		}
+		return false;
+	}
+
+	async marcarMeGustaEvento(idEvento: number, idUsuario: number): Promise<boolean> {
+		const relacion = await this.listarRegistros(
+			"evento_usuario",
+			{ id_evento: idEvento, id_usuario: idUsuario },
+			"",
+			1,
+			"id_evento, id_usuario, asiste, me_gusta_evento",
+		);
+		if (!relacion.exito) throw new Error(relacion.mensaje || "No se pudo leer la relación del evento");
+		if (!relacion.datos || relacion.datos.length === 0 || Number(relacion.datos[0].asiste ?? 0) !== 1) {
+			throw new Error("El usuario debe seguir el evento antes de marcar me gusta");
+		}
+		const actualizacion = await this.actualizarRegistro(
+			"evento_usuario",
+			{ me_gusta_evento: 1 },
+			{ id_evento: idEvento, id_usuario: idUsuario },
+		);
+		if (!actualizacion.exito) throw new Error(actualizacion.mensaje || "No se pudo marcar me gusta en el evento");
+		return true;
+	}
+
+	async quitarMeGustaEvento(idEvento: number, idUsuario: number): Promise<boolean> {
+		const relacion = await this.listarRegistros(
+			"evento_usuario",
+			{ id_evento: idEvento, id_usuario: idUsuario },
+			"",
+			1,
+			"id_evento, id_usuario, asiste, me_gusta_evento",
+		);
+		if (!relacion.exito) throw new Error(relacion.mensaje || "No se pudo leer la relación del evento");
+		if (relacion.datos && relacion.datos.length > 0) {
+			const actualizacion = await this.actualizarRegistro(
+				"evento_usuario",
+				{ me_gusta_evento: 0 },
+				{ id_evento: idEvento, id_usuario: idUsuario },
+			);
+			if (!actualizacion.exito) throw new Error(actualizacion.mensaje || "No se pudo quitar me gusta del evento");
+		}
+		return false;
 	}
 
 	async obtenerLibrosEvento(idEvento: number): Promise<LibroResumen[]> {
@@ -78,13 +177,11 @@ export class ConexionEventos extends ConexionBD {
 
 	async obtenerComentariosEvento(idEvento: number): Promise<any[]> {
 		const sql = `
-      SELECT c.*, eu.calificacion_evento
-      FROM evento_comentario c
-      LEFT JOIN evento_usuario eu
-        ON eu.id_evento = c.id_evento AND eu.id_usuario = c.id_usuario
-      WHERE c.id_evento = ?
-      ORDER BY c.fecha_comentario DESC
-    `;
+			SELECT c.*
+			FROM evento_comentario c
+			WHERE c.id_evento = ?
+			ORDER BY c.fecha_comentario DESC
+		`;
 		const [rows] = await this.pool.query(sql, [idEvento]);
 		return Array.isArray(rows) ? rows : [];
 	}
@@ -112,7 +209,7 @@ export class ConexionEventos extends ConexionBD {
         COUNT(DISTINCT eu.id_usuario) AS totalAsistentes
       FROM evento e
       LEFT JOIN usuario u ON e.id_usuarioCrd = u.id_usuario
-      LEFT JOIN evento_usuario eu ON e.id_evento = eu.id_evento
+			LEFT JOIN evento_usuario eu ON e.id_evento = eu.id_evento AND eu.asiste = 1
       WHERE e.fecha_evento ${operador} CURDATE()
     `;
 

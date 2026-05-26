@@ -1,11 +1,11 @@
 import { Response } from "express";
 import type { AuthRequest } from "../../interfaces/modelosApp/modelosApp.js";
 import { EventoBD } from "../../interfaces/modelosBD/modelosBD.js";
-import { ConexionBD } from "../../services/conexionBD.service.js";
 import { parsePositiveInt } from "../../utils/validation.utils.js";
 import { respuestaOk, respuestaError } from "../../utils/validationMessages.utils.js";
 import { asegurarPropietarioAdmin, getSesionID } from "../../utils/authorization.utils.js";
 import { ConexionEventos } from "../../services/conexionEventos.service.js";
+import { ConexionBD } from "../../services/conexionBD.service.js";
 
 const esFechaValida = (valor: unknown): boolean => {
 	if (valor === undefined || valor === null || valor === "") return false;
@@ -27,7 +27,7 @@ const construirDatosEvento = (body: any, esActualizacion = false): Partial<Event
 
 	if (!esActualizacion || body.fecha_evento !== undefined) {
 		if (esFechaValida(body.fecha_evento)) {
-			datos.fecha_evento = body.fecha_evento;
+			datos.fecha_evento = body.fecha_evento.split("T")[0];
 		}
 	}
 
@@ -60,17 +60,28 @@ const validarEvento = (evento: Partial<EventoBD>, esActualizacion = false): bool
 			typeof evento.descripcion_evento !== "string" ||
 			evento.descripcion_evento.trim().length < 2
 		) {
+			console.log("[validarEvento] Validación fallida - Campos obligatorios no válidos:", {
+				id_usuarioCrd: evento.id_usuarioCrd,
+				nombre_evento: evento.nombre_evento,
+			});
 			return false;
 		}
 	}
 
-	if (evento.nombre_evento !== undefined && evento.nombre_evento.trim().length < 2) return false;
-	if (evento.fecha_evento !== undefined && !esFechaValida(evento.fecha_evento)) return false;
+	if (evento.nombre_evento !== undefined && evento.nombre_evento.trim().length < 2) {
+		console.log("[validarEvento] Validación fallida - Nombre del evento inválido:", evento.nombre_evento);
+		return false;
+	}
+	if (evento.fecha_evento !== undefined && !esFechaValida(evento.fecha_evento)) {
+		console.log("[validarEvento] Validación fallida - Fecha del evento inválida:", evento.fecha_evento);
+		return false;
+	}
 	if (
 		evento.descripcion_evento !== undefined &&
 		typeof evento.descripcion_evento === "string" &&
 		evento.descripcion_evento.trim().length < 2
 	) {
+		console.log("[validarEvento] Validación fallida - Descripción del evento inválida:", evento.descripcion_evento);
 		return false;
 	}
 
@@ -79,27 +90,35 @@ const validarEvento = (evento: Partial<EventoBD>, esActualizacion = false): bool
 
 export async function crearEvento(req: AuthRequest, res: Response) {
 	let conexion: ConexionBD | null = null;
+	console.log("[crearEvento] Request recibida:", { body: req.body });
+	console.log("[crearEvento] Usuario autenticado ID:", getSesionID(req));
 	try {
 		const body = req.body.evento && typeof req.body.evento === "object" ? req.body.evento : req.body;
-		const datos = construirDatosEvento(body);
+		const datosRaw = { ...body, id_usuarioCrd: getSesionID(req) };
+		console.log("[crearEvento] Datos crudos recibidos para creación de evento:", datosRaw);
+		const datos = construirDatosEvento(datosRaw);
+		console.log("[crearEvento] Datos procesados para creación de evento:", datos);
 		if (!validarEvento(datos)) {
+			console.log("[crearEvento] Validación de datos fallida:", datos);
 			return respuestaError(res, 400, "CAMPOS_OBLIGATORIOS");
 		}
 
 		const idUsuarioSesion = getSesionID(req);
 		if (idUsuarioSesion === null) {
+			console.log("[crearEvento] Usuario no autenticado");
 			return respuestaError(res, 401, "ERROR_USUARIO_NO_AUTENTICADO");
 		}
 		datos.id_usuarioCrd = idUsuarioSesion;
 
 		conexion = new ConexionBD();
 		const resultado = await conexion.insertarRegistro("evento", datos as Record<string, any>);
-
+		console.log("[crearEvento] Resultado inserción en base de datos:", resultado);
 		return respuestaOk(res, 201, "EVENTO_CREADO_OK", {
-			id_evento: resultado.datos.insertId,
+			id_evento: resultado.datos,
 			...datos,
 		});
 	} catch (error: any) {
+		console.error("[crearEvento] Error al crear evento:", error);
 		return respuestaError(res, 500, "ERROR_CREAR_EVENTO", error.message);
 	} finally {
 		if (conexion) await conexion.close();
@@ -177,6 +196,183 @@ export async function borrarEvento(req: AuthRequest, res: Response) {
 		});
 	} catch (error: any) {
 		return respuestaError(res, 500, "ERROR_BORRAR_EVENTO", error.message);
+	} finally {
+		if (conexion) await conexion.close();
+	}
+}
+
+async function obtenerEventoExistente(conexion: ConexionEventos, idEvento: number): Promise<boolean> {
+	const evento = await conexion.listarRegistros("evento", { id_evento: idEvento }, "", 1, "id_evento");
+	return Boolean(evento.exito && evento.datos && evento.datos.length > 0);
+}
+
+export async function seguirEvento(req: AuthRequest, res: Response) {
+	let conexion: ConexionEventos | null = null;
+	console.log("[seguirEvento] Request recibida:", { params: req.params, body: req.body });
+	try {
+		const idEvento = parsePositiveInt(req.params.id ?? req.body.id_evento);
+		const idUsuario = parsePositiveInt(req.params.usuarioId ?? req.body.id_usuario);
+		console.log("[seguirEvento] ID Evento:", idEvento, "ID Usuario:", idUsuario);
+		if (Number.isNaN(idEvento)) return respuestaError(res, 400, "ID_EVENTO_INVALIDO");
+		if (Number.isNaN(idUsuario)) return respuestaError(res, 400, "ID_USUARIO_INVALIDO");
+		if (getSesionID(req) !== idUsuario) return respuestaError(res, 403, "ERROR_LOGIN_TOKEN_NO_CORRESPONDE");
+
+		conexion = new ConexionEventos();
+		const existeEvento = await obtenerEventoExistente(conexion, idEvento);
+		console.log("[seguirEvento] Existe evento:", existeEvento);
+		if (!existeEvento) return respuestaError(res, 404, "NO_ENCONTRADO_EVENTO");
+
+		await conexion.seguirEvento(idEvento, idUsuario);
+		console.log("[seguirEvento] Usuario ahora sigue el evento");
+		return respuestaOk(res, 200, "EVENTO_SEGUIDO_OK", {
+			id_evento: idEvento,
+			id_usuario: idUsuario,
+			siguiendo: true,
+		});
+	} catch (error: any) {
+		console.error("[seguirEvento] Error al seguir evento:", error);
+		const codigo = error.message === "NO_ENCONTRADO_EVENTO" ? 404 : 500;
+		return respuestaError(res, codigo, codigo === 404 ? "NO_ENCONTRADO_EVENTO" : "ERROR_SEGUIR_EVENTO", error.message);
+	} finally {
+		if (conexion) await conexion.close();
+	}
+}
+
+export async function dejarSeguirEvento(req: AuthRequest, res: Response) {
+	let conexion: ConexionEventos | null = null;
+	try {
+		const idEvento = parsePositiveInt(req.params.id ?? req.body.id_evento);
+		const idUsuario = parsePositiveInt(req.params.usuarioId ?? req.body.id_usuario);
+		if (Number.isNaN(idEvento)) return respuestaError(res, 400, "ID_EVENTO_INVALIDO");
+		if (Number.isNaN(idUsuario)) return respuestaError(res, 400, "ID_USUARIO_INVALIDO");
+		if (getSesionID(req) !== idUsuario) return respuestaError(res, 403, "ERROR_LOGIN_TOKEN_NO_CORRESPONDE");
+
+		conexion = new ConexionEventos();
+		const existeEvento = await obtenerEventoExistente(conexion, idEvento);
+		if (!existeEvento) return respuestaError(res, 404, "NO_ENCONTRADO_EVENTO");
+
+		await conexion.dejarSeguirEvento(idEvento, idUsuario);
+		return respuestaOk(res, 200, "EVENTO_DEJADO_SEGUIR_OK", {
+			id_evento: idEvento,
+			id_usuario: idUsuario,
+			siguiendo: false,
+		});
+	} catch (error: any) {
+		const codigo = error.message === "NO_ENCONTRADO_EVENTO" ? 404 : 500;
+		return respuestaError(
+			res,
+			codigo,
+			codigo === 404 ? "NO_ENCONTRADO_EVENTO" : "ERROR_DEJAR_SEGUIR_EVENTO",
+			error.message,
+		);
+	} finally {
+		if (conexion) await conexion.close();
+	}
+}
+
+export async function marcarMeGustaEvento(req: AuthRequest, res: Response) {
+	let conexion: ConexionEventos | null = null;
+	try {
+		const idEvento = parsePositiveInt(req.params.id ?? req.body.id_evento);
+		const idUsuario = parsePositiveInt(req.params.usuarioId ?? req.body.id_usuario);
+		if (Number.isNaN(idEvento)) return respuestaError(res, 400, "ID_EVENTO_INVALIDO");
+		if (Number.isNaN(idUsuario)) return respuestaError(res, 400, "ID_USUARIO_INVALIDO");
+		if (getSesionID(req) !== idUsuario) return respuestaError(res, 403, "ERROR_LOGIN_TOKEN_NO_CORRESPONDE");
+
+		conexion = new ConexionEventos();
+		const existeEvento = await obtenerEventoExistente(conexion, idEvento);
+		if (!existeEvento) return respuestaError(res, 404, "NO_ENCONTRADO_EVENTO");
+		const relacion = await conexion.listarRegistros(
+			"evento_usuario",
+			{ id_evento: idEvento, id_usuario: idUsuario },
+			"",
+			1,
+			"id_evento, id_usuario, asiste, me_gusta_evento",
+		);
+		if (!relacion.exito) return respuestaError(res, 500, "ERROR_ME_GUSTA_EVENTO", relacion.mensaje);
+		if (!relacion.datos || relacion.datos.length === 0 || Number(relacion.datos[0].asiste ?? 0) !== 1) {
+			return respuestaError(
+				res,
+				409,
+				"ERROR_SEGUIR_EVENTO",
+				"El usuario debe seguir el evento antes de marcar me gusta",
+			);
+		}
+
+		await conexion.marcarMeGustaEvento(idEvento, idUsuario);
+		return respuestaOk(res, 200, "EVENTO_ME_GUSTA_OK", {
+			id_evento: idEvento,
+			id_usuario: idUsuario,
+			me_gusta: true,
+		});
+	} catch (error: any) {
+		const codigo = error.message === "NO_ENCONTRADO_EVENTO" ? 404 : 500;
+		return respuestaError(
+			res,
+			codigo,
+			codigo === 404 ? "NO_ENCONTRADO_EVENTO" : "ERROR_ME_GUSTA_EVENTO",
+			error.message,
+		);
+	} finally {
+		if (conexion) await conexion.close();
+	}
+}
+
+export async function quitarMeGustaEvento(req: AuthRequest, res: Response) {
+	let conexion: ConexionEventos | null = null;
+	try {
+		const idEvento = parsePositiveInt(req.params.id ?? req.body.id_evento);
+		const idUsuario = parsePositiveInt(req.params.usuarioId ?? req.body.id_usuario);
+		if (Number.isNaN(idEvento)) return respuestaError(res, 400, "ID_EVENTO_INVALIDO");
+		if (Number.isNaN(idUsuario)) return respuestaError(res, 400, "ID_USUARIO_INVALIDO");
+		if (getSesionID(req) !== idUsuario) return respuestaError(res, 403, "ERROR_LOGIN_TOKEN_NO_CORRESPONDE");
+
+		conexion = new ConexionEventos();
+		const existeEvento = await obtenerEventoExistente(conexion, idEvento);
+		if (!existeEvento) return respuestaError(res, 404, "NO_ENCONTRADO_EVENTO");
+
+		await conexion.quitarMeGustaEvento(idEvento, idUsuario);
+		return respuestaOk(res, 200, "EVENTO_ME_GUSTA_QUITADO_OK", {
+			id_evento: idEvento,
+			id_usuario: idUsuario,
+			me_gusta: false,
+		});
+	} catch (error: any) {
+		const codigo = error.message === "NO_ENCONTRADO_EVENTO" ? 404 : 500;
+		return respuestaError(
+			res,
+			codigo,
+			codigo === 404 ? "NO_ENCONTRADO_EVENTO" : "ERROR_QUITAR_ME_GUSTA_EVENTO",
+			error.message,
+		);
+	} finally {
+		if (conexion) await conexion.close();
+	}
+}
+
+export async function obtenerEstadoEventoUsuario(req: AuthRequest, res: Response) {
+	let conexion: ConexionEventos | null = null;
+	try {
+		const idEvento = parsePositiveInt(req.params.id ?? req.body.id_evento);
+		const idUsuario = parsePositiveInt(req.params.usuarioId ?? req.body.id_usuario);
+		if (Number.isNaN(idEvento)) return respuestaError(res, 400, "ID_EVENTO_INVALIDO");
+		if (Number.isNaN(idUsuario)) return respuestaError(res, 400, "ID_USUARIO_INVALIDO");
+		if (getSesionID(req) !== idUsuario) return respuestaError(res, 403, "ERROR_LOGIN_TOKEN_NO_CORRESPONDE");
+
+		conexion = new ConexionEventos();
+		const existeEvento = await obtenerEventoExistente(conexion, idEvento);
+		if (!existeEvento) return respuestaError(res, 404, "NO_ENCONTRADO_EVENTO");
+
+		const estado = await conexion.obtenerEstadoEventoUsuario(idEvento, idUsuario);
+		return respuestaOk(res, 200, "EVENTO_ESTADO_USUARIO_OK", estado);
+	} catch (error: any) {
+		const codigo = error.message === "NO_ENCONTRADO_EVENTO" ? 404 : 500;
+		return respuestaError(
+			res,
+			codigo,
+			codigo === 404 ? "NO_ENCONTRADO_EVENTO" : "ERROR_OBTENER_ESTADO_EVENTO",
+			error.message,
+		);
 	} finally {
 		if (conexion) await conexion.close();
 	}

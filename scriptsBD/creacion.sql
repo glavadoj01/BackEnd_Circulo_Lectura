@@ -286,8 +286,8 @@ CREATE TABLE lista_usuario (
 CREATE TABLE evento_usuario (
 	id_evento       	INT NOT NULL,
     id_usuario      	INT NOT NULL,
-    calificacion_evento	TINYINT UNSIGNED DEFAULT NULL CHECK (calificacion_evento BETWEEN 0 AND 5),
-    asiste          	BOOL DEFAULT NULL, -- 0:No  1:Sí  2:Quizas
+    asiste          	BOOL DEFAULT NULL, -- 0:No  1:Sí
+    me_gusta_evento 	BOOL DEFAULT NULL, -- 0:No  1:Sí
 
     PRIMARY KEY (id_evento, id_usuario),
 
@@ -310,6 +310,7 @@ CREATE TABLE evento_comentario (
     id_evento           INT NOT NULL,
     id_usuario          INT NOT NULL,
     texto_comentario    TEXT NOT NULL,
+    calificacion_comentario TINYINT UNSIGNED DEFAULT NULL CHECK (calificacion_comentario BETWEEN 0 AND 5),
     id_com_respuesta    INT DEFAULT NULL,
     fecha_comentario    DATETIME NOT NULL DEFAULT now(), -- YYYY-MM-DD:HH:MM:SS
 

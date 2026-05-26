@@ -131,12 +131,12 @@ export interface ListaUsuario {
 	me_gusta_lista?: boolean | null; // 0: No, 1: Sí
 }
 
-// Relación H: Usuario-Evento (Asistencia y Calificación del evento)
+// Relación H: Usuario-Evento (Asistencia y me gusta del evento)
 export interface EventoUsuario {
 	id_evento: number; // FK
 	id_usuario: number; // FK
-	calificacion_evento?: number | null; // 0-5
-	asiste?: boolean | null; // 0: No, 1: Si, 2: Quizas
+	asiste?: boolean | null; // 0: No, 1: Sí
+	me_gusta_evento?: boolean | null; // 0: No, 1: Sí
 }
 
 // Relación I: Evento-Comentario
@@ -145,6 +145,7 @@ export interface EventoComentario {
 	id_evento: number; // FK
 	id_usuario: number; // FK
 	texto_comentario: string;
+	calificacion_comentario?: number | null; // 0-5
 	id_com_respuesta?: number | null; // FK recursiva (puede ser null)
 	fecha_comentario: Date | string;
 }

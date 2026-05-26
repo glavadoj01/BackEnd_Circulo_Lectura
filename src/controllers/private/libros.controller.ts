@@ -1,11 +1,11 @@
 import { Response } from "express";
 import type { AuthRequest } from "../../interfaces/modelosApp/modelosApp.js";
 import { ConexionBD } from "../../services/conexionBD.service.js";
+import { ConexionLibros } from "../../services/conexionLibros.service.js";
 import { LibroBD } from "../../interfaces/modelosBD/modelosBD.js";
 import { parsePositiveInt } from "../../utils/validation.utils.js";
 import { respuestaOk, respuestaError } from "../../utils/validationMessages.utils.js";
-import { asegurarRol } from "../../utils/authorization.utils.js";
-import { getSesionID } from "../../utils/authorization.utils.js";
+import { asegurarRol, getRolUsuario, getSesionID } from "../../utils/authorization.utils.js";
 
 /**
  * Valida los datos de un autor.
@@ -228,9 +228,8 @@ export async function crearLibro(req: AuthRequest, res: Response) {
  * @returns JSON indicando si el libro fue actualizado y cuántos registros fueron afectados, o un error si ocurrió algún problema o si el libro no fue encontrado.
  */
 export async function actualizarLibro(req: AuthRequest, res: Response) {
-	let conexionAbierta: ConexionBD | null = null;
+	let conexionDetalle: ConexionLibros | null = null;
 	try {
-		if (!asegurarRol(req, res, 2)) return null;
 		const idRaw = req.params.id ?? req.body.id_libro;
 		const id = parsePositiveInt(idRaw);
 		const datos: Partial<LibroBD> =
@@ -239,32 +238,45 @@ export async function actualizarLibro(req: AuthRequest, res: Response) {
 			return respuestaError(res, 400, "ID_LIBRO_INVALIDO");
 		}
 
+		conexionDetalle = new ConexionLibros();
+		const detalleLibro = await conexionDetalle.obtenerDetalleLibro(id);
+		if (!detalleLibro) {
+			return respuestaError(res, 404, "ERROR_OBTENER_LIBRO");
+		}
+		const idSesion = getSesionID(req);
+		const rol = getRolUsuario(req);
+		const esAutorVinculado = (detalleLibro.libro.autores ?? []).some(
+			autor => autor.id_usuario !== undefined && autor.id_usuario === idSesion,
+		);
+		if (rol < 1 && !esAutorVinculado) {
+			return respuestaError(res, 403, "ERROR_USUARIO_NO_AUTORIZADO");
+		}
+
 		const tieneAutores = Object.prototype.hasOwnProperty.call(req.body, "autores");
 		const tieneGeneros = Object.prototype.hasOwnProperty.call(req.body, "generos");
 
-		conexionAbierta = new ConexionBD();
-		const afectados = (await conexionAbierta.actualizarRegistro("libro", datos, { id_libro: id })).datos.affectedRows;
+		const afectados = (await conexionDetalle.actualizarRegistro("libro", datos, { id_libro: id })).datos.affectedRows;
 		if (afectados === 0) {
 			return respuestaError(res, 404, "ERROR_OBTENER_LIBRO");
 		}
 
 		if (tieneAutores) {
 			const autores = Array.isArray(req.body.autores) ? req.body.autores : [];
-			const autoresIds = await procesarAutores(conexionAbierta, autores);
-			await sincronizarAutores(conexionAbierta, id, autoresIds);
+			const autoresIds = await procesarAutores(conexionDetalle, autores);
+			await sincronizarAutores(conexionDetalle, id, autoresIds);
 		}
 
 		if (tieneGeneros) {
 			const generos = Array.isArray(req.body.generos) ? req.body.generos : [];
-			const generosIds = await procesarGeneros(conexionAbierta, generos);
-			await sincronizarGeneros(conexionAbierta, id, generosIds);
+			const generosIds = await procesarGeneros(conexionDetalle, generos);
+			await sincronizarGeneros(conexionDetalle, id, generosIds);
 		}
 
 		return respuestaOk(res, 200, "LIBRO_ACTUALIZADO_OK", { actualizado: true, afectados });
 	} catch (error: any) {
 		return respuestaError(res, 500, "ERROR_ACTUALIZAR_LIBRO", error.message);
 	} finally {
-		if (conexionAbierta) await conexionAbierta.close();
+		if (conexionDetalle) await conexionDetalle.close();
 	}
 }
 
@@ -283,7 +295,8 @@ export async function marcarMeGustaLibro(req: AuthRequest, res: Response) {
 		conexion = new ConexionBD();
 
 		const libroRows = await conexion.listarRegistros("libro", { id_libro: idLibro }, "", 1, "id_libro");
-		if (!libroRows.exito || !libroRows.datos || libroRows.datos.length === 0) return respuestaError(res, 404, "NO_ENCONTRADO_LIBRO");
+		if (!libroRows.exito || !libroRows.datos || libroRows.datos.length === 0)
+			return respuestaError(res, 404, "NO_ENCONTRADO_LIBRO");
 
 		const relacion = await conexion.listarRegistros(
 			"libro_usuario",
@@ -296,7 +309,11 @@ export async function marcarMeGustaLibro(req: AuthRequest, res: Response) {
 		if (!relacion.exito) return respuestaError(res, 500, "ERROR_ME_GUSTA_LIBRO", relacion.mensaje);
 
 		if (!relacion.datos || relacion.datos.length === 0) {
-			const insert = await conexion.insertarRegistro("libro_usuario", { id_libro: idLibro, id_usuario: idUsuario, me_gusta_libro: 1 });
+			const insert = await conexion.insertarRegistro("libro_usuario", {
+				id_libro: idLibro,
+				id_usuario: idUsuario,
+				me_gusta_libro: 1,
+			});
 			if (!insert.exito) return respuestaError(res, 500, "ERROR_ME_GUSTA_LIBRO", insert.mensaje);
 		} else {
 			const update = await conexion.actualizarRegistro(
@@ -347,7 +364,11 @@ export async function quitarMeGustaLibro(req: AuthRequest, res: Response) {
 			if (!update.exito) return respuestaError(res, 500, "ERROR_QUITAR_ME_GUSTA_LIBRO", update.mensaje);
 		}
 
-		return respuestaOk(res, 200, "LIBRO_ME_GUSTA_QUITADO_OK", { id_libro: idLibro, id_usuario: idUsuario, me_gusta: false });
+		return respuestaOk(res, 200, "LIBRO_ME_GUSTA_QUITADO_OK", {
+			id_libro: idLibro,
+			id_usuario: idUsuario,
+			me_gusta: false,
+		});
 	} catch (error: any) {
 		return respuestaError(res, 500, "ERROR_QUITAR_ME_GUSTA_LIBRO", error.message);
 	} finally {
@@ -369,7 +390,8 @@ export async function obtenerEstadoLibroUsuario(req: AuthRequest, res: Response)
 		conexion = new ConexionBD();
 
 		const libroRows = await conexion.listarRegistros("libro", { id_libro: idLibro }, "", 1, "id_libro");
-		if (!libroRows.exito || !libroRows.datos || libroRows.datos.length === 0) return respuestaError(res, 404, "NO_ENCONTRADO_LIBRO");
+		if (!libroRows.exito || !libroRows.datos || libroRows.datos.length === 0)
+			return respuestaError(res, 404, "NO_ENCONTRADO_LIBRO");
 
 		const relacion = await conexion.listarRegistros(
 			"libro_usuario",
@@ -397,18 +419,29 @@ export async function obtenerEstadoLibroUsuario(req: AuthRequest, res: Response)
  * @returns JSON indicando si el libro fue borrado y cuántos registros fueron afectados, o un error si ocurrió algún problema.
  */
 export async function borrarLibro(req: AuthRequest, res: Response) {
-	let conexionAbierta: ConexionBD | null = null;
+	let conexionDetalle: ConexionLibros | null = null;
 	try {
-		if (!asegurarRol(req, res, 2)) return null;
-
 		const idRaw = req.params.id ?? req.body.id_libro;
 		const id = parsePositiveInt(idRaw);
 		if (Number.isNaN(id)) {
 			return respuestaError(res, 400, "ID_LIBRO_INVALIDO");
 		}
 
-		conexionAbierta = new ConexionBD();
-		const afectados = (await conexionAbierta.borrarRegistro("libro", { id_libro: id })).datos.affectedRows;
+		conexionDetalle = new ConexionLibros();
+		const detalleLibro = await conexionDetalle.obtenerDetalleLibro(id);
+		if (!detalleLibro) {
+			return respuestaError(res, 404, "ERROR_OBTENER_LIBRO");
+		}
+		const idSesion = getSesionID(req);
+		const rol = getRolUsuario(req);
+		const esAutorVinculado = (detalleLibro.libro.autores ?? []).some(
+			autor => autor.id_usuario !== undefined && autor.id_usuario === idSesion,
+		);
+		if (rol < 1 && !esAutorVinculado) {
+			return respuestaError(res, 403, "ERROR_USUARIO_NO_AUTORIZADO");
+		}
+
+		const afectados = (await conexionDetalle.borrarRegistro("libro", { id_libro: id })).datos.affectedRows;
 		if (afectados === 0) {
 			return respuestaError(res, 404, "ERROR_OBTENER_LIBRO");
 		}
@@ -416,6 +449,6 @@ export async function borrarLibro(req: AuthRequest, res: Response) {
 	} catch (error: any) {
 		return respuestaError(res, 500, "ERROR_BORRAR_LIBRO", error.message);
 	} finally {
-		if (conexionAbierta) await conexionAbierta.close();
+		if (conexionDetalle) await conexionDetalle.close();
 	}
 }

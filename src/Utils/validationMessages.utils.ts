@@ -2,6 +2,7 @@ import { Response } from "express";
 
 const VALIDACION_MENSAJES = {
 	LOGIN_EXITOSO: "Login exitoso",
+	LOGIN_EXITOSO_ADMIN: "Login exitoso - Administrador",
 	LOGOUT_EXITOSO: "Logout exitoso",
 	API_RESETEADA_OK: "API reseteada exitosamente",
 	AUTORES_OBTENIDOS_OK: "Autores obtenidos exitosamente",
@@ -23,6 +24,11 @@ const VALIDACION_MENSAJES = {
 	LISTA_ME_GUSTA_OK: "Me gusta de la lista marcado exitosamente",
 	LISTA_ME_GUSTA_QUITADO_OK: "Me gusta de la lista quitado exitosamente",
 	LISTA_ESTADO_USUARIO_OK: "Estado de lista para usuario obtenido exitosamente",
+	EVENTO_SEGUIDO_OK: "Evento seguido exitosamente",
+	EVENTO_DEJADO_SEGUIR_OK: "Evento dejado de seguir exitosamente",
+	EVENTO_ME_GUSTA_OK: "Me gusta del evento marcado exitosamente",
+	EVENTO_ME_GUSTA_QUITADO_OK: "Me gusta del evento quitado exitosamente",
+	EVENTO_ESTADO_USUARIO_OK: "Estado de evento para usuario obtenido exitosamente",
 	YEARS_OBTENIDOS_OK: "Años de publicación obtenidos exitosamente",
 	EVENTOS_CREADOS_OK: "Eventos creados obtenidos exitosamente",
 	EVENTOS_OBTENIDOS_OK: "Eventos obtenidos exitosamente",
@@ -86,6 +92,10 @@ const ERROR_MENSAJES = {
 	ERROR_DEJAR_SEGUIR_LISTA: "Error al dejar de seguir lista",
 	ERROR_ME_GUSTA_LISTA: "Error al marcar me gusta en lista",
 	ERROR_QUITAR_ME_GUSTA_LISTA: "Error al quitar me gusta en lista",
+	ERROR_SEGUIR_EVENTO: "Error al seguir evento",
+	ERROR_DEJAR_SEGUIR_EVENTO: "Error al dejar de seguir evento",
+	ERROR_ME_GUSTA_EVENTO: "Error al marcar me gusta en evento",
+	ERROR_QUITAR_ME_GUSTA_EVENTO: "Error al quitar me gusta en evento",
 	ERROR_CREAR_USUARIO: "Error al crear usuario",
 
 	ERROR_ME_GUSTA_LIBRO: "Error al marcar me gusta en libro",
@@ -93,6 +103,7 @@ const ERROR_MENSAJES = {
 
 	ERROR_OBTENER_AUTORES: "Error al obtener los autores",
 	ERROR_OBTENER_ASISTENTES_EVENTO: "Error al obtener los asistentes del evento",
+	ERROR_OBTENER_ESTADO_EVENTO: "Error al obtener el estado del evento para el usuario",
 	ERROR_OBTENER_COMENTARIOS_LISTA: "Error al obtener los comentarios de la lista",
 	ERROR_OBTENER_COMENTARIOS_EVENTO: "Error al obtener los comentarios del evento",
 	ERROR_OBTENER_CRITICAS: "Error al obtener críticas",

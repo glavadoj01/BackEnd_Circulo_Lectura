@@ -620,34 +620,34 @@ INSERT INTO evento (id_usuarioCrd, nombre_evento, fecha_evento, hora_evento, dir
    ============================ */
 INSERT INTO evento_usuario VALUES
 -- Evento 1
-(1, 1, 5, 1),   -- asiste
-(1, 2, 4, 2),   -- quizás
+(1, 1, true, true),   -- asiste
+(1, 2, NULL, NULL),   -- sin respuesta
 (1, 3, NULL, NULL), -- sin respuesta
 -- Evento 2
-(2, 1, 5, 1),
-(2, 4, 3, 0),   -- no asiste
+(2, 1, true, NULL),
+(2, 4, false, NULL),   -- no asiste
 -- Evento 3
-(3, 3, 4, 1),
+(3, 3, true, NULL),
 -- Evento 4
-(4, 1, 5, 1),(4, 2, 4, 1),(4, 3, 5, 1),(4, 4, 3, 2),
+(4, 1, true, NULL),(4, 2, true, NULL),(4, 3, true, NULL),(4, 4, NULL, NULL),
 -- Evento 5
-(5, 5, 5, 1),(5, 6, 4, 2),(5, 7, NULL, NULL),
+(5, 5, true, NULL),(5, 6, NULL, NULL),(5, 7, NULL, NULL),
 -- Evento 6
-(6, 8, NULL, 2),(6, 9, 5, 1),(6, 10, 4, 1),
+(6, 8, NULL, NULL),(6, 9, true, NULL),(6, 10, true, NULL),
 -- Evento 7
-(7, 1, NULL, 2),(7, 2, 5, 1),(7, 3, 4, 1),(7, 11, 5, 1),
+(7, 1, NULL, NULL),(7, 2, true, NULL),(7, 3, true, NULL),(7, 11, true, NULL),
 -- Pasados adicionales
-(8, 2, 5, 1), (8, 3, 4, 1), (8, 4, 3, 2),
-(9, 5, 5, 1), (9, 6, 4, 1), (9, 7, NULL, NULL),
-(10, 8, NULL, 2), (10, 9, 5, 1), (10, 10, 4, 1),
-(11, 1, 5, 1), (11, 2, 4, 1), (11, 3, 5, 1),
-(12, 4, 3, 2), (12, 5, 5, 1), (12, 6, 4, 1),
+(8, 2, true, true), (8, 3, true, false), (8, 4, NULL, NULL),
+(9, 5, true, true), (9, 6, true, false), (9, 7, NULL, NULL),
+(10, 8, NULL, false), (10, 9, true, true), (10, 10, true, false),
+(11, 1, true, true), (11, 2, true, true), (11, 3, true, true),
+(12, 4, NULL, NULL), (12, 5, true, true), (12, 6, true, false),
 -- Futuros adicionales
-(13, 7, 5, 1), (13, 8, 4, 1), (13, 9, 3, 2),
-(14, 2, 5, 1), (14, 3, 4, 1), (14, 4, 3, 2),
-(15, 5, 5, 1), (15, 6, 4, 1), (15, 7, NULL, NULL),
-(16, 8, NULL, 2), (16, 9, 5, 1), (16, 10, 4, 1),
-(17, 1, 5, 1), (17, 2, 4, 1), (17, 3, 5, 1);
+(13, 7, true, true), (13, 8, true, NULL), (13, 9, NULL, NULL),
+(14, 2, true, NULL), (14, 3, true, NULL), (14, 4, NULL, NULL),
+(15, 5, true, true), (15, 6, true, NULL), (15, 7, NULL, NULL),
+(16, 8, NULL, NULL), (16, 9, true, true), (16, 10, true, true),
+(17, 1, true, true), (17, 2, true, true), (17, 3, true, NULL);
 
 /* ============================
    RELACIÓN I: EVENTO-COMENTARIO

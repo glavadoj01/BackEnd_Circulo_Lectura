@@ -18,7 +18,16 @@ import {
 	quitarMeGustaLista,
 	obtenerEstadoListaUsuario,
 } from "../controllers/private/listas.controller.js";
-import { crearEvento, actualizarEvento, borrarEvento } from "../controllers/private/eventos.controller.js";
+import {
+	crearEvento,
+	actualizarEvento,
+	borrarEvento,
+	seguirEvento,
+	dejarSeguirEvento,
+	marcarMeGustaEvento,
+	quitarMeGustaEvento,
+	obtenerEstadoEventoUsuario,
+} from "../controllers/private/eventos.controller.js";
 import {
 	obtenerUsuarios,
 	obtenerUsuario,
@@ -92,5 +101,10 @@ rutasPrivadas.get("/usuario/criticas/:id", requireAuth, obtenerCriticasUsuario);
 rutasPrivadas.post("/evento", requireAuth, crearEvento);
 rutasPrivadas.put("/evento/:id", requireAuth, actualizarEvento);
 rutasPrivadas.delete("/evento/:id", requireAuth, borrarEvento);
+rutasPrivadas.post("/evento/:id/seguir/usuario/:usuarioId", requireAuth, seguirEvento);
+rutasPrivadas.delete("/evento/:id/seguir/usuario/:usuarioId", requireAuth, dejarSeguirEvento);
+rutasPrivadas.post("/evento/:id/me-gusta/usuario/:usuarioId", requireAuth, marcarMeGustaEvento);
+rutasPrivadas.delete("/evento/:id/me-gusta/usuario/:usuarioId", requireAuth, quitarMeGustaEvento);
+rutasPrivadas.get("/evento/:id/estado/usuario/:usuarioId", requireAuth, obtenerEstadoEventoUsuario);
 
 export default rutasPrivadas;

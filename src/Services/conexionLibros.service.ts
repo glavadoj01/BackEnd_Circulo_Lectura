@@ -104,7 +104,7 @@ export class ConexionLibros extends ConexionBD {
       l.sinopsis,
       i.nombre_idioma,
       GROUP_CONCAT(
-        DISTINCT CONCAT(a.id_autor, ':', a.nombre_autor, ':', a.apellido_autor)
+				DISTINCT CONCAT(COALESCE(a.id_usuario, ''), ':', a.id_autor, ':', a.nombre_autor, ':', a.apellido_autor)
         ORDER BY la.autorPr DESC, a.nombre_autor ASC, a.apellido_autor ASC
         SEPARATOR '|'
       ) AS autores,
@@ -166,11 +166,12 @@ export class ConexionLibros extends ConexionBD {
 			autores:
 				typeof row.autores === "string" && row.autores.length > 0
 					? row.autores.split("|").map((a: string) => {
-							const [id_autor, nombre_autor, apellido_autor] = a.split(":");
+									const [id_usuario, id_autor, nombre_autor, apellido_autor] = a.split(":");
 							return {
 								id_autor: Number(id_autor),
 								nombre_autor,
 								apellido_autor,
+										...(id_usuario ? { id_usuario: Number(id_usuario) } : {}),
 							};
 						})
 					: [],

@@ -2,10 +2,13 @@ import crypto from "crypto";
 import { ConexionBD } from "./conexionBD.service.js";
 
 export class LoginService extends ConexionBD {
-	async login(email: string, password: string) {
+	async login(
+		email: string,
+		password: string,
+	): Promise<{ ok: boolean; token?: string; id_usuario?: number; esAdministrador?: number; error?: string }> {
 		try {
 			const [rows]: any = await this.pool.query(
-				`SELECT id_usuario, password_hash 
+				`SELECT id_usuario, password_hash , esAdministrador
           FROM usuario
           WHERE email_usuario = ?
           LIMIT 1
@@ -41,11 +44,20 @@ export class LoginService extends ConexionBD {
 				[token, usuario.id_usuario],
 			);
 
-			return {
+			let respuesta: { ok: boolean; token: string; id_usuario: number; esAdministrador?: number } = {
 				ok: true,
 				token,
 				id_usuario: usuario.id_usuario,
 			};
+
+			if (usuario.esAdministrador === 1 || usuario.esAdministrador === 2) {
+				respuesta = {
+					...respuesta,
+					esAdministrador: usuario.esAdministrador,
+				};
+			}
+
+			return respuesta;
 		} catch (err: any) {
 			console.error("[SRV]Error en login:", err);
 			return { ok: false, error: `INTERNO ${err.message}` };
