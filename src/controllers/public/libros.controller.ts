@@ -107,3 +107,25 @@ export async function obtenerLibrosTotal(req: Request, res: Response) {
 		if (conexionAbierta) await conexionAbierta.close();
 	}
 }
+
+export async function obtenerIdiomas(_req: Request, res: Response) {
+	let conexionAbierta: ConexionLibros | null = null;
+	console.log("[obtenerIdiomas] Req recibida: ", _req.headers, _req.query, _req.params);
+	try {
+		conexionAbierta = new ConexionLibros();
+		const result = await conexionAbierta.listarRegistros(
+			"idiomas",
+			{},
+			"nombre_idioma ASC",
+			0,
+			"id_idioma, nombre_idioma",
+		);
+		console.log("[obtenerIdiomas] Resultado consulta idiomas: ", result);
+		if (!result.exito) return respuestaError(res, 500, "ERROR_OBTENER_IDIOMAS", result.mensaje);
+		return respuestaOk(res, 200, "IDIOMAS_OBTENIDOS_OK", result.datos);
+	} catch (error: any) {
+		return respuestaError(res, 500, "ERROR_OBTENER_IDIOMAS", error.message);
+	} finally {
+		if (conexionAbierta) await conexionAbierta.close();
+	}
+}

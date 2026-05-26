@@ -14,6 +14,7 @@ const VALIDACION_MENSAJES = {
 	EVENTO_CREADO_OK: "Evento creado exitosamente",
 	EVENTO_ACTUALIZADO_OK: "Evento actualizado exitosamente",
 	EVENTO_BORRADO_OK: "Evento borrado exitosamente",
+	IDIOMAS_OBTENIDOS_OK: "Idiomas obtenidos exitosamente",
 	LISTA_CREADA_OK: "Lista creada exitosamente",
 	LISTAS_OBTENIDAS_OK: "Listas obtenidas exitosamente",
 	LISTA_OBTENIDA_OK: "Lista obtenida exitosamente",
@@ -115,6 +116,7 @@ const ERROR_MENSAJES = {
 	ERROR_OBTENER_EVENTOS_ASISTIDOS: "Error al obtener los eventos asistidos",
 	ERROR_OBTENER_TOTAL_EVENTOS: "Error al obtener el total de eventos",
 	ERROR_OBTENER_GENEROS: "Error al obtener los géneros",
+	ERROR_OBTENER_IDIOMAS: "Error al obtener los idiomas",
 	ERROR_OBTENER_LIBROS: "Error al obtener libros",
 	ERROR_OBTENER_LIBRO: "Error al obtener libro",
 	ERROR_OBTENER_LIBROS_LEIDOS: "Error al obtener los libros leídos",
@@ -276,4 +278,25 @@ export function respuestaOk(
 		message: MENSAJES_ESTANDARIZADOS[codigo],
 		data: payload,
 	});
+}
+
+export function valorTextoSeguro(valor: unknown): string {
+	if (typeof valor === "string") {
+		const limpio = valor.trim();
+		return limpio.length > 0 ? limpio : "";
+	} else if (typeof valor === "number" || typeof valor === "boolean") {
+		return String(valor);
+	} else {
+		return "";
+	}
+}
+
+export function valorNumeroSeguro(valor: unknown): number | null {
+	if (typeof valor === "number" && Number.isFinite(valor)) {
+		return valor;
+	} else if (typeof valor === "string") {
+		const limpio = valor.trim();
+		return limpio.length > 0 && !Number.isNaN(Number(limpio)) ? Number(limpio) : null;
+	}
+	return null;
 }

@@ -141,6 +141,7 @@ export class ConexionBD {
 		try {
 			this.validarTablaYColumnas(tabla, { ...datos, ...condiciones });
 			const { sql, valores } = this.construirUpdateQuery(tabla, datos, condiciones);
+			console.log("SQL UPDATE:", sql, "Valores:", valores);
 			const [result]: any = await this.pool.query(sql, valores);
 			return { exito: true, datos: result.affectedRows, mensaje: "" };
 		} catch (error: any) {

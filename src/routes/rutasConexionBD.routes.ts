@@ -3,7 +3,12 @@ import { obtenerAutores } from "../controllers/public/autores.controller.js";
 import { obtenerComentariosLista } from "../controllers/public/comentariosLista.controller.js";
 import { obtenerCriticasLibro } from "../controllers/public/criticas.controller.js";
 import { obtenerGeneros } from "../controllers/public/generos.controller.js";
-import { obtenerLibroId, obtenerLibros, obtenerLibrosTotal } from "../controllers/public/libros.controller.js";
+import {
+	obtenerIdiomas,
+	obtenerLibroId,
+	obtenerLibros,
+	obtenerLibrosTotal,
+} from "../controllers/public/libros.controller.js";
 import { obtenerLibrosDeLista } from "../controllers/public/librosLista.controller.js";
 import { obtenerListaId, obtenerListas, obtenerListasTotal } from "../controllers/public/listas.controller.js";
 import { resetearAPI } from "../controllers/public/resetAPI.controller.js";
@@ -34,6 +39,7 @@ rutasConexionBD.get("/libro/:id", obtenerLibroId);
 rutasConexionBD.get("/libro/:id/criticas", obtenerCriticasLibro);
 
 // Definición de rutas para géneros, autores y años (filtros)
+rutasConexionBD.get("/idiomas", obtenerIdiomas);
 rutasConexionBD.get("/generos", obtenerGeneros);
 rutasConexionBD.get("/autores", obtenerAutores);
 rutasConexionBD.get("/years", obtenerYears);

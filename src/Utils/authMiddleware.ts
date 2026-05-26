@@ -18,24 +18,24 @@ const procesarIdUsuario = (url: string): number | null => {
 export async function authMiddleware(req: AuthRequest, res: Response, next: NextFunction) {
 	try {
 		console.log("================================");
-		console.log("[AUTH] authMiddleware - INICIO");
+		// console.log("[AUTH] authMiddleware - INICIO");
 		// console.log('[AUTH] authMiddleware - req recibida: ', req);
 		const auth = req.header("Authorization");
-		console.log("[AUTH] authMiddleware - Authorization Header:", auth);
+		// console.log("[AUTH] authMiddleware - Authorization Header:", auth);
 		if (!auth || !auth.startsWith("Bearer ")) {
 			req.user = null;
 			return next(); // público sin usuario
 		}
 
 		const token = auth.substring("Bearer ".length).trim();
-		console.log("[AUTH] authMiddleware - Token extraído:", token);
+		// console.log("[AUTH] authMiddleware - Token extraído:", token);
 		if (!token) {
 			req.user = null;
 			return next();
 		}
 
 		const idIn = procesarIdUsuario(req.originalUrl);
-		console.log("[AUTH] authMiddleware - ID usuario procesado de URL:", idIn);
+		// console.log("[AUTH] authMiddleware - ID usuario procesado de URL:", idIn);
 
 		const conexion = new ConexionBD();
 		const rows: any = await conexion.listarRegistros(
@@ -52,10 +52,10 @@ export async function authMiddleware(req: AuthRequest, res: Response, next: Next
 			console.log("[AUTH] authMiddleware - Token inválido o expirado");
 			return respuestaError(res, 401, "ERROR_LOGIN_TOKEN_INVALIDO");
 		}
-		console.log("[AUTH] authMiddleware - Resultado consulta sesiones:", rows);
+		// console.log("[AUTH] authMiddleware - Resultado consulta sesiones:", rows);
 
 		const idSesion = rows.datos[0].id_usuario;
-		console.log("[AUTH] authMiddleware - ID sesión encontrada:", idSesion);
+		// console.log("[AUTH] authMiddleware - ID sesión encontrada:", idSesion);
 
 		const rowsUsuario: any = await conexion.listarRegistros(
 			"usuario",
@@ -64,7 +64,7 @@ export async function authMiddleware(req: AuthRequest, res: Response, next: Next
 			1,
 			"nombre_usuario, email_usuario, nombre_real, apellido_usuario, esAdministrador",
 		);
-		console.log("[AUTH] authMiddleware - Resultado consulta usuario:", rowsUsuario);
+		// console.log("[AUTH] authMiddleware - Resultado consulta usuario:", rowsUsuario);
 
 		if (idSesion !== idIn) {
 			console.log("[AUTH] authMiddleware - ID sesión no coincide con ID en URL");
