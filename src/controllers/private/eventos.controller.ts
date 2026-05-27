@@ -377,3 +377,90 @@ export async function obtenerEstadoEventoUsuario(req: AuthRequest, res: Response
 		if (conexion) await conexion.close();
 	}
 }
+
+export async function agregarLibrosAEvento(req: AuthRequest, res: Response) {
+	console.log("[agregarLibrosAEvento] Request recibida:", { params: req.params, body: req.body });
+	let conexion: ConexionBD | null = null;
+	const idEvento = parsePositiveInt(req.params.id ?? req.body.id_evento);
+	const idUsuario = parsePositiveInt(req.params.usuarioId ?? req.body.id_usuario);
+	const idsLibros: number[] = Array.isArray(req.body.ids_libros)
+		? req.body.ids_libros.map(parsePositiveInt)
+		: [parsePositiveInt(req.body.id_libro)];
+
+	if (Number.isNaN(idEvento)) return respuestaError(res, 400, "ID_EVENTO_INVALIDO");
+	if (Number.isNaN(idUsuario)) return respuestaError(res, 400, "ID_USUARIO_INVALIDO");
+	if (idsLibros.some(isNaN)) return respuestaError(res, 400, "ID_LIBRO_INVALIDO");
+	if (getSesionID(req) !== idUsuario) return respuestaError(res, 403, "ERROR_LOGIN_TOKEN_NO_CORRESPONDE");
+
+	try {
+		conexion = new ConexionBD();
+		const evento = await conexion.listarRegistros("evento", { id_evento: idEvento }, "", 1, "id_usuarioCrd");
+		if (!evento) {
+			return respuestaError(res, 404, "NO_ENCONTRADO_EVENTO");
+		}
+		if (!asegurarPropietarioAdmin(req, res, Number(evento.datos[0].id_usuarioCrd), 1)) {
+			return respuestaError(res, 403, "ERROR_LOGIN_TOKEN_NO_CORRESPONDE");
+		}
+		let resultadoGlobal = true;
+		await Promise.all(
+			idsLibros.map(async idLibro => {
+				const resultado = await conexion?.insertarRegistro("evento_contenido", {
+					id_evento: idEvento,
+					id_libro: idLibro,
+				});
+				if (!resultado?.exito) resultadoGlobal = false;
+			}),
+		);
+
+		if (resultadoGlobal) return respuestaOk(res, 200, "AGREGAR_LIBRO_EVENTO_OK");
+		else return respuestaError(res, 500, "ERROR_AGREGAR_LIBRO_EVENTO", "Error al agregar uno o más libros al evento");
+	} catch (error: any) {
+		conexion = new ConexionBD();
+		return respuestaError(res, 500, "ERROR_AGREGAR_LIBRO_EVENTO", error.message);
+	} finally {
+		if (conexion) await conexion.close();
+	}
+}
+
+export async function eliminarLibrosDeEvento(req: AuthRequest, res: Response) {
+	console.log("[eliminarLibrosDeEvento] Request recibida:", { params: req.params, body: req.body });
+	let conexion: ConexionBD | null = null;
+	const idEvento = parsePositiveInt(req.params.id ?? req.body.id_evento);
+	const idUsuario = parsePositiveInt(req.params.usuarioId ?? req.body.id_usuario);
+	const idsLibros: number[] = Array.isArray(req.body.ids_libros)
+		? req.body.ids_libros.map(parsePositiveInt)
+		: [parsePositiveInt(req.body.id_libro)];
+	if (Number.isNaN(idEvento)) return respuestaError(res, 400, "ID_EVENTO_INVALIDO");
+	if (Number.isNaN(idUsuario)) return respuestaError(res, 400, "ID_USUARIO_INVALIDO");
+	if (idsLibros.some(isNaN)) return respuestaError(res, 400, "ID_LIBRO_INVALIDO");
+	if (getSesionID(req) !== idUsuario) return respuestaError(res, 403, "ERROR_LOGIN_TOKEN_NO_CORRESPONDE");
+
+	try {
+		conexion = new ConexionBD();
+		const evento = await conexion.listarRegistros("evento", { id_evento: idEvento }, "", 1, "id_usuarioCrd");
+		if (!evento) {
+			return respuestaError(res, 404, "NO_ENCONTRADO_EVENTO");
+		}
+		if (!asegurarPropietarioAdmin(req, res, Number(evento.datos[0].id_usuarioCrd), 1)) {
+			return respuestaError(res, 403, "ERROR_LOGIN_TOKEN_NO_CORRESPONDE");
+		}
+		let resultadoGlobal = true;
+		await Promise.all(
+			idsLibros.map(async idLibro => {
+				const resultado = await conexion?.borrarRegistro("evento_contenido", {
+					id_evento: idEvento,
+					id_libro: idLibro,
+				});
+				if (!resultado?.exito) resultadoGlobal = false;
+			}),
+		);
+		if (resultadoGlobal) return respuestaOk(res, 200, "ELIMINAR_LIBRO_EVENTO_OK");
+		else
+			return respuestaError(res, 500, "ERROR_ELIMINAR_LIBRO_EVENTO", "Error al eliminar uno o más libros del evento");
+	} catch (error: any) {
+		conexion = new ConexionBD();
+		return respuestaError(res, 500, "ERROR_ELIMINAR_LIBRO_EVENTO", error.message);
+	} finally {
+		if (conexion) await conexion.close();
+	}
+}

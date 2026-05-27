@@ -1,6 +1,8 @@
 import { Response } from "express";
 
 const VALIDACION_MENSAJES = {
+	AGREGAR_LIBRO_EVENTO_OK: "Libro agregado al evento exitosamente",
+	ELIMINAR_LIBRO_EVENTO_OK: "Libro eliminado del evento exitosamente",
 	LOGIN_EXITOSO: "Login exitoso",
 	LOGIN_EXITOSO_ADMIN: "Login exitoso - Administrador",
 	LOGOUT_EXITOSO: "Logout exitoso",
@@ -100,7 +102,8 @@ const ERROR_MENSAJES = {
 	ERROR_ME_GUSTA_EVENTO: "Error al marcar me gusta en evento",
 	ERROR_QUITAR_ME_GUSTA_EVENTO: "Error al quitar me gusta en evento",
 	ERROR_CREAR_USUARIO: "Error al crear usuario",
-
+	ERROR_AGREGAR_LIBRO_EVENTO: "Error al agregar libro al evento",
+	ERROR_ELIMINAR_LIBRO_EVENTO: "Error al eliminar libro del evento",
 	ERROR_ME_GUSTA_LIBRO: "Error al marcar me gusta en libro",
 	ERROR_QUITAR_ME_GUSTA_LIBRO: "Error al quitar me gusta en libro",
 

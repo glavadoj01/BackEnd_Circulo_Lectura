@@ -35,6 +35,8 @@ import {
 	marcarMeGustaEvento,
 	quitarMeGustaEvento,
 	obtenerEstadoEventoUsuario,
+	eliminarLibrosDeEvento,
+	agregarLibrosAEvento,
 } from "../controllers/private/eventos.controller.js";
 import {
 	obtenerUsuarios,
@@ -99,11 +101,16 @@ rutasPrivadas.get("/usuario/:id", requireAuth, obtenerUsuario);
 rutasPrivadas.post("/evento/usuario/:usuarioId", requireAuth, crearEvento);
 rutasPrivadas.put("/evento/:id/usuario/:usuarioId", requireAuth, actualizarEvento);
 rutasPrivadas.delete("/evento/:id/usuario/:usuarioId", requireAuth, borrarEvento);
+
 rutasPrivadas.post("/evento/:id/comentario/usuario/:usuarioId", requireAuth, crearComentarioEvento);
+
 rutasPrivadas.post("/evento/:id/seguir/usuario/:usuarioId", requireAuth, seguirEvento);
 rutasPrivadas.delete("/evento/:id/seguir/usuario/:usuarioId", requireAuth, dejarSeguirEvento);
 rutasPrivadas.post("/evento/:id/me-gusta/usuario/:usuarioId", requireAuth, marcarMeGustaEvento);
 rutasPrivadas.delete("/evento/:id/me-gusta/usuario/:usuarioId", requireAuth, quitarMeGustaEvento);
 rutasPrivadas.get("/evento/:id/estado/usuario/:usuarioId", requireAuth, obtenerEstadoEventoUsuario);
+
+rutasPrivadas.post("/eventos/:id/libros/agregar/idUsuario/:usuarioId", requireAuth, agregarLibrosAEvento);
+rutasPrivadas.delete("/eventos/:id/libros/eliminar/idUsuario/:usuarioId", requireAuth, eliminarLibrosDeEvento);
 
 export default rutasPrivadas;
