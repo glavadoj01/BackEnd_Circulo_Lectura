@@ -15,7 +15,9 @@ export async function crearLista(req: AuthRequest, res: Response) {
 		}
 
 		const idCrd = getSesionID(req);
-		if (!idCrd) return respuestaError(res, 401, "ERROR_USUARIO_NO_AUTENTICADO");
+		if (!idCrd) {
+			return respuestaError(res, 403, "ERROR_LOGIN_TOKEN_NO_CORRESPONDE");
+		}
 		datos.id_usuarioCrd = idCrd;
 
 		conexion = new ConexionBD();

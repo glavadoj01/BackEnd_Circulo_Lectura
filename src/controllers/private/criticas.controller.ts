@@ -6,6 +6,11 @@ import { parseCalificacion, parsePositiveInt } from "../../utils/validation.util
 import { respuestaError, respuestaOk } from "../../utils/validationMessages.utils.js";
 import { asegurarPropietarioAdmin, getSesionID } from "../../utils/authorization.utils.js";
 
+const sanitizarTexto = (valor: unknown, max = 2500): string => {
+	if (typeof valor !== "string") return "";
+	return valor.replace(/\s+/g, " ").trim().slice(0, max);
+};
+
 /**
  * Valida los datos de una crítica.
  * @param critica Objeto crítica a validar.
@@ -25,6 +30,10 @@ const validarCritica = (critica: any, esActualizacion = false): boolean => {
 	}
 	if (critica.titulo_comentario !== undefined && typeof critica.titulo_comentario !== "string") return false;
 	if (critica.texto_comentario !== undefined && typeof critica.texto_comentario !== "string") return false;
+	if (typeof critica.titulo_comentario === "string" && critica.titulo_comentario.length > 100) return false;
+	if (typeof critica.texto_comentario === "string" && critica.texto_comentario.length > 2500) return false;
+	if (!esActualizacion && typeof critica.texto_comentario === "string" && critica.texto_comentario.trim().length < 1)
+		return false;
 	if (
 		critica.calificacion_comentario !== undefined &&
 		(Number.isNaN(parseCalificacion(critica.calificacion_comentario)) ||
@@ -50,10 +59,10 @@ const construirDatosCritica = (body: any, esActualizacion = false): Partial<Libr
 		datos.id_usuario = parsePositiveInt(body.id_usuario);
 	}
 	if (body.titulo_comentario !== undefined) {
-		datos.titulo_comentario = String(body.titulo_comentario);
+		datos.titulo_comentario = sanitizarTexto(body.titulo_comentario, 100);
 	}
 	if (body.texto_comentario !== undefined) {
-		datos.texto_comentario = String(body.texto_comentario);
+		datos.texto_comentario = sanitizarTexto(body.texto_comentario, 2500);
 	}
 	if (body.calificacion_comentario !== undefined) {
 		datos.calificacion_comentario = parseCalificacion(body.calificacion_comentario);
@@ -70,22 +79,31 @@ const construirDatosCritica = (body: any, esActualizacion = false): Partial<Libr
 export async function crearCritica(req: AuthRequest, res: Response) {
 	let conexionAbierta: ConexionBD | null = null;
 	try {
-		const datos = construirDatosCritica(req.body);
+		const idLibro = parsePositiveInt(req.params.id ?? req.body?.id_libro);
+		const idUsuarioSesion = getSesionID(req);
+		const idUsuarioParam = parsePositiveInt(req.params.usuarioId);
+
+		if (Number.isNaN(idLibro)) {
+			return respuestaError(res, 400, "ID_LIBRO_INVALIDO");
+		}
+		if (idUsuarioSesion === null) return respuestaError(res, 401, "ERROR_USUARIO_NO_AUTENTICADO");
+		if (Number.isNaN(idUsuarioParam) || idUsuarioParam !== idUsuarioSesion) {
+			return respuestaError(res, 403, "ERROR_LOGIN_TOKEN_NO_CORRESPONDE");
+		}
+
+		const datos = construirDatosCritica({ ...req.body, id_libro: idLibro, id_usuario: idUsuarioSesion });
 		if (!validarCritica(datos)) {
 			return respuestaError(res, 400, "CAMPOS_OBLIGATORIOS");
 		}
-		const idUsuarioSesion = getSesionID(req);
-		if (idUsuarioSesion === null) return respuestaError(res, 401, "ERROR_USUARIO_NO_AUTENTICADO");
-		datos.id_usuario = idUsuarioSesion;
+
 		conexionAbierta = new ConexionBD();
 		const resultado = await conexionAbierta.insertarRegistro("libro_critica", datos, false);
-		if (resultado.datos.affectedRows > 0 || resultado.datos.insertId) {
+		if (resultado.exito && Number(resultado.datos) > 0) {
 			return respuestaOk(res, 201, "CRITICA_CREADA_OK", {
 				critica: { id_libro: datos.id_libro, id_usuario: datos.id_usuario },
 			});
-		} else {
-			return respuestaError(res, 500, "ERROR_CREAR_CRITICA", resultado.mensaje);
 		}
+		return respuestaError(res, 500, "ERROR_CREAR_CRITICA", resultado.mensaje);
 	} catch (error: any) {
 		return respuestaError(res, 500, "ERROR_CREAR_CRITICA", error.message);
 	} finally {

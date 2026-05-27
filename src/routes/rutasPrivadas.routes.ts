@@ -5,6 +5,7 @@ import {
 	actualizarComentarioLista,
 	borrarComentarioLista,
 } from "../controllers/private/comentariosLista.controller.js";
+import { crearComentarioEvento } from "../controllers/private/comentariosEvento.controller.js";
 import { crearCritica, actualizarCritica, borrarCritica } from "../controllers/private/criticas.controller.js";
 import {
 	crearLibro,
@@ -47,19 +48,19 @@ import { crearAutor } from "../controllers/public/autores.controller.js";
 const rutasPrivadas = Router();
 
 // Rutas de autenticación
-rutasPrivadas.post("/auth/logout", requireAuth, logoutAction);
+rutasPrivadas.post("/auth/logout/usuario/:usuarioId", requireAuth, logoutAction);
 //! REMINDER
 // TODO
 rutasPrivadas.post("/admin/panel", requireAdmin);
 
 // Rutas Libro
 rutasPrivadas.post("/libro", requireAuth, crearLibro);
-rutasPrivadas.put("/libro/:id", requireAuth, actualizarLibro);
-rutasPrivadas.delete("/libro/:id", requireAuth, borrarLibro);
+rutasPrivadas.put("/libro/:id/usuario/:usuarioId", requireAuth, actualizarLibro);
+rutasPrivadas.delete("/libro/:id/usuario/:usuarioId", requireAuth, borrarLibro);
 
-rutasPrivadas.post("/autores", requireAuth, crearAutor);
+rutasPrivadas.post("/autores/usuario/:usuarioId", requireAuth, crearAutor);
 
-rutasPrivadas.post("/libro/:id/critica", requireAuth, crearCritica);
+rutasPrivadas.post("/libro/:id/critica/usuario/:usuarioId", requireAuth, crearCritica);
 rutasPrivadas.put("/libro/:id/critica/usuario/:usuarioId", requireAuth, actualizarCritica);
 rutasPrivadas.delete("/libro/:id/critica/usuario/:usuarioId", requireAuth, borrarCritica);
 
@@ -69,11 +70,11 @@ rutasPrivadas.delete("/libro/:id/me-gusta/usuario/:usuarioId", requireAuth, quit
 rutasPrivadas.get("/libro/:id/estado/usuario/:usuarioId", requireAuth, obtenerEstadoLibroUsuario);
 
 // Rutas Listas
-rutasPrivadas.post("/lista", requireAuth, crearLista);
-rutasPrivadas.put("/lista/:id", requireAuth, actualizarLista);
-rutasPrivadas.delete("/lista/:id", requireAuth, borrarLista);
+rutasPrivadas.post("/lista/usuario/:usuarioId", requireAuth, crearLista);
+rutasPrivadas.put("/lista/:id/usuario/:usuarioId", requireAuth, actualizarLista);
+rutasPrivadas.delete("/lista/:id/usuario/:usuarioId", requireAuth, borrarLista);
 
-rutasPrivadas.post("/lista/:id/comentario", requireAuth, crearComentarioLista);
+rutasPrivadas.post("/lista/:id/comentario/usuario/:usuarioId", requireAuth, crearComentarioLista);
 rutasPrivadas.put("/lista/:id/comentario/:comentarioId", requireAuth, actualizarComentarioLista);
 rutasPrivadas.delete("/lista/:id/comentario/:comentarioId", requireAuth, borrarComentarioLista);
 
@@ -95,9 +96,10 @@ rutasPrivadas.delete("/usuario/:id", requireAuth, borrarUsuario);
 rutasPrivadas.get("/usuario/:id", requireAuth, obtenerUsuario);
 
 // Rutas Eventos
-rutasPrivadas.post("/evento", requireAuth, crearEvento);
-rutasPrivadas.put("/evento/:id", requireAuth, actualizarEvento);
-rutasPrivadas.delete("/evento/:id", requireAuth, borrarEvento);
+rutasPrivadas.post("/evento/usuario/:usuarioId", requireAuth, crearEvento);
+rutasPrivadas.put("/evento/:id/usuario/:usuarioId", requireAuth, actualizarEvento);
+rutasPrivadas.delete("/evento/:id/usuario/:usuarioId", requireAuth, borrarEvento);
+rutasPrivadas.post("/evento/:id/comentario/usuario/:usuarioId", requireAuth, crearComentarioEvento);
 rutasPrivadas.post("/evento/:id/seguir/usuario/:usuarioId", requireAuth, seguirEvento);
 rutasPrivadas.delete("/evento/:id/seguir/usuario/:usuarioId", requireAuth, dejarSeguirEvento);
 rutasPrivadas.post("/evento/:id/me-gusta/usuario/:usuarioId", requireAuth, marcarMeGustaEvento);

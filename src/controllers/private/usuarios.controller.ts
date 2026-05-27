@@ -216,10 +216,6 @@ export async function obtenerLibrosLeidosUsuario(req: AuthRequest, res: Response
 			return respuestaError(res, 400, "ID_USUARIO_INVALIDO");
 		}
 
-		if (!asegurarPropietarioAdmin(req, res, id, 1)) {
-			return respuestaError(res, 403, "ERROR_USUARIO_NO_AUTORIZADO");
-		}
-
 		conexionAbierta = new ConexionUsuarios();
 		const datos = await conexionAbierta.obtenerLibrosLeidosPendientes(id, 1);
 
@@ -237,10 +233,6 @@ export async function obtenerLibrosPendientesUsuario(req: AuthRequest, res: Resp
 		const id = Number(req.params.id);
 		if (!Number.isFinite(id)) {
 			return respuestaError(res, 400, "ID_USUARIO_INVALIDO");
-		}
-
-		if (!asegurarPropietarioAdmin(req, res, id, 1)) {
-			return respuestaError(res, 403, "ERROR_USUARIO_NO_AUTORIZADO");
 		}
 
 		conexionAbierta = new ConexionUsuarios();
@@ -265,9 +257,7 @@ export async function obtenerListasCreadasUsuario(req: AuthRequest, res: Respons
 		if (!Number.isFinite(id)) {
 			return respuestaError(res, 400, "ID_USUARIO_INVALIDO");
 		}
-		if (!asegurarPropietarioAdmin(req, res, id, 1)) {
-			return respuestaError(res, 403, "ERROR_USUARIO_NO_AUTORIZADO");
-		}
+
 		conexionAbierta = new ConexionUsuarios();
 
 		const idListasCreadas = await conexionAbierta.listarRegistros("lista", { id_usuarioCrd: id }, "", 0, "id_lista");
@@ -288,9 +278,6 @@ export async function obtenerListasSeguidasUsuario(req: AuthRequest, res: Respon
 		const id = Number(req.params.id);
 		if (!Number.isFinite(id)) {
 			return respuestaError(res, 400, "ID_USUARIO_INVALIDO");
-		}
-		if (!asegurarPropietarioAdmin(req, res, id, 1)) {
-			return respuestaError(res, 403, "ERROR_USUARIO_NO_AUTORIZADO");
 		}
 
 		conexionAbierta = new ConexionUsuarios();
@@ -320,9 +307,6 @@ export async function obtenerEventosCreadosUsuario(req: AuthRequest, res: Respon
 		if (!Number.isFinite(id)) {
 			return respuestaError(res, 400, "ID_USUARIO_INVALIDO");
 		}
-		if (!asegurarPropietarioAdmin(req, res, id, 1)) {
-			return respuestaError(res, 403, "ERROR_USUARIO_NO_AUTORIZADO");
-		}
 
 		conexionAbierta = new ConexionUsuarios();
 		const datos = await conexionAbierta.obtenerEventosCreados(id);
@@ -342,9 +326,6 @@ export async function obtenerEventosAsistidosUsuario(req: AuthRequest, res: Resp
 		if (!Number.isFinite(id)) {
 			return respuestaError(res, 400, "ID_USUARIO_INVALIDO");
 		}
-		if (!asegurarPropietarioAdmin(req, res, id, 1)) {
-			return respuestaError(res, 403, "ERROR_USUARIO_NO_AUTORIZADO");
-		}
 
 		conexionAbierta = new ConexionUsuarios();
 		const datos = await conexionAbierta.obtenerEventosAsistidos(id);
@@ -363,9 +344,6 @@ export async function obtenerCriticasUsuario(req: AuthRequest, res: Response) {
 		const id = Number(req.params.id);
 		if (!Number.isFinite(id)) {
 			return respuestaError(res, 400, "ID_USUARIO_INVALIDO");
-		}
-		if (!asegurarPropietarioAdmin(req, res, id, 1)) {
-			return respuestaError(res, 403, "ERROR_USUARIO_NO_AUTORIZADO");
 		}
 
 		conexionAbierta = new ConexionUsuarios();

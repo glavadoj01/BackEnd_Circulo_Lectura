@@ -39,6 +39,7 @@ const VALIDACION_MENSAJES = {
 	COMENTARIOS_EVENTO_OK: "Comentarios del evento obtenidos exitosamente",
 	COMENTARIOS_LISTA_OK: "Comentarios de la lista obtenidos exitosamente",
 	COMENTARIO_LISTA_CREADO_OK: "Comentario de la lista creado exitosamente",
+	COMENTARIO_EVENTO_CREADO_OK: "Comentario del evento creado exitosamente",
 	COMENTARIO_LISTA_ACTUALIZADO_OK: "Comentario de la lista actualizado exitosamente",
 	COMENTARIO_LISTA_BORRADO_OK: "Comentario de la lista borrado exitosamente",
 	LIBRO_CREADO_OK: "Libro creado exitosamente",
@@ -85,6 +86,7 @@ const ERROR_MENSAJES = {
 	ERROR_ACTUALIZAR_USUARIO: "Error al actualizar usuario",
 
 	ERROR_CREAR_COMENTARIO_LISTA: "Error al crear comentario de la lista",
+	ERROR_CREAR_COMENTARIO_EVENTO: "Error al crear comentario del evento",
 	ERROR_CREAR_CRITICA: "Error al crear crítica",
 	ERROR_CREAR_EVENTO: "Error al crear evento",
 	ERROR_CREAR_LIBRO: "Error al crear libro",
