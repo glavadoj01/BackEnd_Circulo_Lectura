@@ -23,6 +23,15 @@ import {
 	obtenerTotalEventos,
 } from "../controllers/public/eventos.controller.js";
 import { loginAction } from "../controllers/private/auth.controller.js";
+import {
+	obtenerLibrosLeidosUsuario,
+	obtenerLibrosPendientesUsuario,
+	obtenerListasCreadasUsuario,
+	obtenerListasSeguidasUsuario,
+	obtenerEventosCreadosUsuario,
+	obtenerEventosAsistidosUsuario,
+	obtenerCriticasUsuario,
+} from "../controllers/private/usuarios.controller.js";
 
 // Creación del router Express para manejar las rutas de la API
 const rutasConexionBD = Router();
@@ -48,6 +57,8 @@ rutasConexionBD.get("/years", obtenerYears);
 rutasConexionBD.get("/listas", obtenerListas);
 rutasConexionBD.get("/listas/total", obtenerListasTotal);
 rutasConexionBD.get("/lista/:id", obtenerListaId);
+
+// Definición de rutas para comentarios y contenido de lista
 rutasConexionBD.get("/lista/:id/comentarios", obtenerComentariosLista);
 rutasConexionBD.get("/lista/:id/libros", obtenerLibrosDeLista);
 
@@ -61,5 +72,14 @@ rutasConexionBD.get("/evento/:id", obtenerEventoId);
 rutasConexionBD.get("/evento/:id/asistentes", obtenerAsistentesEvento);
 rutasConexionBD.get("/evento/:id/libros", obtenerLibrosEvento);
 rutasConexionBD.get("/evento/:id/comentarios", obtenerComentariosEvento);
+
+// Datos relacionados Usuario
+rutasConexionBD.get("/usuario/libros/leidos/:id", obtenerLibrosLeidosUsuario);
+rutasConexionBD.get("/usuario/libros/pendientes/:id", obtenerLibrosPendientesUsuario);
+rutasConexionBD.get("/usuario/listas/creadas/:id", obtenerListasCreadasUsuario);
+rutasConexionBD.get("/usuario/listas/seguidas/:id", obtenerListasSeguidasUsuario);
+rutasConexionBD.get("/usuario/eventos/creados/:id", obtenerEventosCreadosUsuario);
+rutasConexionBD.get("/usuario/eventos/asistidos/:id", obtenerEventosAsistidosUsuario);
+rutasConexionBD.get("/usuario/criticas/:id", obtenerCriticasUsuario);
 
 export default rutasConexionBD;

@@ -40,13 +40,6 @@ import {
 	obtenerUsuario,
 	actualizarUsuario,
 	borrarUsuario,
-	obtenerLibrosLeidosUsuario,
-	obtenerLibrosPendientesUsuario,
-	obtenerListasCreadasUsuario,
-	obtenerListasSeguidasUsuario,
-	obtenerEventosCreadosUsuario,
-	obtenerEventosAsistidosUsuario,
-	obtenerCriticasUsuario,
 } from "../controllers/private/usuarios.controller.js";
 import { requireAdmin, requireAuth } from "../utils/requireAuth.js";
 import { crearAutor } from "../controllers/public/autores.controller.js";
@@ -55,6 +48,8 @@ const rutasPrivadas = Router();
 
 // Rutas de autenticación
 rutasPrivadas.post("/auth/logout", requireAuth, logoutAction);
+//! REMINDER
+// TODO
 rutasPrivadas.post("/admin/panel", requireAdmin);
 
 // Rutas Libro
@@ -93,19 +88,11 @@ rutasPrivadas.get("/lista/:id/estado/usuario/:usuarioId", requireAuth, obtenerEs
 
 // Rutas Usuarios
 rutasPrivadas.get("/usuarios", requireAdmin, obtenerUsuarios);
-rutasPrivadas.get("/usuario/:id", requireAuth, obtenerUsuario);
-
 rutasPrivadas.put("/usuario/:id", requireAuth, actualizarUsuario);
 rutasPrivadas.delete("/usuario/:id", requireAuth, borrarUsuario);
 
-// Datos relacionados Usuario
-rutasPrivadas.get("/usuario/libros/leidos/:id", requireAuth, obtenerLibrosLeidosUsuario);
-rutasPrivadas.get("/usuario/libros/pendientes/:id", requireAuth, obtenerLibrosPendientesUsuario);
-rutasPrivadas.get("/usuario/listas/creadas/:id", requireAuth, obtenerListasCreadasUsuario);
-rutasPrivadas.get("/usuario/listas/seguidas/:id", requireAuth, obtenerListasSeguidasUsuario);
-rutasPrivadas.get("/usuario/eventos/creados/:id", requireAuth, obtenerEventosCreadosUsuario);
-rutasPrivadas.get("/usuario/eventos/asistidos/:id", requireAuth, obtenerEventosAsistidosUsuario);
-rutasPrivadas.get("/usuario/criticas/:id", requireAuth, obtenerCriticasUsuario);
+// Rutas Usuarios
+rutasPrivadas.get("/usuario/:id", requireAuth, obtenerUsuario);
 
 // Rutas Eventos
 rutasPrivadas.post("/evento", requireAuth, crearEvento);
