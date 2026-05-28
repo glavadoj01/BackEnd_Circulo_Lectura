@@ -37,7 +37,7 @@ export async function crearComentarioLista(req: AuthRequest, res: Response) {
 			id_usuario === null ||
 			Number.isNaN(idUsuarioParam) ||
 			idUsuarioParam !== id_usuario ||
-			!tieneTexto && !tieneCalif ||
+			(!tieneTexto && !tieneCalif) ||
 			(tieneCalif && (calificacionLimpia < 0 || calificacionLimpia > 5)) ||
 			(idComentarioRespuesta !== null && Number.isNaN(idComentarioRespuesta))
 		) {
@@ -94,7 +94,8 @@ export async function actualizarComentarioLista(req: AuthRequest, res: Response)
 			typeof texto_comentario !== "string" ||
 			texto_comentario.trim().length < 1 ||
 			(titulo_comentario !== undefined && typeof titulo_comentario !== "string") ||
-			(calificacion_comentario !== undefined && (typeof calificacion_comentario !== "number" || calificacion_comentario < 0 || calificacion_comentario > 5))
+			(calificacion_comentario !== undefined &&
+				(typeof calificacion_comentario !== "number" || calificacion_comentario < 0 || calificacion_comentario > 5))
 		) {
 			return respuestaError(res, 400, "DATOS_INVALIDOS");
 		}
@@ -134,9 +135,15 @@ export async function borrarComentarioLista(req: AuthRequest, res: Response) {
 	let conexion: ConexionListas | null = null;
 	try {
 		const id_listaComentario = Number(req.params.comentarioId);
+		const id_usuarioCrd = parsePositiveInt(req.params.usuarioId);
+		console.log("[BorrarComentarioLista] ID comentario:", id_listaComentario, "ID usuario:", id_usuarioCrd);
 		if (Number.isNaN(id_listaComentario)) {
 			return respuestaError(res, 400, "ID_COMENTARIO_INVALIDO");
 		}
+		if (!id_usuarioCrd) {
+			return respuestaError(res, 400, "ID_USUARIO_INVALIDO");
+		}
+
 		conexion = new ConexionListas();
 		const comentarioRows = await conexion.listarRegistros(
 			"lista_comentario",
@@ -146,13 +153,15 @@ export async function borrarComentarioLista(req: AuthRequest, res: Response) {
 			"id_usuario",
 		);
 		const comentario = comentarioRows.exito && Array.isArray(comentarioRows.datos) ? comentarioRows.datos[0] : null;
+		console.log("[BorrarComentarioLista] Comentario encontrado:", comentario);
 		if (!comentario) return respuestaError(res, 404, "NO_ENCONTRADO_COMENTARIO");
 		if (!asegurarPropietarioAdmin(req, res, Number(comentario.id_usuario), 1)) return null;
 		const result = await conexion.borrarRegistro("lista_comentario", { id_listaComentario });
-		if (!result.exito || result.datos === 0) {
+		if (!result.exito || result.datos.affectedRows === 0) {
 			return respuestaError(res, 404, "ERROR_OBTENER_COMENTARIOS_LISTA", result.mensaje);
 		}
-		return respuestaOk(res, 200, "COMENTARIO_LISTA_BORRADO_OK", { id_listaComentario });
+		console.log("[BorrarComentarioLista] Resultado eliminación:", result);
+		return respuestaOk(res, 200, "COMENTARIO_LISTA_BORRADO_OK", id_listaComentario);
 	} catch (error: any) {
 		return respuestaError(res, 500, "ERROR_BORRAR_COMENTARIO_LISTA", error.message);
 	} finally {

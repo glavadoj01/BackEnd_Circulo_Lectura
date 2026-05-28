@@ -107,6 +107,11 @@ const ERROR_MENSAJES = {
 	ERROR_ME_GUSTA_LIBRO: "Error al marcar me gusta en libro",
 	ERROR_QUITAR_ME_GUSTA_LIBRO: "Error al quitar me gusta en libro",
 
+	ERROR_EVENTO_COMENTARIO_NO_VALIDO: "Error al validar ID de evento o comentario",
+	ERROR_EVENTO_COMENTARIO_NO_ENCONTRADO: "Error al encontrar el comentario del evento para eliminar",
+	COMENTARIO_EVENTO_BORRADO_OK: "Comentario del evento borrado exitosamente",
+	ERROR_BORRAR_COMENTARIO_EVENTO: "Error al borrar comentario del evento",
+
 	ERROR_OBTENER_AUTORES: "Error al obtener los autores",
 	ERROR_OBTENER_ASISTENTES_EVENTO: "Error al obtener los asistentes del evento",
 	ERROR_OBTENER_ESTADO_EVENTO: "Error al obtener el estado del evento para el usuario",

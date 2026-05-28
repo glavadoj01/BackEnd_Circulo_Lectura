@@ -162,18 +162,19 @@ export async function borrarCritica(req: AuthRequest, res: Response) {
 	let conexionAbierta: ConexionBD | null = null;
 	try {
 		const idLibro = parsePositiveInt(req.params.id);
-		const idUsuario = getSesionID(req);
+		const idUsuarioCrd = parsePositiveInt(req.params.usuarioId);
+		const idUsuarioPeticion = getSesionID(req);
 		if (Number.isNaN(idLibro)) {
 			return respuestaError(res, 400, "ID_LIBRO_INVALIDO");
 		}
-		if (!idUsuario) {
+		if (!idUsuarioPeticion || !idUsuarioCrd) {
 			return respuestaError(res, 400, "ID_USUARIO_INVALIDO");
 		}
-		if (!asegurarPropietarioAdmin(req, res, idUsuario, 1)) return null;
+		if (!asegurarPropietarioAdmin(req, res, idUsuarioPeticion, 1)) return null;
 		conexionAbierta = new ConexionBD();
 		const resultado = await conexionAbierta.borrarRegistro("libro_critica", {
 			id_libro: idLibro,
-			id_usuario: idUsuario,
+			id_usuario: idUsuarioCrd,
 		});
 		if (resultado.datos.affectedRows === 0) {
 			return respuestaError(res, 404, "ERROR_OBTENER_CRITICAS", resultado.mensaje);

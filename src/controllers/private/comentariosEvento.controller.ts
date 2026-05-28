@@ -1,7 +1,7 @@
 import { Response } from "express";
 import type { AuthRequest } from "../../interfaces/modelosApp/modelosApp.js";
 import { ConexionBD } from "../../services/conexionBD.service.js";
-import { getSesionID } from "../../utils/authorization.utils.js";
+import { asegurarPropietarioAdmin, getSesionID } from "../../utils/authorization.utils.js";
 import { parsePositiveInt } from "../../utils/validation.utils.js";
 import { respuestaError, respuestaOk } from "../../utils/validationMessages.utils.js";
 
@@ -87,6 +87,38 @@ export async function crearComentarioEvento(req: AuthRequest, res: Response) {
 		});
 	} catch (error: any) {
 		return respuestaError(res, 500, "ERROR_CREAR_COMENTARIO_EVENTO", error.message);
+	} finally {
+		if (conexion) await conexion.close();
+	}
+}
+
+export async function borrarComentarioEvento(req: AuthRequest, res: Response) {
+	let conexion: ConexionBD | null = null;
+	try {
+		const id_evento = parsePositiveInt(req.params.id);
+		const id_comentario = parsePositiveInt(req.params.comentarioId);
+		const id_usuarioCrd = parsePositiveInt(req.params.usuarioId);
+		const id_usuarioPeticion = getSesionID(req);
+		if (Number.isNaN(id_evento) || Number.isNaN(id_comentario)) {
+			return respuestaError(res, 400, "ERROR_EVENTO_COMENTARIO_NO_VALIDO");
+		}
+		if (id_usuarioPeticion === null || id_usuarioCrd === null) {
+			return respuestaError(res, 400, "ERROR_USUARIO_NO_AUTENTICADO");
+		}
+		if (!asegurarPropietarioAdmin(req, res, id_usuarioPeticion, 1)) return null;
+
+		conexion = new ConexionBD();
+		const resultado = await conexion.borrarRegistro("evento_comentario", {
+			id_eventoComentario: id_comentario,
+			id_usuario: id_usuarioCrd,
+			id_evento,
+		});
+		if (resultado.datos.affectedRows === 0) {
+			return respuestaError(res, 404, "ERROR_EVENTO_COMENTARIO_NO_ENCONTRADO", resultado.mensaje);
+		}
+		return respuestaOk(res, 200, "COMENTARIO_EVENTO_BORRADO_OK", resultado.datos);
+	} catch (error: any) {
+		return respuestaError(res, 500, "ERROR_BORRAR_COMENTARIO_EVENTO", error.message);
 	} finally {
 		if (conexion) await conexion.close();
 	}
