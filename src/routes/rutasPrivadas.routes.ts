@@ -5,7 +5,11 @@ import {
 	actualizarComentarioLista,
 	borrarComentarioLista,
 } from "../controllers/private/comentariosLista.controller.js";
-import { borrarComentarioEvento, crearComentarioEvento } from "../controllers/private/comentariosEvento.controller.js";
+import {
+	actualizarComentarioEvento,
+	borrarComentarioEvento,
+	crearComentarioEvento,
+} from "../controllers/private/comentariosEvento.controller.js";
 import { crearCritica, actualizarCritica, borrarCritica } from "../controllers/private/criticas.controller.js";
 import {
 	crearLibro,
@@ -77,7 +81,7 @@ rutasPrivadas.put("/lista/:id/usuario/:usuarioId", requireAuth, actualizarLista)
 rutasPrivadas.delete("/lista/:id/usuario/:usuarioId", requireAuth, borrarLista);
 
 rutasPrivadas.post("/lista/:id/comentario/usuario/:usuarioId", requireAuth, crearComentarioLista);
-rutasPrivadas.put("/lista/:id/comentario/:comentarioId", requireAuth, actualizarComentarioLista);
+rutasPrivadas.put("/lista/:id/comentario/:comentarioId/usuario/:usuarioId", requireAuth, actualizarComentarioLista);
 rutasPrivadas.delete("/lista/:id/comentario/:comentarioId/usuario/:usuarioId", requireAuth, borrarComentarioLista);
 
 rutasPrivadas.post("/lista/:id/libro", requireAuth, agregarLibroALista);
@@ -103,6 +107,7 @@ rutasPrivadas.put("/evento/:id/usuario/:usuarioId", requireAuth, actualizarEvent
 rutasPrivadas.delete("/evento/:id/usuario/:usuarioId", requireAuth, borrarEvento);
 
 rutasPrivadas.post("/evento/:id/comentario/usuario/:usuarioId", requireAuth, crearComentarioEvento);
+rutasPrivadas.put("/evento/:id/comentario/:comentarioId/usuario/:usuarioId", requireAuth, actualizarComentarioEvento);
 rutasPrivadas.delete("/evento/:id/comentario/:comentarioId/usuario/:usuarioId", requireAuth, borrarComentarioEvento);
 
 rutasPrivadas.post("/evento/:id/seguir/usuario/:usuarioId", requireAuth, seguirEvento);

@@ -4,6 +4,7 @@ import { ConexionBD } from "../../services/conexionBD.service.js";
 import { asegurarPropietarioAdmin, getSesionID } from "../../utils/authorization.utils.js";
 import { parsePositiveInt } from "../../utils/validation.utils.js";
 import { respuestaError, respuestaOk } from "../../utils/validationMessages.utils.js";
+import { ConexionEventos } from "../../services/conexionEventos.service.js";
 
 const sanitizarTexto = (valor: unknown, max = 2500): string => {
 	if (typeof valor !== "string") return "";
@@ -119,6 +120,59 @@ export async function borrarComentarioEvento(req: AuthRequest, res: Response) {
 		return respuestaOk(res, 200, "COMENTARIO_EVENTO_BORRADO_OK", resultado.datos);
 	} catch (error: any) {
 		return respuestaError(res, 500, "ERROR_BORRAR_COMENTARIO_EVENTO", error.message);
+	} finally {
+		if (conexion) await conexion.close();
+	}
+}
+
+export async function actualizarComentarioEvento(req: AuthRequest, res: Response) {
+	let conexion: ConexionEventos | null = null;
+
+	try {
+		const id_eventoComentario = Number(req.params.comentarioId);
+		const { texto_comentario, calificacion_comentario } = req.body;
+
+		const calificacion = calificacion_comentario !== undefined ? Number(calificacion_comentario) : undefined;
+
+		if (
+			Number.isNaN(id_eventoComentario) ||
+			typeof texto_comentario !== "string" ||
+			texto_comentario.trim().length < 1 ||
+			(calificacion !== undefined && (Number.isNaN(calificacion) || calificacion < 0 || calificacion > 5))
+		) {
+			return respuestaError(res, 400, "DATOS_INVALIDOS");
+		}
+
+		conexion = new ConexionEventos();
+
+		// Obtener comentario para verificar propietario
+		const comentarioRows = await conexion.listarRegistros(
+			"evento_comentario",
+			{ id_eventoComentario },
+			"",
+			1,
+			"id_usuario",
+		);
+
+		const comentario = comentarioRows.exito && Array.isArray(comentarioRows.datos) ? comentarioRows.datos[0] : null;
+		if (!comentario) return respuestaError(res, 404, "NO_ENCONTRADO_COMENTARIO");
+		if (!asegurarPropietarioAdmin(req, res, Number(comentario.id_usuario), 1)) return null;
+		const datos: any = { texto_comentario };
+		if (calificacion !== undefined) datos.calificacion_comentario = calificacion;
+
+		const result = await conexion.actualizarRegistro("evento_comentario", datos, { id_eventoComentario });
+
+		if (!result.exito || result.datos === 0) {
+			return respuestaError(res, 404, "ERROR_ACTUALIZAR_COMENTARIO_EVENTO", result.mensaje);
+		}
+
+		return respuestaOk(res, 200, "COMENTARIO_EVENTO_ACTUALIZADO_OK", {
+			id_eventoComentario,
+			texto_comentario,
+			calificacion_comentario: calificacion,
+		});
+	} catch (error: any) {
+		return respuestaError(res, 500, "ERROR_ACTUALIZAR_COMENTARIO_EVENTO", error.message);
 	} finally {
 		if (conexion) await conexion.close();
 	}

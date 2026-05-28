@@ -143,6 +143,7 @@ export class ConexionBD {
 			const { sql, valores } = this.construirUpdateQuery(tabla, datos, condiciones);
 			console.log("SQL UPDATE:", sql, "Valores:", valores);
 			const [result]: any = await this.pool.query(sql, valores);
+			console.log("Resultado UPDATE:", result);
 			return { exito: true, datos: result.affectedRows, mensaje: "" };
 		} catch (error: any) {
 			return { exito: false, datos: null, mensaje: error.message };

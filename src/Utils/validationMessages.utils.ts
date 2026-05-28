@@ -13,6 +13,7 @@ const VALIDACION_MENSAJES = {
 	CRITICAS_OBTENIDAS_OK: "Críticas obtenidas exitosamente",
 	CRITICA_ACTUALIZADA_OK: "Crítica actualizada exitosamente",
 	CRITICA_BORRADA_OK: "Crítica borrada exitosamente",
+	COMENTARIO_EVENTO_ACTUALIZADO_OK: "Comentario del evento actualizado exitosamente",
 	EVENTO_CREADO_OK: "Evento creado exitosamente",
 	EVENTO_ACTUALIZADO_OK: "Evento actualizado exitosamente",
 	EVENTO_BORRADO_OK: "Evento borrado exitosamente",
@@ -81,6 +82,7 @@ const ERROR_MENSAJES = {
 	ERROR_INTERNO: "Error interno del servidor",
 
 	ERROR_ACTUALIZAR_COMENTARIO_LISTA: "Error al actualizar comentario de la lista",
+	ERROR_ACTUALIZAR_COMENTARIO_EVENTO: "Error al actualizar comentario del evento",
 	ERROR_ACTUALIZAR_CRITICA: "Error al actualizar crítica",
 	ERROR_ACTUALIZAR_EVENTO: "Error al actualizar evento",
 	ERROR_ACTUALIZAR_LIBRO: "Error al actualizar libro",

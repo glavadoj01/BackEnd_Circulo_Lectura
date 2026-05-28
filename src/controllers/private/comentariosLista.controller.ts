@@ -89,13 +89,15 @@ export async function actualizarComentarioLista(req: AuthRequest, res: Response)
 	try {
 		const id_listaComentario = Number(req.params.comentarioId);
 		const { titulo_comentario, texto_comentario, calificacion_comentario } = req.body;
+
+		const calificacion = calificacion_comentario !== undefined ? Number(calificacion_comentario) : undefined;
+
 		if (
 			Number.isNaN(id_listaComentario) ||
 			typeof texto_comentario !== "string" ||
 			texto_comentario.trim().length < 1 ||
 			(titulo_comentario !== undefined && typeof titulo_comentario !== "string") ||
-			(calificacion_comentario !== undefined &&
-				(typeof calificacion_comentario !== "number" || calificacion_comentario < 0 || calificacion_comentario > 5))
+			(calificacion !== undefined && (!calificacion || calificacion < 0 || calificacion > 5))
 		) {
 			return respuestaError(res, 400, "DATOS_INVALIDOS");
 		}
@@ -112,7 +114,7 @@ export async function actualizarComentarioLista(req: AuthRequest, res: Response)
 		if (!asegurarPropietarioAdmin(req, res, Number(comentario.id_usuario), 1)) return null;
 		const datos: any = { texto_comentario };
 		if (titulo_comentario !== undefined) datos.titulo_comentario = titulo_comentario;
-		if (calificacion_comentario !== undefined) datos.calificacion_comentario = Number(calificacion_comentario);
+		if (calificacion !== undefined) datos.calificacion_comentario = calificacion;
 		const result = await conexion.actualizarRegistro("lista_comentario", datos, {
 			id_listaComentario,
 		});
@@ -123,6 +125,7 @@ export async function actualizarComentarioLista(req: AuthRequest, res: Response)
 			id_listaComentario,
 			titulo_comentario,
 			texto_comentario,
+			calificacion_comentario: calificacion,
 		});
 	} catch (error: any) {
 		return respuestaError(res, 500, "ERROR_ACTUALIZAR_COMENTARIO_LISTA", error.message);
