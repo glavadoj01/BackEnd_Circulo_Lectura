@@ -42,12 +42,7 @@ import {
 	eliminarLibrosDeEvento,
 	agregarLibrosAEvento,
 } from "../controllers/private/eventos.controller.js";
-import {
-	obtenerUsuarios,
-	obtenerUsuario,
-	actualizarUsuario,
-	borrarUsuario,
-} from "../controllers/private/usuarios.controller.js";
+import { obtenerUsuarios, actualizarUsuario, borrarUsuario } from "../controllers/private/usuarios.controller.js";
 import { requireAdmin, requireAuth } from "../utils/requireAuth.js";
 import { crearAutor } from "../controllers/public/autores.controller.js";
 
@@ -97,9 +92,6 @@ rutasPrivadas.get("/lista/:id/estado/usuario/:usuarioId", requireAuth, obtenerEs
 rutasPrivadas.get("/usuarios", requireAdmin, obtenerUsuarios);
 rutasPrivadas.put("/usuario/:id", requireAuth, actualizarUsuario);
 rutasPrivadas.delete("/usuario/:id", requireAuth, borrarUsuario);
-
-// Rutas Usuarios
-rutasPrivadas.get("/usuario/:id", requireAuth, obtenerUsuario);
 
 // Rutas Eventos
 rutasPrivadas.post("/evento/usuario/:usuarioId", requireAuth, crearEvento);

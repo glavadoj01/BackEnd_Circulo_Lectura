@@ -8,6 +8,7 @@ import {
 	buscarNombreUsuarioExistente,
 	buscarEmailExistente,
 } from "../../utils/utils.usuario.js";
+import { parsePositiveInt } from "../../utils/validation.utils.js";
 
 export async function obtenerNombreUsuario(req: Request, res: Response) {
 	let conexionAbierta: ConexionBD | null = null;
@@ -26,6 +27,39 @@ export async function obtenerNombreUsuario(req: Request, res: Response) {
 		});
 	} catch (error: any) {
 		return respuestaError(res, 500, "ERROR_OBTENER_USUARIO_NOMBRE", error.message);
+	} finally {
+		if (conexionAbierta) await conexionAbierta.close();
+	}
+}
+
+/**
+ * Obtener un usuario por ID.
+ * @param req Objeto de solicitud de Express, con el ID del usuario en req.params.id.
+ * @param res Objeto de respuesta de Express.
+ * @returns JSON con los datos del usuario encontrado, o un error si no fue encontrado.
+ */
+export async function obtenerUsuario(req: Request, res: Response) {
+	let conexionAbierta: ConexionBD | null = null;
+	try {
+		const id = parsePositiveInt(req.params.id);
+
+		if (Number.isNaN(id)) {
+			return respuestaError(res, 400, "ID_USUARIO_INVALIDO");
+		}
+		conexionAbierta = new ConexionBD();
+		const resultado = await conexionAbierta.listarRegistros(
+			"usuario",
+			{ id_usuario: id },
+			"",
+			1,
+			"id_usuario, nombre_usuario, email_usuario, nombre_real, apellido_usuario, fecha_registro_usuario, esAdministrador",
+		);
+		if (!resultado.datos || resultado.datos.length === 0) {
+			return respuestaError(res, 404, "NO_ENCONTRADO_USUARIO");
+		}
+		return respuestaOk(res, 200, "USUARIO_OBTENIDO_OK", resultado.datos[0]);
+	} catch (error: any) {
+		return respuestaError(res, 500, "ERROR_USUARIO_OBTENER_USUARIO", error.message);
 	} finally {
 		if (conexionAbierta) await conexionAbierta.close();
 	}
@@ -70,8 +104,9 @@ export async function crearUsuario(req: Request, res: Response) {
 		}
 
 		const insertId = rowsData.datos;
-		//! POSTAMAN: DESCOMENTAR ESTA LÍNEA SI SE USA POSTAM Y SE QUIERE VER EL HASH -> RECORODAR COMENTARLA DE NUEVO!!!!!
-		// delete datosBD.password_hash; // No devuelvo el hash en la respuesta al FRONT
+		//! POSTAMAN: COMENTAR ESTA LÍNEA SI SE USA POSTAM Y SE QUIERE VER EL HASH -> RECORODAR COMENTARLA DE NUEVO!!!!!
+		delete datosBD.password_hash;
+		delete datosBD.esAdministrador;
 		return respuestaOk(res, 201, "USUARIO_CREADO_OK", { id_usuario: insertId, ...datosBD });
 	} catch (error: any) {
 		return respuestaError(res, 500, "ERROR_USUARIO_CREAR_USUARIO", error.message);

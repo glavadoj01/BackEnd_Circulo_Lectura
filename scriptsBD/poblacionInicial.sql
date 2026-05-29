@@ -1,9 +1,14 @@
 /* ============================
    USUARIO ID 0 (para SET DEFAULT en FK)
    ============================ */
+/* Usuario generico */
 SET @password_hash_demo := '$2b$10$bEn5ReIUXGVkHfl5/R8dA.ORiBLqTebLeK.OsNzcyDXa44I4Y.a.S';
-/* password: 1Ab@3456789 */
+/* password Amin: 1Ab@3456789 */
 SET @password_hash_admin := '$2b$10$d28RpeX3GT1A9i/IRVnMDuoBKZvvu94Tz6pFdCeJqrHpN4E5FkYca';
+/* password Usuario2: aA!!23456789 */
+SET @password_hash_usuario2 := '$2b$10$W3q43jcoP39SHGLYfEdFGe12xGqra4LcgcmDqReG00ux0aKXTQ81e';
+/* password Usuario3-10 y Autor: bB!$123456789 */
+SET @password_hash_usuario3 := '$2b$10$jleHaIt4mVixHT1ZztnNVu/tvuMZC563T7I/JEcrvhwTbf/abCRL6';
 
 SET SESSION sql_mode = 'NO_AUTO_VALUE_ON_ZERO';
 INSERT INTO usuario (id_usuario, nombre_usuario, nombre_real, apellido_usuario, email_usuario, password_hash, fecha_registro_usuario, esAdministrador) VALUES (0, 'usuario0', 'Usuario Cero', 'Reservado', 'usuario0@example.com', @password_hash_demo, NOW(), 0);
@@ -14,8 +19,8 @@ SET SESSION sql_mode = '';
    ============================ */
 INSERT INTO usuario (nombre_usuario, nombre_real, apellido_usuario, email_usuario, password_hash, fecha_registro_usuario, esAdministrador) VALUES
 ('usuario1', 'Usuario1', 'Apellido Uno', 'usuario1@example.com', @password_hash_admin, NOW(), 2),
-('usuario2', 'Usuario2', 'Apellido Dos', 'usuario2@example.com', @password_hash_demo, NOW(), 0),
-('usuario3', 'Usuario3', 'Apellido Tres', 'usuario3@example.com', @password_hash_demo, NOW(), 0),
+('usuario2', 'Usuario2', 'Apellido Dos', 'usuario2@example.com', @password_hash_usuario2, NOW(), 1),
+('usuario3', 'Usuario3', 'Apellido Tres', 'usuario3@example.com', @password_hash_usuario3, NOW(), 0),
 ('usuario4', 'Usuario4', 'Apellido Cuatro', 'usuario4@example.com', @password_hash_demo, NOW(), 0),
 ('usuario5', 'Usuario5', 'Apellido Cinco', 'usuario5@example.com', @password_hash_demo, NOW(), 0),
 ('usuario6', 'Usuario6', 'Apellido Seis', 'usuario6@example.com', @password_hash_demo, NOW(), 0),

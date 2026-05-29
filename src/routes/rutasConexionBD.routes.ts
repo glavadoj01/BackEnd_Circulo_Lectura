@@ -12,7 +12,7 @@ import {
 import { obtenerLibrosDeLista } from "../controllers/public/librosLista.controller.js";
 import { obtenerListaId, obtenerListas, obtenerListasTotal } from "../controllers/public/listas.controller.js";
 import { resetearAPI } from "../controllers/public/resetAPI.controller.js";
-import { crearUsuario, obtenerNombreUsuario } from "../controllers/public/usuarios.controller.js";
+import { crearUsuario, obtenerNombreUsuario, obtenerUsuario } from "../controllers/public/usuarios.controller.js";
 import { obtenerYears } from "../controllers/public/years.controller.js";
 import {
 	obtenerAsistentesEvento,
@@ -74,6 +74,8 @@ rutasConexionBD.get("/evento/:id/libros", obtenerLibrosEvento);
 rutasConexionBD.get("/evento/:id/comentarios", obtenerComentariosEvento);
 
 // Datos relacionados Usuario
+// Rutas Usuarios
+rutasConexionBD.get("/usuario/:id", obtenerUsuario);
 rutasConexionBD.get("/usuario/libros/leidos/:id", obtenerLibrosLeidosUsuario);
 rutasConexionBD.get("/usuario/libros/pendientes/:id", obtenerLibrosPendientesUsuario);
 rutasConexionBD.get("/usuario/listas/creadas/:id", obtenerListasCreadasUsuario);

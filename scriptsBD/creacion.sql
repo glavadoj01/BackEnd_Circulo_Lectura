@@ -74,7 +74,7 @@ CREATE TABLE lista (
 
 CREATE TABLE evento (
 	id_evento 			INT PRIMARY KEY AUTO_INCREMENT,
-    id_usuarioCrd 			INT NOT NULL,
+    id_usuarioCrd 		INT,
     nombre_evento 		VARCHAR(100) NOT NULL,
     fecha_evento 		DATE NOT NULL, -- YYYY-MM-DD
     hora_evento 		TIME, 		   -- HH:MM:SS
@@ -85,7 +85,7 @@ CREATE TABLE evento (
 		FOREIGN KEY (id_usuarioCrd)
         REFERENCES usuario(id_usuario)
         ON UPDATE CASCADE
-        ON DELETE RESTRICT
+        ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_spanish_ci;
 
 
@@ -362,5 +362,9 @@ CREATE TABLE sesiones (
   fecha_inicio_sesion DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
   INDEX (id_usuario),
-  FOREIGN KEY (id_usuario) REFERENCES usuario(id_usuario)
+  CONSTRAINT fk_sesiones_idUsuario
+    FOREIGN KEY (id_usuario)
+    REFERENCES usuario(id_usuario)
+    ON UPDATE CASCADE
+    ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_spanish_ci;

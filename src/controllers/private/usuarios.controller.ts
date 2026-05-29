@@ -46,41 +46,6 @@ export async function obtenerUsuarios(req: AuthRequest, res: Response) {
 }
 
 /**
- * Obtener un usuario por ID.
- * @param req Objeto de solicitud de Express, con el ID del usuario en req.params.id.
- * @param res Objeto de respuesta de Express.
- * @returns JSON con los datos del usuario encontrado, o un error si no fue encontrado.
- */
-export async function obtenerUsuario(req: AuthRequest, res: Response) {
-	let conexionAbierta: ConexionBD | null = null;
-	try {
-		const id = parsePositiveInt(req.params.id);
-		if (!asegurarPropietarioAdmin(req, res, id, 1)) {
-			return respuestaError(res, 403, "ERROR_USUARIO_NO_AUTORIZADO");
-		}
-		if (Number.isNaN(id)) {
-			return respuestaError(res, 400, "ID_USUARIO_INVALIDO");
-		}
-		conexionAbierta = new ConexionBD();
-		const resultado = await conexionAbierta.listarRegistros(
-			"usuario",
-			{ id_usuario: id },
-			"",
-			1,
-			"id_usuario, nombre_usuario, email_usuario, nombre_real, apellido_usuario, fecha_registro_usuario, esAdministrador",
-		);
-		if (!resultado.datos || resultado.datos.length === 0) {
-			return respuestaError(res, 404, "NO_ENCONTRADO_USUARIO");
-		}
-		return respuestaOk(res, 200, "USUARIO_OBTENIDO_OK", resultado.datos[0]);
-	} catch (error: any) {
-		return respuestaError(res, 500, "ERROR_USUARIO_OBTENER_USUARIO", error.message);
-	} finally {
-		if (conexionAbierta) await conexionAbierta.close();
-	}
-}
-
-/**
  * Actualizar un usuario existente.
  * @param req Objeto de solicitud de Express, con el ID del usuario a actualizar en req.params.id o req.body.id_usuario, y los datos a actualizar en req.body.
  * @param res Objeto de respuesta de Express.
@@ -196,7 +161,10 @@ export async function borrarUsuario(req: AuthRequest, res: Response) {
 		}
 		if (!asegurarPropietarioAdmin(req, res, id, 1)) return respuestaError(res, 403, "ERROR_USUARIO_NO_AUTORIZADO");
 		conexionAbierta = new ConexionBD();
-		const afectados = (await conexionAbierta.borrarRegistro("usuario", { id_usuario: id })).datos.affectedRows;
+
+		// Borrar Tablas Secundarias
+
+		const afectados = (await conexionAbierta.borrarRegistro("usuario", { id_usuario: id })).datos;
 		if (afectados === 0) {
 			return respuestaError(res, 404, "NO_ENCONTRADO_USUARIO");
 		}

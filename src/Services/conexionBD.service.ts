@@ -117,7 +117,9 @@ export class ConexionBD {
 		try {
 			this.validarTablaYColumnas(tabla, condiciones);
 			const { sql, valores } = this.construirDeleteQuery(tabla, condiciones);
+			console.log("[CONEXION DELETE] SQL DELETE:", sql, "Valores:", valores);
 			const [result]: any = await this.pool.query(sql, valores);
+			console.log("[CONEXION DELETE] Resultado DELETE:", result);
 			return { exito: true, datos: result.affectedRows, mensaje: "" };
 		} catch (error: any) {
 			return { exito: false, datos: null, mensaje: error.message };
