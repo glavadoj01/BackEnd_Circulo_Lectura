@@ -3,11 +3,11 @@
    ============================ */
 /* Usuario generico */
 SET @password_hash_demo := '$2b$10$bEn5ReIUXGVkHfl5/R8dA.ORiBLqTebLeK.OsNzcyDXa44I4Y.a.S';
-/* password Amin: 1Ab@3456789 */
+/* password Admin: 1Ab@3456789 */
 SET @password_hash_admin := '$2b$10$d28RpeX3GT1A9i/IRVnMDuoBKZvvu94Tz6pFdCeJqrHpN4E5FkYca';
 /* password Usuario2: aA!!23456789 */
 SET @password_hash_usuario2 := '$2b$10$W3q43jcoP39SHGLYfEdFGe12xGqra4LcgcmDqReG00ux0aKXTQ81e';
-/* password Usuario3-10 y Autor: bB!$123456789 */
+/* password Usuario3: bB!$123456789 */
 SET @password_hash_usuario3 := '$2b$10$jleHaIt4mVixHT1ZztnNVu/tvuMZC563T7I/JEcrvhwTbf/abCRL6';
 
 SET SESSION sql_mode = 'NO_AUTO_VALUE_ON_ZERO';

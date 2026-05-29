@@ -82,4 +82,20 @@ export class LoginService extends ConexionBD {
 			return { exito: false, datos: null, mensaje: err.message };
 		}
 	}
+
+	async validarPassword(email: string, password: string) {
+		const conexion = new ConexionBD();
+		const resultado = await conexion.listarRegistros(
+			"usuario",
+			{ email_usuario: email },
+			"",
+			1,
+			"id_usuario, password_hash",
+		);
+
+		if (!resultado.datos.length) return false;
+		const bcrypt = await import("bcrypt");
+		const ok = await bcrypt.default.compare(password, resultado.datos[0].password_hash);
+		return ok;
+	}
 }

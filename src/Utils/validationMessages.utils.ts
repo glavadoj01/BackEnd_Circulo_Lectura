@@ -81,6 +81,11 @@ const ERROR_MENSAJES = {
 	ERROR_LOGIN_TOKEN_NO_CORRESPONDE: "El token de autenticación no corresponde al usuario indicado",
 	ERROR_INTERNO: "Error interno del servidor",
 
+	ERROR_PASSWORDS_NO_COINCIDEN: "Las contraseñas nuevas no coinciden",
+	ERROR_USUARIO_NOMBRE_INVALIDO: "El nombre de usuario es inválido (debe tener al menos 2 caracteres)",
+	ERROR_USUARIO_EMAIL_INVALIDO: "El email de usuario es inválido",
+	ERROR_USUARIO_NOMBRE_REAL_INVALIDO: "El nombre real de usuario es inválido (debe tener al menos 2 caracteres)",
+
 	ERROR_ACTUALIZAR_COMENTARIO_LISTA: "Error al actualizar comentario de la lista",
 	ERROR_ACTUALIZAR_COMENTARIO_EVENTO: "Error al actualizar comentario del evento",
 	ERROR_ACTUALIZAR_CRITICA: "Error al actualizar crítica",

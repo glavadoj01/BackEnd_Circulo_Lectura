@@ -10,7 +10,7 @@ import { LoginService } from "../../services/login.service.js";
 import {
 	validarPaginacion,
 	construirFiltros,
-	validarUsuario,
+	validarActualizacionUsuario,
 	construirDatosUsuarioParcial,
 	buscarNombreUsuarioExistente,
 	buscarEmailExistente,
@@ -56,11 +56,13 @@ export async function actualizarUsuario(req: AuthRequest, res: Response) {
 	let loginSrv: LoginService | null = null;
 	try {
 		const id = parsePositiveInt(req.params.id ?? req.body.id_usuario ?? Number.NaN);
+		console.log("[PUT User] ID USUARIO RECIBIDO:", id);
 		if (Number.isNaN(id)) {
 			return respuestaError(res, 400, "ID_USUARIO_INVALIDO");
 		}
 		if (!asegurarPropietarioAdmin(req, res, id, 1)) return respuestaError(res, 403, "ERROR_USUARIO_NO_AUTORIZADO");
 		const esModerador = getRolUsuario(req) === 2;
+		console.log("[PUT User] ROL USUARIO:", esModerador ? "MODERADOR" : "NO MODERADOR");
 		console.log("[PUT User] ID USUARIO A ACTUALIZAR:", id);
 		const body = req.body;
 		console.log("[PUT User] BODY RECIBIDO:", body);
@@ -82,24 +84,25 @@ export async function actualizarUsuario(req: AuthRequest, res: Response) {
 		// 2) Si el usuario se actualiza a sí mismo, validar password_actual contra el email actual.
 		if (!esModerador) {
 			loginSrv = new LoginService();
-			const resultadoLogin = await loginSrv.login(usuarioActual.email_usuario, body.password_actual);
-			if (!resultadoLogin.ok) {
+			const resultadoLogin = await loginSrv.validarPassword(usuarioActual.email_usuario, body.password_actual);
+			if (!resultadoLogin) {
 				return respuestaError(res, 400, "ERROR_LOGIN_PASSWORD_INVALIDA");
 			}
 			console.log("[PUT User] RESULTADO LOGIN PASSWORD ACTUAL:", resultadoLogin);
 		}
 		// 3) Normalizar body para validación (solo campos que realmente se quieren cambiar)
 		const bodyNorm: any = {};
-		if (body.nombre_usuario !== undefined) bodyNorm.nombre_usuario = body.nombre_usuario;
-		if (body.email_usuario !== undefined) bodyNorm.email_usuario = body.email_usuario;
-		if (body.nombre_real !== undefined) bodyNorm.nombre_real = body.nombre_real;
-		if (body.apellido_usuario !== undefined) bodyNorm.apellido_usuario = body.apellido_usuario;
+		if (body.datosBasicos?.nombre_usuario !== undefined) bodyNorm.nombre_usuario = body.datosBasicos.nombre_usuario;
+		if (body.datosBasicos?.email_usuario !== undefined) bodyNorm.email_usuario = body.datosBasicos.email_usuario;
+		if (body.datosBasicos?.nombre_real !== undefined) bodyNorm.nombre_real = body.datosBasicos.nombre_real;
+		if (body.datosBasicos?.apellido_usuario !== undefined)
+			bodyNorm.apellido_usuario = body.datosBasicos.apellido_usuario;
 
-		if (!esModerador && body.password_nueva) {
+		if (!esModerador && body?.password_nueva) {
 			bodyNorm.password = body.password_nueva;
 		}
 		console.log("[PUT User] BODY NORMALIZADO PARA VALIDACIÓN:", bodyNorm);
-		const errorValidacion = validarUsuario(bodyNorm, true);
+		const errorValidacion = validarActualizacionUsuario(bodyNorm);
 		console.log("[PUT User] RESULTADO VALIDACIÓN BODY:", errorValidacion);
 		if (errorValidacion) {
 			return respuestaError(res, 400, errorValidacion);
@@ -108,7 +111,11 @@ export async function actualizarUsuario(req: AuthRequest, res: Response) {
 		// 4) Construir datos parciales para BD
 		const datosBD = construirDatosUsuarioParcial(bodyNorm);
 
-		if (body.password_nueva) {
+		if (body.password_nueva && body.password_nueva_confirmacion) {
+			if (body.password_nueva !== body.password_nueva_confirmacion) {
+				return respuestaError(res, 400, "ERROR_PASSWORDS_NO_COINCIDEN");
+			}
+
 			const hashNuevo = await bcrypt.hash(String(body.password_nueva).trim(), 10);
 			datosBD.password_hash = hashNuevo;
 		}

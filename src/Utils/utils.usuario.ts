@@ -29,6 +29,24 @@ export const validarUsuario = (usuario: any, esActualizacion: boolean = false): 
 	return null;
 };
 
+export const validarActualizacionUsuario = (usuario: any): CodigoRespuesta | null => {
+	if (!usuario || typeof usuario !== "object") return "DATOS_INVALIDOS";
+
+	if (usuario.nombre_usuario !== undefined && !esCadenaValida(usuario.nombre_usuario, 2)) {
+		return "ERROR_USUARIO_NOMBRE_INVALIDO";
+	}
+	if (usuario.email_usuario !== undefined && !REGEX_EMAIL.test(usuario.email_usuario)) {
+		return "ERROR_USUARIO_EMAIL_INVALIDO";
+	}
+	if (usuario.nombre_real !== undefined && !esCadenaValida(usuario.nombre_real, 2)) {
+		return "ERROR_USUARIO_NOMBRE_REAL_INVALIDO";
+	}
+	if (usuario.apellido_usuario !== undefined && !esCadenaValida(usuario.apellido_usuario, 2)) {
+		return "ERROR_USUARIO_APELLIDO_INVALIDO";
+	}
+	return null;
+};
+
 /**
  * Construye el objeto de datos para la BD a partir del body (alta).
  * @param body Body de la request.
